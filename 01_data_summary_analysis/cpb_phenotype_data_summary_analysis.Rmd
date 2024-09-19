@@ -1,0 +1,27 @@
+---
+title: "Analysis 1: Data filtering and summary analysis"
+author: "Joe Gunn"
+date: "2024-09-19"
+output: html_document
+---
+
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheirtance following insecticide exposure in Colorado Potato Beetles (CPB; <i>Leptinotarsa decemlineata</i>) 
+<font size="+1">
+
+</font>
+
+# <b>Specific Aim:</b> Data filtering and summary
+<font size="+1">In this analysis, we... </font>
+
+## Phases of Analysis
+### Phase 1: 
+### Phase 2: 
+
+### Libraries needed for analysis
+```{r}
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(writexl)
+```
+
