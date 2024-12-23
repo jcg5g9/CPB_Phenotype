@@ -5,17 +5,17 @@ date: "2024-09-19"
 output: html_document
 ---
 
-# <b>Project:</b> Assessing phenotypic response and transgenerational inheirtance following insecticide exposure in Colorado Potato Beetles (CPB; <i>Leptinotarsa decemlineata</i>) 
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
 <font size="+1">
 
 </font>
 
-# <b>Specific Aim:</b> Data filtering and summary
-<font size="+1">In this analysis, we... </font>
+# <b>Specific Aim:</b> Data enumeration, preparation, and filtering
+<font size="+1">Here, Finally, we clean, filter and filly prepare data for downstream analyses. We then summarize the full phenotype data set (including metrics for survival, mobility, herbivory, and development) for XXX larval Colorado potato beetle samples (<i>Leptinotarsa decemlineata</i>; CPB) derived from 12 founder lineages, two insecticide treatment groups (exposed and control), and four successive generations (F0-F3) in a transgenerational experiment. We include a full description of all types of data collected. Additionally, we provide the total number of samples in all group combinations. </font>
 
 ## Phases of Analysis
-### Phase 1: 
-### Phase 2: 
+### Phase 1: Data read-in and filtering
+### Phase 2: Data summarization and enumeration
 
 ### Libraries needed for analysis
 ```{r}
