@@ -5,11 +5,11 @@
 
 <b>Citation here</b>: 
 
-## Project: Effects of admixture on fitness in Neosho Bass populations 
-We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (mobility, herbivory, development, and fecundity) in Colorado potato beetles (<i>Leptinotarsa decemlineata/i>; CPB). We implemented a highly replicated, full-sibling inbreeding pedigree experimental design (full siblings were paired for mating in each generation) across four generations. Offspring larvae (F0 generation) from 12 "founder" mated pairs (lineages) were divided into two treatment groups (exposed, i.e., given a sublethal dose of the insecticide imidacloprid; or control, i.e., given an equivalent dose of water), and a subset of beetles were monitored for performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F1-F3) without treatment exposure and compared to the F0 generation to test for inter- and transgenerationally inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.
+## Project: Assessing transgenerational phenotypic responses to insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
+We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (mobility, herbivory, development, and fecundity) in Colorado potato beetles (<i>Leptinotarsa decemlineata/i>; CPB). We implemented a highly replicated, full-sibling inbreeding pedigree experimental design beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were paired for mating in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.
 
 ## General information on repository structure
-This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Gunn et al. 2024. In the home directory of the repository (SMB_Fitness), you will find a README.md file (the source script for this information), the R Project file (SMB_Fitness.Rproj), a project info folder (project_info, which includes all important information on data procurement for this project), a .gitignore file, and "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
+This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Gunn et al. [DATE]. In the home directory of the repository (CPB_Phenotype), you will find a README.md file (the source script for this information), the R Project file (CPB_Phenotype.Rproj), a project info folder (project_info, which includes all important information on data procurement for this project), a .gitignore file, and "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
 
 1) 01_data_summary_analysis
 2) 02_
@@ -31,7 +31,7 @@ Once you have downloaded the repository and located the code directory, you shou
 The data directory will store all processed data and metadata needed for analysis. The figures folder will contain any raw figures generated in ggplot for each analysis. Ideally, the Rmd script should have paths set up so that the code reads all data and scripts and generates figures seamlessly.
 
 ## Using the code
-To reproduce all analyses in Gunn et al. 2024, download this data repository and place in a desired home directory. This may be done on your local machine, but we recommend downloading to a high-performance computing cluster so that all code will run seamlessly in one environment, as long as Rstudio is installed and the GUI can be called on the cluster.
+To reproduce all analyses in Gunn et al. [DATE], download this data repository and place in a desired home directory. This may be done on your local machine, but we recommend downloading to a high-performance computing cluster so that all code will run seamlessly in one environment, as long as Rstudio is installed and the GUI can be called on the cluster.
 
 Once all directories are downloaded, create a new sub-directory within the home directory (same level as the five analysis directories, .Rproj, README.md, etc.) called "raw_data". This is where you will store the raw genetic data and associated sample metadata (see <i><b>Data</i></b> section below).
 
@@ -43,12 +43,10 @@ Download these data into to your `/raw_data` directory within the home working d
 
 You should have 4 new items in the directory: <br>
 
-1.  genotype_data.xlsx <br>
-2.  phenotype_data.xlsx <br>
-3.  metadata.xlsx <br>
-4.  otolith_images.zip <br>
-
-Un-compressed the "otolith_images.zip" folder, which contains all raw otolith images collected for individual fish in this study. You should now have a folder called "otolith_images" in your `/raw_data` directory
+1.   <br>
+2.   <br>
+3.   <br>
+4.   <br>
 
 If you have any questions or issues with data and/or code, please don't hesitate to contact me: jcgunn@uvm.edu
 
