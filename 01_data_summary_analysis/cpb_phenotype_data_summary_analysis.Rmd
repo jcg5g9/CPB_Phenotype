@@ -12,7 +12,7 @@ output: html_document
 <font size="+1">Here, we clean, filter and fully prepare data for downstream analyses. We then summarize the full phenotype data set (including metrics for survival, mobility, herbivory, and development) for XXX larval Colorado potato beetle samples (<i>Leptinotarsa decemlineata</i>; CPB) derived from 12 founder lineages, two insecticide treatment groups (exposed and control), and four successive generations (F0-F3) in a transgenerational experiment. We include a full description of all types of data collected. Additionally, we provide the total number of samples in all group combinations. </font>
 
 ## Phases of Analysis
-### Phase 1: Data read-in and filtering
+### Phase 1: Data preparation and filtering
 ### Phase 2: Data summarization and enumeration
 
 ### Libraries needed for analysis
@@ -23,3 +23,28 @@ library(readxl)
 library(writexl)
 ```
 
+## PHASE 1: DATA PREPARATION AND FILTERING
+In this phase of the analysis, we read in and clean the raw metadata and phenotype data for all samples and generate separate datasets for each phenotypic metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
+
+### STEP 1: Read in and clean data; run the Rmd chunk below.
+In this step, we read in and merge our metadata with our raw phenotypic data and clean for downstream filtering and data organization steps.
+
+##### Read in and clean data:
+```{r}
+# read in metadata 
+metadata <- read_excel("../raw_data/cpb_tei_metadata.xlsx")
+
+# read in raw phenotype data 
+phenotype <- read_excel("../raw_data/cpb_tei_phenotype_data.xlsx")
+
+# get only phenotypically assayed individuals from metadata
+metadata <- metadata %>%
+  filter(type == "assayed")
+
+# merge metadata and phenotype data
+phenotype <- merge(metadata,
+                   phenotype,
+                   by = c("ind_id","generation","lineage","treatment","sex"))
+
+
+```
