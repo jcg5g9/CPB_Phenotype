@@ -46,5 +46,23 @@ phenotype <- merge(metadata,
                    phenotype,
                    by = c("ind_id","generation","lineage","treatment","sex"))
 
+# convert characters to factors
+phenotype <- phenotype %>%
+  mutate(ind_id = factor(ind_id),
+         generation = factor(generation),
+         lineage = factor(lineage),
+         treatment = factor(treatment),
+         sex = factor(sex),
+         type = factor(type),
+         plate = factor(plate),
+         well = factor(well),
+         ind_number = factor(ind_number),
+         dose = factor(dose),
+         molt = factor(molt),
+         total_leaf_area = as.numeric(total_leaf_area),
+         leaf_area_consumed = as.numeric(leaf_area_consumed),
+         percent_leaf_consumed = as.numeric(percent_leaf_consumed))
 
+# save complete phenotype data
+save(phenotype, file = "data/full_phenotype.Rda")
 ```
