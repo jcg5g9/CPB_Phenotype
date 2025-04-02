@@ -24,32 +24,36 @@ library(writexl)
 ```
 
 ## PHASE 1: DATA PREPARATION AND FILTERING
-In this phase of the analysis, we read in and clean the raw metadata and phenotype data for all samples and generate separate datasets for each phenotypic metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
+In this phase of the analysis, we read in and clean the raw metadata, fecundity data, and performance data for all samples and generate separate datasets for each performance metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
 
-### STEP 1: Read in and clean data; run the Rmd chunk below.
-In this step, we read in and merge our metadata with our raw phenotypic data and clean for downstream filtering and data organization steps.
+### STEP 1: Read in and clean fecundity and performance data; run the Rmd chunk below.
+In this step, we read in and merge our metadata with our raw fecundity and performance data and clean for downstream filtering and data organization steps.
 
 ##### Read in and clean data:
 ```{r}
 # read in metadata 
 metadata <- read_excel("../raw_data/cpb_tei_metadata.xlsx")
 
-# read in raw phenotype data 
-phenotype <- read_excel("../raw_data/cpb_tei_phenotype_data.xlsx")
+# read in raw performance data 
+performance <- read_excel("../raw_data/cpb_tei_performance_data.xlsx")
 
-# get only phenotypically assayed individuals from metadata
-metadata <- metadata %>%
+# read in raw fecundity data
+fecundity <- read_excel("../raw_data/cpb_tei_fecundity_data.xlsx")
+
+# get only performance assayed individuals from metadata for performance dataset
+performance_metadata <- metadata %>%
   filter(type == "assayed")
 
-# merge metadata and phenotype data
-phenotype <- merge(metadata,
-                   phenotype,
-                   by = c("ind_id","generation","lineage","treatment","sex"))
-
+# merge metadata and performance data
+performance <- merge(performance_metadata,
+                     performance,
+                     by = c("ind_id","larval_generation","lineage","treatment","sex"))
+  
 # convert characters to factors
-phenotype <- phenotype %>%
+performance <- performance %>%
   mutate(ind_id = factor(ind_id),
-         generation = factor(generation),
+         larval_generation = factor(larval_generation),
+         adult_generation = factor(adult_generation),
          lineage = factor(lineage),
          treatment = factor(treatment),
          sex = factor(sex),
@@ -63,6 +67,13 @@ phenotype <- phenotype %>%
          leaf_area_consumed = as.numeric(leaf_area_consumed),
          percent_leaf_consumed = as.numeric(percent_leaf_consumed))
 
-# save complete phenotype data
-save(phenotype, file = "data/full_phenotype.Rda")
+# save complete performance data
+save(performance, file = "data/full_performance.Rda")
 ```
+
+### STEP 2: Generate separate datasets for each phenotypic metric of interest.
+In this step, we filter the full phenotype data generated in STEP 1 above to generate separate datasets for each of four phenotypic metrics: 1) fecundity, 2) herbivory, 3) mobility, and 4) development.
+
+### 
+
+```{r}
