@@ -110,6 +110,7 @@ mass <- mass %>%
 # merge fecundity data with mass
 fecundity <- mass %>%
   filter(designation == "main") %>%
+  select(-c(temp_label)) %>%
   full_join(fecundity, by = c("pair_id","notebook","adult_generation","lineage","treatment"))
 
 # save fecundity data for downstream analyses
