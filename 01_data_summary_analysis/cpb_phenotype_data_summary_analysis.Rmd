@@ -24,10 +24,10 @@ library(writexl)
 ```
 
 ## PHASE 1: DATA PREPARATION AND FILTERING
-In this phase of the analysis, we read in and clean the raw metadata, fecundity data, and performance data for all samples and generate separate datasets for each performance metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
+In this phase of the analysis, we read in and clean the raw metadata, performance data, fecundity data, and adult mass data for all samples and generate separate datasets for each performance metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
 
 ### STEP 1: Read in and clean fecundity and performance data; run the Rmd chunk below.
-In this step, we read in and merge our metadata with our raw fecundity and performance data and clean for downstream filtering and data organization steps.
+In this step, we read in, clean all data and merge metadata with raw fecundity (and mass) and performance data. We prepare clean datasets for downstream filtering and organization steps.
 
 ##### Read in and clean data:
 ```{r}
@@ -40,24 +40,30 @@ performance <- read_excel("../raw_data/cpb_tei_performance_data.xlsx")
 # read in raw fecundity data
 fecundity <- read_excel("../raw_data/cpb_tei_fecundity_data.xlsx")
 
-# get only performance assayed individuals from metadata for performance dataset
-performance_metadata <- metadata %>%
-  filter(type == "assayed")
+# read in mass data
+mass <- read_excel("../raw_data/cpb_tei_mass_data.xlsx")
 
-# merge metadata and performance data
-performance <- merge(performance_metadata,
-                     performance,
-                     by = c("ind_id","larval_generation","lineage","treatment","sex"))
-  
-# convert characters to factors
+# convert characters to factors in metadata
+metadata <- metadata %>%
+  mutate(ind_id = factor(ind_id),
+         type = factor(type),
+         pair_id = factor(pair_id),
+         adult_generation = factor(adult_generation),
+         larval_generation = factor(larval_generation),
+         lineage = factor(lineage),
+         treatment = factor(treatment),
+         sex = factor(sex))
+
+# save metadata for downstream analyses
+save(metadata, file = "data/metadata.Rda")
+
+# convert characters to factors (categorical variables) and numerics (numeric variables) in performance data and eliminate L4 date column
 performance <- performance %>%
   mutate(ind_id = factor(ind_id),
          larval_generation = factor(larval_generation),
-         adult_generation = factor(adult_generation),
          lineage = factor(lineage),
          treatment = factor(treatment),
          sex = factor(sex),
-         type = factor(type),
          plate = factor(plate),
          well = factor(well),
          ind_number = factor(ind_number),
@@ -65,10 +71,49 @@ performance <- performance %>%
          molt = factor(molt),
          total_leaf_area = as.numeric(total_leaf_area),
          leaf_area_consumed = as.numeric(leaf_area_consumed),
-         percent_leaf_consumed = as.numeric(percent_leaf_consumed))
+         percent_leaf_consumed = as.numeric(percent_leaf_consumed)) %>%
+  select(-c(L4_date))
 
-# save complete performance data
-save(performance, file = "data/full_performance.Rda")
+# merge performance data with metadata (get only "assayed" individuals from metadata to reduce confusion, and then merge)
+performance <- metadata %>%
+  filter(type == "assayed") %>%
+  full_join(performance, by = c("ind_id","larval_generation","lineage","treatment","sex"))
+
+# save performance data for downstream analyses
+save(performance, file = "data/performance.Rda")
+
+# convert characters to factors in fecundity data
+fecundity <- fecundity %>%
+  mutate(notebook = factor(notebook),
+         pair_id = factor(pair_id),
+         adult_generation = factor(adult_generation),
+         larval_generation = factor(larval_generation),
+         lineage = factor(lineage),
+         treatment = factor(treatment),
+         status = factor(status))
+
+# convert characters to factors in mass data
+mass <- mass %>%
+  mutate(lineage = factor(lineage),
+         adult_generation = factor(adult_generation),
+         treatment = factor(treatment),
+         temp_label = factor(temp_label),
+         pair_id = factor(pair_id),
+         notebook = factor(notebook),
+         sex = factor(sex),
+         designation = factor(designation))
+
+# spread mass dataset by sex
+mass <- mass %>%
+  spread(sex, mass)
+
+# merge fecundity data with mass
+fecundity <- mass %>%
+  filter(designation == "main") %>%
+  full_join(fecundity, by = c("pair_id","notebook","adult_generation","lineage","treatment"))
+
+# save fecundity data for downstream analyses
+save(fecundity, file = "data/fecundity.Rda")
 ```
 
 ### STEP 2: Generate separate datasets for each phenotypic metric of interest.
