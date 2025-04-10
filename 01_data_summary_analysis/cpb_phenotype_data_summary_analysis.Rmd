@@ -82,24 +82,25 @@ performance <- metadata %>%
 # save performance data for downstream analyses
 save(performance, file = "data/performance.Rda")
 
-# convert characters to factors in fecundity data
+# convert characters to factors in fecundity data (and omit larval generation since those data will not be used fecundity analysis)
 fecundity <- fecundity %>%
+  select(-c(larval_generation)) %>%
+  drop_na(number_eggs) %>%
   mutate(notebook = factor(notebook),
          pair_id = factor(pair_id),
          adult_generation = factor(adult_generation),
-         larval_generation = factor(larval_generation),
          lineage = factor(lineage),
          treatment = factor(treatment),
          status = factor(status))
 
-# convert characters to factors in mass data
+# convert characters to factors in mass data (and omit notebook data since those are different data and are not shared between the two datasets)
 mass <- mass %>%
+  select(-c(notebook)) %>%
   mutate(lineage = factor(lineage),
          adult_generation = factor(adult_generation),
          treatment = factor(treatment),
          temp_label = factor(temp_label),
          pair_id = factor(pair_id),
-         notebook = factor(notebook),
          sex = factor(sex),
          designation = factor(designation))
 
@@ -111,7 +112,7 @@ mass <- mass %>%
 fecundity <- mass %>%
   filter(designation == "main") %>%
   select(-c(temp_label)) %>%
-  full_join(fecundity, by = c("pair_id","notebook","adult_generation","lineage","treatment"))
+  full_join(fecundity, by = c("pair_id","adult_generation","lineage","treatment"))
 
 # save fecundity data for downstream analyses
 save(fecundity, file = "data/fecundity.Rda")
