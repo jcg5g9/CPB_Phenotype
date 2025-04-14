@@ -231,15 +231,22 @@ In this step, we summarize sample sizes and number of datapoints for each datase
 # load fecundity data
 load("data/fecundity.Rda")
 
-# Get total number of fecundity data points
+# get total number of fecundity data points
 fecundity %>%
   count()
 
+# get number of data points per mated pair across the full experiment
+fecundity %>%
+  group_by(pair_id) %>%
+  count()
+
+ggplot(fecundity, aes(number_eggs, fill = adult_generation)) + 
+  geom_histogram(position = position_dodge(), show.legend = T, color = "black")
 ```
 
 <b>Data summary:</b> <br>
 
-<b><i>N</i><sub>total</sub> = 136 </b><br>
+<b><i>N</i><sub>data</sub> = 1,779 </b><br>
 
 <b><i>N</i><sub>sample_set</sub> = 116 </b><br>
 <i>N</i><sub>sample_elk</sub> = 70 <br>
