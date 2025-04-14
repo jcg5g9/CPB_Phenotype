@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
-<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata/i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
 
 # <b>Specific Aim:</b> Data enumeration, preparation, and filtering
 <font size="+1">Here, we clean, filter and fully prepare data for downstream analyses. We then summarize the full phenotype data set (including metrics for survival, mobility, herbivory, and development) for XXX larval Colorado potato beetle samples (<i>Leptinotarsa decemlineata</i>; CPB) derived from 12 founder lineages, two insecticide treatment groups (exposed and control), and four successive generations (F0-F3) in a transgenerational experiment. We include a full description of all types of data collected. Additionally, we provide the total number of samples in all group combinations. </font>
@@ -32,15 +32,15 @@ In this step, we read in, clean all data and merge metadata with raw fecundity (
 #### 1a: Read in and clean metadata; run the Rmd chunk below.
 In this step, we read in and clean the full metadata (`../raw_data/cpb_tei_metadata.xlsx`) for all beetles included in the study. Data include: 
 
-   1. "ind_id": a unique, alphanumeric ID for each individual beetle used in the study
-   2. "type": an identifier of the data category to which the beetle belows, including "mated_pair", i.e., an adult beetle used to beget the next generation from which fecundity data were collected; "assayed", i.e., a larval beetle from which performance data were collected; and "adults", i.e., an adult beetle that was not used to beget the next generation but was collected as a contingency. 
-   3. "pair_id": a unique, alphanumeric ID for each mated pair used to beget the next generation (only pertaining to type "mated_pair")
-   4. "adult_generation": generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation (only pertaining to type "mated_pair")
-   5. "larval_generation": generation of mated pair offspring, i.e., "F0", "F1", "F2", and "F3" (only pertaining to type "assayed")
-   6. "lineage": lineage (i.e., L1-L12; L1_C-L12_C and L1_E-L12_E) to which a beetle belongs; beetles of type "assayed" in the F1, F2, and F3 are labeled with generation number followed by either "_C" or "_E", indicating the treatment to which F0 mated pairs in that lineage were exposed.
-   7. "treatment": treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which a beetle was exposed.
-   8. "sex": sex ("M", i.e., male, or "F", i.e., female) of the beetle
-   9. "date_stored": date on which a beetle was stored in the freezer. No date indicates that beetle was not stored. 
+   1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
+   2. <b>"type"</b>: an identifier of the data category to which the beetle belows, including "mated_pair", i.e., an adult beetle used to beget the next generation from which fecundity data were collected; "assayed", i.e., a larval beetle from which performance data were collected; and "adults", i.e., an adult beetle that was not used to beget the next generation but was collected as a contingency. 
+   3. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation (only pertaining to type "mated_pair")
+   4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation (only pertaining to type "mated_pair")
+   5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", and "F3" (only pertaining to type "assayed")
+   6. <b>"lineage"</b>: lineage (i.e., L1-L12; L1_C-L12_C and L1_E-L12_E) to which a beetle belongs; beetles of type "assayed" in the F1, F2, and F3 are labeled with generation number followed by either "_C" or "_E", indicating the treatment to which F0 mated pairs in that lineage were exposed.
+   7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]) to which a beetle was exposed.
+   8. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle
+   9. <b>"date_stored"</b>: date on which a beetle was stored in the freezer. No date indicates that beetle was not stored. 
 
 
 ##### Read in and clean metadata:
@@ -68,29 +68,29 @@ In this step, we read in and clean the full fecundity dataset (`../raw_data/cpb_
 
 Fecundity data (type "mated_pair", see metadata info in Step 1a above) include: <br>
 
-   1. "date": date on which fecundity data were collected for a mated pair
-   2. "notebook": researcher who observed and measured fecundity (i.e., notebook in which the raw data are recorded)
-   3. "pair_id": a unique, alphanumeric ID for each mated pair used to beget the next generation
-   4. "adult_generation": generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
-   5. "larval_generation": generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
-   6. "lineage": lineage (i.e., L1-L12) to which the mated pair belongs
-   7. "treatment": treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the mated pair beetles were exposed. Founder ("FNDR") mated pairs were only used to generate F0 beetles and not exposed to either treatment
-   8. "number_eggs": count of total number of eggs laid on a given date (i.e., fecundity)
-   9. "status": indication of whether the beetle was alive (i.e., "alive"), dead (i.e., "dead"), or stored (i.e., "stored") on a given date <br>
+   1. <b>"date"</b>: date on which fecundity data were collected for a mated pair
+   2. <b>"notebook"</b>: researcher who observed and measured fecundity (i.e., notebook in which the raw data are recorded)
+   3. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation
+   4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
+   5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
+   6. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the mated pair belongs
+   7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the mated pair beetles were exposed. Founder ("FNDR") mated pairs were only used to generate F0 beetles and not exposed to either treatment
+   8. <b>"number_eggs"</b>: count of total number of eggs laid on a given date (i.e., fecundity)
+   9. <b>"status"</b>: indication of whether the beetle was alive (i.e., "alive"), dead (i.e., "dead"), or stored (i.e., "stored") on a given date <br>
 
 Mass data include: <br>
 
-   1. "lineage": lineage (i.e., L1-L12) to which the mated pair belongs
-   2. "adult_generation": generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
-   3. "treatment": treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the mated pair beetles were exposed. Founder ("FNDR") mated pairs were only used to generate F0 beetles and not exposed to either treatment
-   4. "temp_label": a temporary numerical label to indicate different mated pairs used as either main experimental pairs or contingency pairs (see column 11)
-   5. "pair_id": a unique, alphanumeric ID for each mated pair used to beget the next generation
-   6. "date_paired": the date on which a mated pair was initially paired together
-   7. "notebook": researcher who observed and measured mass (i.e., notebook in which the raw data are recorded)
-   8. "sex": sex ("M", i.e., male, or "F", i.e., female) of the adult beetle
-   9. "mass": mass (mg) of the adult beetle
-   10. "date_first_eggs_used": date on which the first clutch of eggs was laid and used for the experiment
-   11. "designation": indication of whether the mated pair was used to beget offspring for the next generation (i.e., "main") or used as a contingency pair in case of main pair die-off (i.e., "contingency") <br>
+   1. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the mated pair belongs
+   2. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
+   3. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the mated pair beetles were exposed. Founder ("FNDR") mated pairs were only used to generate F0 beetles and not exposed to either treatment
+   4. <b>"temp_label"</b>: a temporary numerical label to indicate different mated pairs used as either main experimental pairs or contingency pairs (see column 11)
+   5. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation
+   6. <b>"date_paired"</b>: the date on which a mated pair was initially paired together
+   7. <b>"notebook"</b>: researcher who observed and measured mass (i.e., notebook in which the raw data are recorded)
+   8. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the adult beetle
+   9. <b>"mass"</b>: mass (mg) of the adult beetle
+   10. <b>"date_first_eggs_used"</b>: date on which the first clutch of eggs was laid and used for the experiment
+   11. <b>"designation"</b>: indication of whether the mated pair was used to beget offspring for the next generation (i.e., "main") or used as a contingency pair in case of main pair die-off (i.e., "contingency") <br>
    
 ##### Read in and clean fecundity data:
 ```{r}
@@ -138,32 +138,32 @@ save(fecundity, file = "data/fecundity.Rda")
 #### 1c: Read in, clean, and separate performance data into different performance metrics of interest; run the Rmd chunk below.
 In this step, we read in and clean the full performance dataset (`../raw_data/cpb_tei_performance_data.xlsx`). We then merge the performance data with sample metadata and separate into distinct datasets for each performance metric of interest. Data (type "assayed", see metadata info in Step 1a above) include: <br>
 
-   1. "ind_id": a unique, alphanumeric ID for each individual beetle used in the study
-   2. "assay_date": date on which assays were conducted
-   3. "plate": plate in which the beetle was given the corresponding treatment 
-   4. "well": well of the plate (see column 3) in which the beetle was given the corresponding treatment
-   5. "lineage": lineage (i.e., L1-L12; L1_C-L12_C, L1_E-L12_E) to which the beetle belongs
-   6. "larval_generation": generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
-   7. "ind_number": numerical identifier for the individual beetle within each larval generation
-   7. "treatment": treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the beetle was exposed during assays (note: for beetles in the F1, F2, and F3 generation, this column is distinct from the identifier in the lineage column (i.e., "_C" or "_E") which indicates the initial treatment given to the F0 generation in that lineage
-   8. "dose": the imidacloprid dose (ppm) given ("0", i.e., 0-ppm control, or "10", i.e., 10-ppm exposure)
-   9. "molt": an indication of whether the larva used in the assay molted (i.e., "yes") or did not molt (i.e., "no") before or during the herbivory or mobility assays
-   10. "total_leaf_area": total leaf area (cm<sup>2</sup>) used in the herbivory assay
-   11. "leaf_area_consumed": total leaf area consumed (cm<sup>2</sup>) by the beetle during the herbivory assay
-   12. "percent_leaf_consumed": percentage of leaf area consumed (leaf_area_consumed/total_leaf_area) by the beetle during the herbivory assay
-   13. "ave_speed": average movement rate (mm/s) of the beetle during the mobility assay
-   14. "ave_accel": average movement acceleration (mm/s<sup>2</sup>) of the beetle during the mobility assay
-   15. "mobility_rate": average number of pixels in which beetle is recorded as moving during the mobility assay
-   16. "total_distance": total distance traveled (mm) by the beetle during the mobility assay
-   17-53. "...hr_status": indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
-   54. "L4_date": date on which the beetle molted to instar-4
-   55. "pupa_date": date on which the beetle pupated
-   56. "sex": sex ("M", i.e., male, or "F", i.e., female) of the beetle, assessed on the day of pupation 
-   57. "pupa_mass": mass of the pupa (mg), measured on the day of pupation
-   57. "emerge_date": date on which the beetle emerged as an adult
-   58. "adult_mass": mass of the emerged adult beetle (mg), measured on the day of emergence
-   59. "deformity": an indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
-   60. "stored_date": date on which the adult beetle was stored in the freezer
+   1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
+   2. <b>"assay_date"</b>: date on which assays were conducted
+   3. <b>"plate"</b>: plate in which the beetle was given the corresponding treatment 
+   4. <b>"well"</b>: well of the plate (see column 3) in which the beetle was given the corresponding treatment
+   5. <b>"lineage"</b>: lineage (i.e., L1-L12; L1_C-L12_C, L1_E-L12_E) to which the beetle belongs
+   6. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
+   7. <b>"ind_number"</b>: numerical identifier for the individual beetle within each larval generation
+   7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the beetle was exposed during assays (note: for beetles in the F1, F2, and F3 generation, this column is distinct from the identifier in the lineage column (i.e., "_C" or "_E") which indicates the initial treatment given to the F0 generation in that lineage
+   8. <b>"dose"</b>: the imidacloprid dose (ppm) given ("0", i.e., 0-ppm control, or "10", i.e., 10-ppm exposure)
+   9. <b>"molt"</b>: an indication of whether the larva used in the assay molted (i.e., "yes") or did not molt (i.e., "no") before or during the herbivory or mobility assays
+   10. <b>"total_leaf_area"</b>: total leaf area (cm<sup>2</sup>) used in the herbivory assay
+   11. <b>"leaf_area_consumed"</b>: total leaf area consumed (cm<sup>2</sup>) by the beetle during the herbivory assay
+   12. <b>"percent_leaf_consumed"</b>: percentage of leaf area consumed (leaf_area_consumed/total_leaf_area) by the beetle during the herbivory assay
+   13. <b>"ave_speed"</b>: average movement rate (mm/s) of the beetle during the mobility assay
+   14. <b>"ave_accel"</b>: average movement acceleration (mm/s<sup>2</sup>) of the beetle during the mobility assay
+   15. <b>"mobility_rate"</b>: average number of pixels in which beetle is recorded as moving during the mobility assay
+   16. <b>"total_distance"</b>: total distance traveled (mm) by the beetle during the mobility assay
+   17-53. "...hr_status"</b>: indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
+   54. <b>"L4_date"</b>: date on which the beetle molted to instar-4
+   55. <b>"pupa_date"</b>: date on which the beetle pupated
+   56. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle, assessed on the day of pupation 
+   57. <b>"pupa_mass"</b>: mass of the pupa (mg), measured on the day of pupation
+   57. <b>"emerge_date"</b>: date on which the beetle emerged as an adult
+   58. <b>"adult_mass"</b>: mass of the emerged adult beetle (mg), measured on the day of emergence
+   59. <b>"deformity"</b>: an indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
+   60. <b>"stored_date"</b>: date on which the adult beetle was stored in the freezer
    
 
 ##### Read in, clean, and separate performance data:
