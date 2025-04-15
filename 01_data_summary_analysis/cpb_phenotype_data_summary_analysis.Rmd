@@ -130,7 +130,9 @@ mass <- mass %>%
 fecundity <- mass %>%
   filter(designation == "main") %>%
   select(-c(temp_label)) %>%
-  full_join(fecundity, by = c("pair_id","adult_generation","lineage","treatment"))
+  full_join(fecundity, by = c("pair_id","adult_generation","lineage","treatment")) %>%
+  mutate(oviposition_days = as.integer(difftime(date, date_first_eggs_used, units = "days")))
+
 
 # save fecundity data for downstream analyses
 save(fecundity, file = "data/fecundity.Rda")
@@ -240,8 +242,7 @@ fecundity %>%
   group_by(pair_id) %>%
   count()
 
-ggplot(fecundity, aes(number_eggs, fill = adult_generation)) + 
-  geom_histogram(position = position_dodge(), show.legend = T, color = "black")
+
 ```
 
 <b>Data summary:</b> <br>
