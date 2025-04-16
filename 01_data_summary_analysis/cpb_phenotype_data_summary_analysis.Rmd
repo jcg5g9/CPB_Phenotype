@@ -126,13 +126,12 @@ mass <- mass %>%
 mass <- mass %>%
   spread(sex, mass)
 
-# merge fecundity data with mass
+# merge fecundity data with mass, and calculate days between first date of eggs laid (i.e., observed) and date of data collection
 fecundity <- mass %>%
   filter(designation == "main") %>%
   select(-c(temp_label)) %>%
   full_join(fecundity, by = c("pair_id","adult_generation","lineage","treatment")) %>%
-  mutate(oviposition_days = as.integer(difftime(date, date_first_eggs_used, units = "days")))
-
+  mutate(days_since_oviposition = as.integer(difftime(date, date_first_eggs_used, units = "days")))
 
 # save fecundity data for downstream analyses
 save(fecundity, file = "data/fecundity.Rda")
