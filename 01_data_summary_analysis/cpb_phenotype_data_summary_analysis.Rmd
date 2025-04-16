@@ -131,11 +131,14 @@ fecundity <- mass %>%
   filter(designation == "main") %>%
   select(-c(temp_label)) %>%
   full_join(fecundity, by = c("pair_id","adult_generation","lineage","treatment")) %>%
-  mutate(days_since_oviposition = as.integer(difftime(date, date_first_eggs_used, units = "days")))
+  mutate(days_since_oviposition = as.numeric(difftime(date, 
+                                                      date_first_eggs_used, 
+                                                      units = "days")))
 
 # save fecundity data for downstream analyses
 save(fecundity, file = "data/fecundity.Rda")
 ```
+
 #### 1c: Read in, clean, and separate performance data into different performance metrics of interest; run the Rmd chunk below.
 In this step, we read in and clean the full performance dataset (`../raw_data/cpb_tei_performance_data.xlsx`). We then merge the performance data with sample metadata and separate into distinct datasets for each performance metric of interest. Data (type "assayed", see metadata info in Step 1a above) include: <br>
 
