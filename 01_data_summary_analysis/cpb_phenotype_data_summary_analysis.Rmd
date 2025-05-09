@@ -100,7 +100,7 @@ fecundity <- read_excel("../raw_data/cpb_tei_fecundity_data.xlsx")
 # read in adult parental mass data
 mass <- read_excel("../raw_data/cpb_tei_mass_data.xlsx")
 
-# convert characters to factors in fecundity data (and omit larval generation since those data will not be used fecundity analysis)
+# convert characters to factors in fecundity data, omit larval generation column (not needed), and omit founder generation (will not be analyzed)
 fecundity <- fecundity %>%
   select(-c(larval_generation)) %>%
   drop_na(number_eggs) %>%
@@ -109,7 +109,8 @@ fecundity <- fecundity %>%
          adult_generation = factor(adult_generation),
          lineage = factor(lineage),
          treatment = factor(treatment),
-         status = factor(status))
+         status = factor(status)) %>% 
+  filter(adult_generation != "FNDR")
 
 # convert characters to factors in mass data (and omit notebook data since those are different data and are not shared between the two datasets)
 mass <- mass %>%
@@ -120,7 +121,8 @@ mass <- mass %>%
          temp_label = factor(temp_label),
          pair_id = factor(pair_id),
          sex = factor(sex),
-         designation = factor(designation))
+         designation = factor(designation)) %>%
+  filter(adult_generation != "FNDR")
 
 # spread mass dataset by sex
 mass <- mass %>%
@@ -238,22 +240,22 @@ load("data/fecundity.Rda")
 fecundity %>%
   count()
 
-# get number of data points per mated pair across the full experiment and omit pairs with low outliers (pairs with less than 2 days of fecundity data)
+# get number of data points per mated pair across the full experiment
 fecundity_days <- fecundity %>%
-  group_by(pair_id, treatment, adult_generation) %>%
+  group_by(pair_id, adult_generation, lineage, treatment) %>%
   summarize(mean = mean(number_eggs),
-            n = n()) %>%
-  filter(n > 10)
+            n = n())
 
-ggplot(fecundity_days, aes(x = n, y = mean, color = treatment)) + geom_point() + geom_smooth(method = "lm")
+# plot
+ggplot(fecundity_days, aes(x = n, y = mean)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+
 
 # assess correlation of mean egg count per day with number of days of fecundity data (does more days equate to more average egg count)
 model <- lme(mean ~ n, 
-             random = ~1|treatment, 
+             random = ~1|lineage, 
              data = fecundity_days)
-
-model <- lm(mean ~ n, 
-            data = fecundity_days)
 
 # get model statistics
 summary(model)
@@ -265,7 +267,7 @@ fecundity_days
 
 <b>Data summary:</b> <br>
 
-<b><i>N</i><sub>data</sub> = 1,756 </b><br>
+<b><i>N</i><sub>data</sub> = 1,501 </b><br>
 
 <b><i>N</i><sub>sample_set</sub> = 116 </b><br>
 <i>N</i><sub>sample_elk</sub> = 70 <br>
