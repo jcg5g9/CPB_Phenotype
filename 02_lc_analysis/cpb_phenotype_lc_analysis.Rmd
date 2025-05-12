@@ -114,18 +114,20 @@ lc_averages <- lc %>%
   group_by(dosage) %>%
   summarize(mean = mean(survival_status))
 
-# visualize survival over dosages as a bar graph
-jpeg("figures/survival.jpeg", width = 10000, height = 8000, res = 1100)
+# Plot survival for each dosage
+jpeg("figures/survival.jpeg", width = 5000, height = 4000, res = 700)
 
 ggplot(lc_averages, aes(x = dosage, y = mean)) + 
   geom_bar(stat = "identity", position = position_dodge(), fill = "grey", color = "black", linewidth = 1) +
-  geom_text(aes(label = paste(format(round(mean*100, digits = 2), nsmall =2), "%"), vjust = -0.6, hjust = 0.5, size = 4), show.legend = F) +
+  geom_text(aes(label = paste(format(round(mean*100, digits = 2), nsmall =2), "%"), vjust = -0.4, hjust = 0.5, size = 4), show.legend = F) +
   theme_set(theme_cowplot(12)) +
   labs(x = "Dosage (ppm)", y = "Average 48-hr survival proportion") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(axis.title = element_text(size = 15)) +
   theme(axis.text = element_text(size = 15)) +
-  theme(axis.ticks.x = element_blank())
+  theme(axis.ticks.x = element_blank()) +
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.75)) 
   
 dev.off()
 ```
@@ -162,44 +164,32 @@ uniroot(findInt(probit, .75),
 ```
 
 <b>Summary results</b>:
-LC<sub>25</sub> (initial estimate) = 10.302 ppm
+LC<sub>25</sub> (initial estimate) = 12.21458 ppm
 
 #### 3b: Plot fitted probit regression for lc data; run the Rmd chunk below.
 
-##### Plot probit regression: `figures/probit.pdf`
+##### Plot probit regression: `figures/lc.pdf`
 ```{r}
 # Load in raw LC data
 load("data/lc.Rda")
 
-pdf("figures/probit.pdf", width = 8, height = 6)
+# Plot probit curve of survival at all dosages
+jpeg("figures/lc.jpeg", width = 5000, height = 4000, res = 800)
 
-ggplot(lc_raw, aes(x = dosage, y = survival_status)) + 
-  geom_point(position = position_jitter(height = 0.05), 
-             show.legend = F, 
-             size = 4, 
-             color = "black",
-             fill = "grey",
-             pch=21) + 
-  geom_smooth(method = "glm", 
-              method.args = list(family = "binomial"), 
-              show.legend = F,
-              color = "black", 
-              fullrange = T) + 
+ggplot(lc, aes(x = dosage, y = survival_status)) + 
+  geom_point(position = position_jitter(height = 0.05), size = 4, color = "black",fill = "grey", pch = 21) + 
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), color = "black", fullrange = T) + 
   theme_set(theme_cowplot(12)) +
-  geom_hline(yintercept = 0.75, 
-             color = "blue", 
-             linetype = "longdash", 
-             size = 1) +
-  geom_vline(xintercept = 12.21458,
-            color = "blue", 
-             linetype = "longdash", 
-             size = 1) +
+  geom_hline(yintercept = 0.75, color = "blue", linetype = "longdash", size = 1) +
+  geom_vline(xintercept = 12.21458, color = "blue", linetype = "longdash", size = 1) +
   scale_x_continuous(expand = c(0,0)) +
-  labs(x = "Dosage (ppm)", y = "Survival probability") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  labs(x = "Dosage (ppm)", y = "Survival proportion") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(axis.title = element_text(size = 15)) +
   theme(axis.text = element_text(size = 15)) +
-  theme(axis.ticks.x = element_blank())
+  theme(axis.ticks.x = element_blank()) +
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.75)) 
 
 dev.off()
 ```
