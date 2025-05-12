@@ -9,7 +9,7 @@ output: html_document
 <font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
 
 # <b>Specific Aim:</b> Data enumeration, preparation, and filtering
-<font size="+1">Here, we clean, filter and fully prepare data for downstream analyses. We then summarize the full phenotype data set (including metrics for survival, mobility, herbivory, and development) for XXX larval Colorado potato beetle samples (<i>Leptinotarsa decemlineata</i>; CPB) derived from 12 founder lineages, two insecticide treatment groups (exposed and control), and four successive generations (F0-F3) in a transgenerational experiment. We include a full description of all types of data collected. Additionally, we provide the total number of samples in all group combinations. </font>
+<font size="+1">In this analysis, we clean, filter and fully prepare data for downstream analyses. We then summarize the full phenotype data set (including metrics for survival, mobility, herbivory, and development) for XXX larval Colorado potato beetle samples (<i>Leptinotarsa decemlineata</i>; CPB) derived from 12 founder lineages, two insecticide treatment groups (exposed and control), and four successive generations (F0-F3) in a transgenerational experiment. We include a full description of all types of data collected. Additionally, we provide the total number of samples in all group combinations. </font>
 
 ## Phases of Analysis
 ### Phase 1: Data preparation and filtering
@@ -30,7 +30,7 @@ In this phase of the analysis, we read in and clean the raw metadata, performanc
 In this step, we read in, clean all data and merge metadata with raw fecundity (and adult parental mass) and performance data. We prepare clean datasets for downstream filtering and organization.
 
 #### 1a: Read in and clean metadata; run the Rmd chunk below.
-In this step, we read in and clean the full metadata (`../raw_data/cpb_tei_metadata.xlsx`) for all beetles included in the study. Data include: 
+In this step, we read in and clean the full metadata (`../raw_data/metadata.xlsx`) for all beetles included in the study. Data include: 
 
    1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
    2. <b>"type"</b>: an identifier of the data category to which the beetle belows, including "mated_pair", i.e., an adult beetle used to beget the next generation from which fecundity data were collected; "assayed", i.e., a larval beetle from which performance data were collected; and "adults", i.e., an adult beetle that was not used to beget the next generation but was collected as a contingency. 
@@ -63,7 +63,7 @@ save(metadata, file = "data/metadata.Rda")
 ```
 
 #### 1b: Read in and clean fecundity data; run the Rmd chunk below.
-In this step, we read in and clean the full fecundity dataset (`../raw_data/cpb_tei_fecundity_data.xlsx`) and parental mass dataset (`../raw_data/cpb_tei_mass_data.xlsx`) for mated pair beetles and merge the datasets. We omit all fecundity data from the founder generation ('FNDR') from downstream statistical analyses. <br>
+In this step, we read in and clean the full fecundity dataset (`../raw_data/fecundity_data.xlsx`) and parental mass dataset (`../raw_data/mass_data.xlsx`) for mated pair beetles and merge the datasets. We omit all fecundity data from the founder generation ('FNDR') from downstream statistical analyses. <br>
 
 Fecundity data (type "mated_pair", see metadata info in Step 1a above) include: <br>
 
@@ -141,7 +141,7 @@ save(fecundity, file = "data/fecundity.Rda")
 ```
 
 #### 1c: Read in, clean, and separate performance data into different performance metrics of interest; run the Rmd chunk below.
-In this step, we read in and clean the full performance dataset (`../raw_data/cpb_tei_performance_data.xlsx`). We then merge the performance data with sample metadata and separate into distinct datasets for each performance metric of interest. Data (type "assayed", see metadata info in Step 1a above) include: <br>
+In this step, we read in and clean the full performance dataset (`../raw_data/performance_data.xlsx`). We then merge the performance data with sample metadata and separate into distinct datasets for each performance metric of interest. Data (type "assayed", see metadata info in Step 1a above) include: <br>
 
    1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
    2. <b>"assay_date"</b>: date on which assays were conducted
@@ -160,14 +160,14 @@ In this step, we read in and clean the full performance dataset (`../raw_data/cp
    14. <b>"ave_accel"</b>: average movement acceleration (mm/s<sup>2</sup>) of the beetle during the mobility assay
    15. <b>"mobility_rate"</b>: average number of pixels in which beetle is recorded as moving during the mobility assay
    16. <b>"total_distance"</b>: total distance traveled (mm) by the beetle during the mobility assay
-   17-53. "...hr_status"</b>: indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
+   17-53. "...hr_status"</b>: a binary indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
    54. <b>"L4_date"</b>: date on which the beetle molted to instar-4
    55. <b>"pupa_date"</b>: date on which the beetle pupated
    56. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle, assessed on the day of pupation 
    57. <b>"pupa_mass"</b>: mass of the pupa (mg), measured on the day of pupation
    57. <b>"emerge_date"</b>: date on which the beetle emerged as an adult
    58. <b>"adult_mass"</b>: mass of the emerged adult beetle (mg), measured on the day of emergence
-   59. <b>"deformity"</b>: an indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
+   59. <b>"deformity"</b>: a binary indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
    60. <b>"stored_date"</b>: date on which the adult beetle was stored in the freezer
 
 ##### Read in, clean, and separate performance data:
