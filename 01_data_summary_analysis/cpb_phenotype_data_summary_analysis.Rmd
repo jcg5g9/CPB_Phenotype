@@ -21,13 +21,12 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
-library(nlme)
 ```
 
 ## PHASE 1: DATA PREPARATION AND FILTERING
 In this phase of the analysis, we read in and clean the raw metadata, performance data, fecundity data, and adult parental mass data for all samples and generate separate datasets for each performance metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
 
-### STEP 1: Read in and clean fecundity and performance data.
+### STEP 1: Read in and clean metadata, fecundity data, and performance data.
 In this step, we read in, clean all data and merge metadata with raw fecundity (and adult parental mass) and performance data. We prepare clean datasets for downstream filtering and organization.
 
 #### 1a: Read in and clean metadata; run the Rmd chunk below.
@@ -46,7 +45,7 @@ In this step, we read in and clean the full metadata (`../raw_data/cpb_tei_metad
 ##### Read in and clean metadata:
 ```{r}
 # read in metadata 
-metadata <- read_excel("../raw_data/cpb_tei_metadata.xlsx")
+metadata <- read_excel("../raw_data/metadata.xlsx")
 
 # convert characters to factors in metadata
 metadata <- metadata %>%
@@ -64,7 +63,7 @@ save(metadata, file = "data/metadata.Rda")
 ```
 
 #### 1b: Read in and clean fecundity data; run the Rmd chunk below.
-In this step, we read in and clean the full fecundity dataset (`../raw_data/cpb_tei_fecundity_data.xlsx`) and parental mass dataset (`../raw_data/cpb_tei_mass_data.xlsx`) for mated pair beetles and merge the datasets. <br>
+In this step, we read in and clean the full fecundity dataset (`../raw_data/cpb_tei_fecundity_data.xlsx`) and parental mass dataset (`../raw_data/cpb_tei_mass_data.xlsx`) for mated pair beetles and merge the datasets. We omit all fecundity data from the founder generation ('FNDR') from downstream statistical analyses. <br>
 
 Fecundity data (type "mated_pair", see metadata info in Step 1a above) include: <br>
 
@@ -95,10 +94,10 @@ Mass data include: <br>
 ##### Read in and clean fecundity data:
 ```{r}
 # read in raw fecundity data
-fecundity <- read_excel("../raw_data/cpb_tei_fecundity_data.xlsx")
+fecundity <- read_excel("../raw_data/fecundity_data.xlsx")
 
 # read in adult parental mass data
-mass <- read_excel("../raw_data/cpb_tei_mass_data.xlsx")
+mass <- read_excel("../raw_data/mass_data.xlsx")
 
 # convert characters to factors in fecundity data, omit larval generation column (not needed), and omit founder generation (will not be analyzed)
 fecundity <- fecundity %>%
@@ -177,7 +176,7 @@ In this step, we read in and clean the full performance dataset (`../raw_data/cp
 load("data/metadata.Rda")
 
 # read in raw performance data 
-performance <- read_excel("../raw_data/cpb_tei_performance_data.xlsx")
+performance <- read_excel("../raw_data/performance_data.xlsx")
 
 # convert characters to factors (categorical variables) and numerics (numeric variables) in performance data and eliminate L4 date column
 performance <- performance %>%
@@ -229,7 +228,7 @@ save(development, file = "data/development.Rda")
 ### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)
 In this step, we summarize sample sizes and number of data points for each dataset, including fecundity and three performance phenotypes: herbivory, mobility, and development. We report all summary data here and in the final ms.
 
-#### 2a: Summarize fecundity data; run the Rmd chunk below and refer to the summary following information 
+#### 2a: Summarize fecundity data; run the Rmd chunk below
 
 ##### Summarize fecundity data
 ```{r}
