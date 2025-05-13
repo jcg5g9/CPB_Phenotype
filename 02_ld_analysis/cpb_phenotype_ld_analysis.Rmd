@@ -1,5 +1,5 @@
 ---
-title: "Analysis 2: Lethal concentration analysis"
+title: "Analysis 2: Lethal dose curve analysis"
 author: "Joe Gunn"
 date: "2024-09-19"
 output: html_document
@@ -9,10 +9,10 @@ output: html_document
 <font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
 
 # <b>Specific Aim:</b> Determination of lethal concentration dose for imidacloprid insecticide treatment of the transgenerational experiment
-In this analysis, we determine the sub-lethal dose concentration of insecticide (imidacloprid; see `cpb_tei_experimental_protocol.Rmd`, Figure 2) to be used as the experimental treatment (stress) in the CPB TEI experiment. We aim to use an LC25 dose of imidacloprid, which is the dosage concentration that is lethal for an average of 25% of larvae in the stressed population.
+In this analysis, we determine the sub-lethal dose concentration of insecticide (imidacloprid; see `cpb_tei_experimental_protocol.Rmd`, Figure 2) to be used as the experimental treatment (stress) in the CPB TEI experiment. We aim to use an LD25 dose of imidacloprid, which is the dosage concentration that is lethal for an average of 25% of larvae in the stressed population.
 
 ## Phases of Analysis
-### Phase 1: Determination of sub-lethal (LC<sub>25</sub>) insecticide dosage
+### Phase 1: Determination of sub-lethal (LD<sub>25</sub>) insecticide dosage
 
 ### Libraries needed for analysis
 ```{r}
@@ -22,16 +22,16 @@ library(readxl)
 library(writexl)
 ```
 
-## PHASE 1: DETERMINATION OF SUB-LETHAL (LC<sub>25</sub>) INSECTICIDE DOSAGE
+## PHASE 1: DETERMINATION OF SUB-LETHAL (LD<sub>25</sub>) INSECTICIDE DOSAGE
 In this phase of analysis, we use 24-hour survival data from a insecticide dosage experiment (see `cpb_tei_experimental_protocol.Rmd`, Section 3) conducted on I3 larvae collected from the VTM CPB colony (see `cpb_tei_experimental_protocol.Rmd`, Section 1, for description of colony origins and laboratory maintenance). Briefly, we used a logistic regression analysis framework with a probit link function to assess the probability of survival of I3 larvae at different pre-set concentrations of insecticide (i.e., imidacloprid).
 
-We conducted the LC assay (as described in the experimental protocol) over multiple days over the course of two months, depending on the availability of I3 larvae in the VTM laboratory colony. We therefore randomized all individual larvae over dosage treatments and over multiple 6-well assay plates. Specifically, we generated a list of individual larva IDs to reflect colony, dosage treatment received, and a unique numerical identifier,  based on the number of samples needed per dosage treatment. These IDs were then randomized onto 50 6-well plates.
+We conducted the LD assay (as described in the experimental protocol) over multiple days over the course of two months, depending on the availability of I3 larvae in the VTM laboratory colony. We therefore randomized all individual larvae over dosage treatments and over multiple 6-well assay plates. Specifically, we generated a list of individual larva IDs to reflect colony, dosage treatment received, and a unique numerical identifier,  based on the number of samples needed per dosage treatment. These IDs were then randomized onto 50 6-well plates.
 
 ### STEP 1: Read in, filter, and clean full dataset
-In this step, we read in the raw data file (which includes some sample metadata, described below; `../raw_data/lc_data.xlsx`), manipulate and clean the data.
+In this step, we read in the raw data file (which includes some sample metadata, described below; `../raw_data/ld_data.xlsx`), manipulate and clean the data.
 
 <b>Metadata</b>:
-   1. "assay": original assay vs. tests of calculated LC<sub>25</sub> dosages
+   1. "assay": original assay vs. tests of calculated LD<sub>25</sub> dosages
    2. "assay_date": date on which assay was conducted
    3. "dose_time": time of day when individuals were treated and assay was started
    4. "pipettor_name": name of researcher pipetting aqueous imidacloprid treatment
@@ -45,21 +45,21 @@ In this step, we read in the raw data file (which includes some sample metadata,
    12. "molted": "yes/no" indicating whether the larva molted ("yes") or did not molt ("no") during the assay
    13. "survival_status": binary (1/0) indicator of whether individual was alive (i.e., "1") or dead (i.e., "0") after 48-hours
 
-There are additional columns in this dataset which correspond to an independent project assessing larval mobility across different insecticide doses. These columns are removed from the dataset for lc assay analyses. 
+There are additional columns in this dataset which correspond to an independent project assessing larval mobility across different insecticide doses. These columns are removed from the dataset for ld assay analyses. 
    
-#### 1a: Read in raw data, which includes all original LC assay data and additional test data, and clean for downstream analyses; run the Rmd chunk below
+#### 1a: Read in raw data, which includes all original LD assay data and additional test data, and clean for downstream analyses; run the Rmd chunk below
 
 ##### Read in and clean raw data
 ```{r}
-# Read in raw data file (lc)
-lc <- read_excel("../raw_data/lc_data.xlsx")
+# Read in raw data file (ld)
+ld <- read_excel("../raw_data/ld_data.xlsx")
 
-# Remove columns that are not needed for lc analysis (columns after "survival_status")
-lc <- lc %>%
+# Remove columns that are not needed for ld analysis (columns after "survival_status")
+ld <- ld %>%
   select(assay:survival_status)
 
 # Convert characters to factors for categorical data and drop NA (missing values)
-lc <- lc %>%
+ld <- ld %>%
   mutate(assay = factor(assay)) %>%
   mutate(pipettor_name = factor(pipettor_name)) %>%
   mutate(observer_name = factor(observer_name)) %>%
@@ -71,8 +71,8 @@ lc <- lc %>%
   mutate(survival_status = as.numeric(survival_status)) %>% 
   drop_na()
 
-# Save raw lc data
-save(lc, file = "data/lc.Rda")
+# Save raw ld data
+save(ld, file = "data/ld.Rda")
 ```
 
 ### STEP 2: Summarize data 
@@ -83,15 +83,15 @@ In this step, we organize data by dosage treatment and verify sample sizes (<i>N
 
 ##### Count data in dosage treatment groups:
 ```{r}
-# Load in initial LC data
-load("data/lc.Rda")
+# Load in initial LD data
+load("data/ld.Rda")
 
 # Count total number of samples
-lc %>%
+ld %>%
   count()
 
 # Count number of samples per treatment group
-lc %>%
+ld %>%
   group_by(dosage) %>%
   count()
 ```
@@ -105,11 +105,11 @@ A single larva was missing in the 1-ppm dosage treatment group and thus was remo
 
 ##### Summarize data and visualize survival over dosages: `figures/survival.pdf`
 ```{r}
-# Load in initial LC data
-load("data/lc.Rda")
+# Load in initial LD data
+load("data/ld.Rda")
 
 # Calculate "average survival" by averaging 1s (alive) and 0s (dead) at different dosages
-lc_averages <- lc %>%
+ld_averages <- ld %>%
   mutate(dosage = factor(dosage)) %>%
   group_by(dosage) %>%
   summarize(mean = mean(survival_status))
@@ -117,7 +117,7 @@ lc_averages <- lc %>%
 # Plot survival for each dosage
 jpeg("figures/survival.jpeg", width = 5000, height = 4000, res = 700)
 
-ggplot(lc_averages, aes(x = dosage, y = mean)) + 
+ggplot(ld_averages, aes(x = dosage, y = mean)) + 
   geom_bar(stat = "identity", position = position_dodge(), fill = "grey", color = "black", linewidth = 1) +
   geom_text(aes(label = paste(format(round(mean*100, digits = 2), nsmall =2), "%"), vjust = -0.4, hjust = 0.5, size = 4), show.legend = F) +
   theme_set(theme_cowplot(12)) +
@@ -139,18 +139,18 @@ In this step, we fit the data using logistic regression with a probit link funct
 
 ##### Run probit logistic regression analysis
 ```{r}
-# Load in raw LC data
-load("data/lc.Rda")
+# Load in raw LD data
+load("data/ld.Rda")
 
 # Run probit analysis (logistic regression with probit link function) using glm()
 probit <- glm(survival_status ~ dosage, 
-              data = lc, 
+              data = ld, 
               family = binomial(link = "probit"))
 
 # Get coefficients of probit function
 summary(probit)
 
-# Define a function to extract the lc25 value (dosage at which 75% of individuals survive on average)
+# Define a function to extract the ld25 value (dosage at which 75% of individuals survive on average)
 findInt <- function(model, value) {
     function(x) {
         predict(model, data.frame(dosage = x), 
@@ -158,26 +158,26 @@ findInt <- function(model, value) {
     }
 }
 
-# Extract lc25 value
+# Extract ld25 value
 uniroot(findInt(probit, .75), 
-        range(lc_raw$dosage))$root
+        range(ld$dosage))$root
 ```
 
 <b>Summary results</b>:
-LC<sub>25</sub> (initial estimate) = 12.21458 ppm
+LD<sub>25</sub> (initial estimate) = 12.21458 ppm
 
-#### 3b: Plot fitted probit regression for lc data; run the Rmd chunk below.
+#### 3b: Plot fitted probit regression for ld data; run the Rmd chunk below.
 
-##### Plot probit regression: `figures/lc.pdf`
+##### Plot probit regression: `figures/ld.pdf`
 ```{r}
-# Load in raw LC data
-load("data/lc.Rda")
+# Load in raw LD data
+load("data/ld.Rda")
 
 # Plot probit curve of survival at all dosages
-jpeg("figures/lc.jpeg", width = 5000, height = 4000, res = 800)
+jpeg("figures/ld.jpeg", width = 5000, height = 4000, res = 800)
 
-ggplot(lc, aes(x = dosage, y = survival_status)) + 
-  geom_point(position = position_jitter(height = 0.05), size = 4, color = "black",fill = "grey", pch = 21) + 
+ggplot(ld, aes(x = dosage, y = survival_status)) + 
+  geom_point(position = position_jitter(height = 0.05), size = 4, color = "black", fill = "grey", pch = 21) + 
   geom_smooth(method = "glm", method.args = list(family = "binomial"), color = "black", fullrange = T) + 
   theme_set(theme_cowplot(12)) +
   geom_hline(yintercept = 0.75, color = "blue", linetype = "longdash", size = 1) +
@@ -194,4 +194,4 @@ ggplot(lc, aes(x = dosage, y = survival_status)) +
 dev.off()
 ```
 
-### ------------------- END OF PHASE 1: DETERMINATION OF SUB-LETHAL (LC<sub>25</sub>) INSECTICIDE DOSAGE ------------------- ### 
+### ------------------- END OF PHASE 1: DETERMINATION OF SUB-LETHAL (LD<sub>25</sub>) INSECTICIDE DOSAGE ------------------- ### 
