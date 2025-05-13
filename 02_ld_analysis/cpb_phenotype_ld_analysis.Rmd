@@ -159,7 +159,7 @@ findInt <- function(model, value) {
 }
 
 # Extract ld25 value
-uniroot(findInt(probit, .75), 
+uniroot(findInt(probit, 0.5), 
         range(ld$dosage))$root
 ```
 
