@@ -23,12 +23,12 @@ library(readxl)
 library(writexl)
 ```
 
-## PHASE 1: DATA PREPARATION AND FILTERING
-In this phase of the analysis, we read in and clean the 
+In this phase of the analysis, we read in the full performance dataset (curated and saved in Analysis 1; see `..01_data_summary_analysis/cpb_phenotype_data_summary_analysis.Rmd`) and filter to retain only the development metrics (date of pupation, pupal mass, date of emergence, adult mass, and deformity). We then save the data frame for downstream analysis. 
 
-### STEP 1: Read in and clean.,,
-In this step, we read in, 
+### STEP 1: Read in and filter performance data to retain only development metrics.
+In this step, we read in and filter the performance data to retain development metrics.
 
+##### Read in and retain development metrics:
 ```{r}
 # load performance data
 load("../01_data_summary_analysis/data/performance.Rda")

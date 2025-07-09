@@ -12,7 +12,7 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in herbivory (i.e., total leaf tissue consumed) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: 
+### Phase 1: Data preparation and filtering
 ### Phase 2: 
 
 ### Libraries needed for analysis
@@ -24,11 +24,12 @@ library(writexl)
 ```
 
 ## PHASE 1: DATA PREPARATION AND FILTERING
-In this phase of the analysis, we read in and clean the 
+In this phase of the analysis, we read in the full performance dataset (curated and saved in Analysis 1; see `..01_data_summary_analysis/cpb_phenotype_data_summary_analysis.Rmd`) and filter to retain only the herbivory metrics (total_leaf_area, leaf_area_consumed, percent_leaf_consumed). We then save the data frame for downstream analysis. 
 
-### STEP 1: Read in and clean metadata, fecundity data, and performance data.
-In this step, we read in, 
+### STEP 1: Read in and filter performance data to retain only herbivory metrics.
+In this step, we read in and filter the performance data to retain herbivory metrics.
 
+##### Read in and retain herbivory metrics:
 ```{r}
 # load performance data
 load("../01_data_summary_analysis/data/performance.Rda")
