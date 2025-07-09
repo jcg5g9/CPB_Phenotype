@@ -202,27 +202,6 @@ performance <- metadata %>%
 
 # save performance data for downstream analyses
 save(performance, file = "data/performance.Rda")
-
-# get only herbivory data from performance data 
-herbivory <- performance %>% 
-  select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) 
-
-# save herbivory data
-save(herbivory, file = "data/herbivory.Rda")
-
-# get only mobility data from performance data
-mobility <- performance %>%
-  select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation))
-
-# save mobility data
-save(mobility, file = "data/mobility.Rda")
-
-# get only development data from performance data
-development <- performance %>%
-  select(c(ind_id:type, larval_generation:molt, `24hr_status`:stored_date), -c(pair_id:adult_generation))
-
-# save development data
-save(development, file = "data/development.Rda")
 ```
 
 ### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)

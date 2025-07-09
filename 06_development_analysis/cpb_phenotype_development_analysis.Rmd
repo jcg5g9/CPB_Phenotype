@@ -1,5 +1,5 @@
 ---
-ttitle: "Analysis 3: Fecundity analysis"
+ttitle: "Analysis 6: Development analysis"
 author: "Joe Gunn"
 date: "2024-09-19"
 output: html_document
@@ -8,8 +8,8 @@ output: html_document
 # <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
 <font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
 
-# <b>Specific Aim:</b> Fecundity analysis
-<font size="+1">In this analysis, we assess differences in fecundity (i.e., average daily number of eggs oviposited) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). We use average daily egg counts over the course of adult lifespan as our metric of fecundity rather than total number of eggs laid, because some mated pairs survived longer than other pairs and therefore had the opportunity to lay a greater number of eggs. </font>
+# <b>Specific Aim:</b> Mobility analysis
+<font size="+1">In this analysis, we assess differences in larval development (i.e., time to pupation, time from pupae to adult emergence, pupal mass, and adult mass) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
 ### Phase 1: 
@@ -21,37 +21,22 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
-library(nlme)
 ```
 
+## PHASE 1: DATA PREPARATION AND FILTERING
+In this phase of the analysis, we read in and clean the 
 
+### STEP 1: Read in and clean.,,
+In this step, we read in, 
 
 ```{r}
 # load performance data
-load("../01_data_summary_analysis/data/fecundity.Rda")
+load("../01_data_summary_analysis/data/performance.Rda")
 
+# get only development data from performance data
+development <- performance %>%
+  select(c(ind_id:type, larval_generation:molt, `24hr_status`:stored_date), -c(pair_id:adult_generation))
 
-# get total number of fecundity data points
-fecundity %>%
-  count()
-
-# get number of data points per mated pair across the full experiment
-fecundity_days <- fecundity %>%
-  group_by(pair_id, adult_generation, lineage, treatment) %>%
-  summarize(mean = mean(number_eggs),
-            n = n())
-
-# plot
-ggplot(fecundity_days, aes(x = n, y = mean)) + 
-  geom_point() + 
-  geom_smooth(method = "lm")
-
-
-# assess correlation of mean egg count per day with number of days of fecundity data (does more days equate to more average egg count)
-model <- lme(mean ~ n, 
-             random = ~1|lineage, 
-             data = fecundity_days)
-
-# get model statistics
-summary(model)
+# save development data
+save(development, file = "data/development.Rda")
 ```
