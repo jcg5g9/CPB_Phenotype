@@ -12,10 +12,11 @@ We assessed inter- and trans-generational effects of sublethal insecticide expos
 This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Gunn et al. [DATE]. In the home directory of the repository (CPB_Phenotype), you will find a README.md file (the source script for this information), the R Project file (CPB_Phenotype.Rproj), a project info folder (project_info, which includes all important information on data procurement for this project), a .gitignore file, and "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
 
 1) 01_data_summary_analysis
-2) 02_
-3) 03_
-4) 04_
-5) 05_
+2) 02_ld_analysis
+3) 03_fecundity_analysis
+4) 04_mobility_analysis
+5) 05_herbivory_analysis
+6) 06_development_analysis
 
 Within each analysis directory, you will find an R markdown script (.Rmd) with the name of the analysis, which contains all of the code needed to run the full analysis. Additionally, you will find:
 
@@ -52,27 +53,32 @@ If you have any questions or issues with data and/or code, please don't hesitate
 
 ## Analyses
 
-### Analysis 1: Generating species native range maps
-In this analysis, we generated easily readable maps displaying the native distributions of the two species of interest (Smallmouth Bass and Neosho Bass) and the two streams sampled for age and growth analysis (Big Sugar Creek and the Elk River). We generated two types of maps: 1) a map of the Central Interior Highlands (CIH), showing the distributions of Smallmouth Bass and Neosho Bass within the ecoregion and labeling Smallmouth Bass reference populations, and 2) a close-up map of the convergence of Big Sugar Creek and the Elk River, showing approximate sample collection sites. In R, we generated only georeferenced outlines of these maps. Shapes representing stream sites and/or populations were superimposed <i>a posteriori</i> on the maps in PowerPoint.
+### Analysis 1: Data summarization and preparation
+In this analysis, 
 
-#### Run the code: `01_map_analysis/smb_fitness_map_analysis.Rmd`
+#### Run the code: `01_data_summary_analysis/cpb_phenotype_data_summary_analysis.Rmd`
 
-### Analysis 2: Data filtering and summarization
-For this analysis, we cleaned, filtered, and summarized the full genotype data (14 microsatellite loci) and phenotypic data (consensus age and total length) for 135 raw samples, which comprised fish collected from two streams (Big Sugar Creek and Elk River) within the recognized native range of the Neosho Bass (<i>M. velox</i>; NB) and a reference set of samples representing Smallmouth Bass (<i>M. dolomieu</i>; SMB) collected from streams in the White River drainage in the Smallmouth Bass native range. We did not collect phenotypic data on the Smallmouth Bass reference samples.
+### Analysis 2: Lethal concentration dose determination
+In this analysis, 
 
-#### Run the code: `02_filtering_analysis/smb_fitness_filtering_analysis.Rmd`
+#### Run the code: `02_ld_analysis/cpb_phenotype_ld_analysis.Rmd`
 
-### Analysis 3: Ancestry inference analysis
-For this analysis, we use Bayesian clustering analysis in the program STRUCTURE (see citation below in under "Programs Needed") to assess individual proportions of ancestry derived from Smallmouth Bass and Neosho Bass. We analyze all sample fish (obtained from Big Sugar Creek and Elk River within the Neosho Bass native range) together with reference fish (obtained from Crooked Creek, White River, and Tablerock Lake within the Smallmouth Bass native range). Knowing that Smallmouth Bass in the White River drainage are of pure genomic origin (Gunn et al. 2022), we use the minimum ancestry proportion of Smallmouth Bass derived from our microsatellites as a lower bound to identify "pure" vs. "admixed" fish in the Neosho Bass range. Ancestry groups are then used to assess growth and body condition in subsequent analyses.
+### Analysis 3: Fecundity analysis
+In this analysis, 
 
-#### Run the code: `03_ancestry_analysis/smb_fitness_ancestry_analysis.Rmd`
+#### Run the code: `03_fecundity_analysis/cpb_phenotype_fecundity_analysis.Rmd`
 
-### Analysis 4: von Bertalanffy individual growth modeling
-For this analysis, we use a Bayesian hierarchical framework to paramaterize the von Bertalanffy growth model using back-calculated total length and consensus age of samples in the Elk River and Big Sugar Creek to assess the contribution of non-native SMB ancestry to growth. We estimate the linear relationship between population-level growth parameters of the von Bertalanffy model (maximum theoretical total length-at-age, the Brody growth coefficient, and theoretical age at length-0) and ancestry proportion by quantifying average deviations from the global parameters due to SMB vs. NB ancestry, and we account for any potential differences in growth due to sex (male or female) or stream of origin (Big Sugar Creek or Elk River). For all growth models, we include individual ID as a random effect to account for individual variation in linear back-calculation estimates.
+### Analysis 4: Mobility analysis
+In this analysis, 
 
-#### Run the code: `04_growth_analysis/smb_fitness_growth_analysis.Rmd`
+#### Run the code: `04_mobility_analysis/cpb_phenotype_mobility_analysis.Rmd`
 
-### Analysis 5: Ancestry condition correlation analysis
-For this analysis, we assessed the linear relationship (correlation) between interspecific ancestry (as measured by proportion of non-native SMB ancestry due to introgression) and individual physiological condition (a proxy of individual fitness) to determine the effect of admixture on fitness in fish in Big Sugar Creek and Elk River in the NB native range. Ancestry-fitness correlation may be positive (fitness increases with ancestry; heterosis by relief from inbreeding depression, hybrid vigor, or adaptive introgression), negative (fitness decreases with ancestry; outbreeding depression by breakdown of coadapted gene complexes, or introduction of deleterious recessive alleles from a large population), or neutral (no effect of ancestry on fitness; formation of a stable hybrid zone). 
+### Analysis 5: Herbivory analysis
+In this analysis, 
 
-#### Run the code: `05_ac_analysis/smb_fitness_ac_analysis.Rmd`
+#### Run the code: `05_herbivory_analysis/cpb_phenotype_herbivory_analysis.Rmd`
+
+### Analysis 6: Development analysis
+In this analysis, 
+
+#### Run the code: `05_development_analysis/cpb_phenotype_development_analysis.Rmd`

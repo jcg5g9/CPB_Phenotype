@@ -27,7 +27,7 @@ library(nlme)
 
 ```{r}
 # load fecundity data
-load("data/fecundity.Rda")
+load("../01_data_summary_analysis/data/fecundity.Rda")
 
 # get total number of fecundity data points
 fecundity %>%
