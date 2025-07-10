@@ -208,8 +208,9 @@ save(performance, file = "data/performance.Rda")
 In this step, we summarize sample sizes and number of data points for each dataset, including fecundity and three performance phenotypes: herbivory, mobility, and development. We report all summary data here and in the final ms.
 
 #### 2a: Summarize fecundity data; run the Rmd chunk below
+Here, we summarize all fecundity (i.e., egg count) data from the experiment.
 
-##### Summarize fecundity data
+##### Summarize fecundity data:
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
@@ -218,41 +219,92 @@ load("data/fecundity.Rda")
 fecundity %>%
   count()
 
-# get number of data points per mated pair across the full experiment
-fecundity_days <- fecundity %>%
-  group_by(pair_id, adult_generation, lineage, treatment) %>%
-  summarize(mean = mean(number_eggs),
-            n = n())
+# get number of fecundity data points by generation
+fecundity %>%
+  group_by(adult_generation) %>%
+  count()
 
-# plot
-ggplot(fecundity_days, aes(x = n, y = mean)) + 
-  geom_point() + 
-  geom_smooth(method = "lm")
-
-
-# assess correlation of mean egg count per day with number of days of fecundity data (does more days equate to more average egg count)
-model <- lme(mean ~ n, 
-             random = ~1|lineage, 
-             data = fecundity_days)
-
-# get model statistics
-summary(model)
-
-# filter the fecundity days dataset to keep only 
-fecundity_days
-
+# get number of fecundity data points by generation and treatment
+fecundity %>%
+  group_by(adult_generation, treatment) %>%
+  count()
 ```
 
 <b>Data summary:</b> <br>
 
+<b>Total sample size:</b>
 <b><i>N</i><sub>data</sub> = 1,501 </b><br>
 
-<b><i>N</i><sub>sample_set</sub> = 116 </b><br>
-<i>N</i><sub>sample_elk</sub> = 70 <br>
-<i>N</i><sub>sample_bigsugar</sub> = 46 <br>
+<b>Sample size per generation:</b>
+<b><i>N</i><sub>F0</sub> = 457 </b><br>
+<b><i>N</i><sub>F1</sub> = 332 </b><br>
+<b><i>N</i><sub>F2</sub> = 372 </b><br>
+<b><i>N</i><sub>F3</sub> = 340 </b><br>
 
-<b><i>N</i><sub>reference_set</sub> = 20 </b><br>
-<i>N</i><sub>reference_white</sub> = 2 <br>
-<i>N</i><sub>reference_tablerock</sub> = 8 <br>
-<i>N</i><sub>reference_crooked</sub> = 10 <br>
+<b>Sample size per treatment per generation:</b>
+<b><i>N</i><sub>F0_C</sub> = 250 </b><br>
+<b><i>N</i><sub>F0_E</sub> = 207 </b><br>
+<b><i>N</i><sub>F1_C</sub> = 224 </b><br>
+<b><i>N</i><sub>F1_E</sub> = 108 </b><br>
+<b><i>N</i><sub>F2_C</sub> = 241 </b><br>
+<b><i>N</i><sub>F2_E</sub> = 131 </b><br>
+<b><i>N</i><sub>F3_C</sub> = 201 </b><br>
+<b><i>N</i><sub>F3_e</sub> = 139 </b><br>
 
+#### 2b: Summarize performance data
+Here, we summarize all performance trait data (i.e., mobility, herbivory, and development) from the experiment.
+
+##### 2b.1. Summarize mobility data; run the Rmd chunk below.
+Here, we summarize all mobility-related performance metrics, including total distance traveled, average walking speed, and average acceleration, as obtained from the software ToxTrac.
+
+##### Summarize mobility data:
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+# get only mobility data from performance data and drop na data in the metrics columns (average speed through total distance)
+mobility <- performance %>%
+  select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
+  separate()
+  drop_na(ave_speed:total_distance)
+
+# get total mobility metric data points
+mobility %>%
+  count()
+
+# get number of mobility data points by larval generation
+mobility %>%
+  group_by(larval_generation) %>%
+  count()
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b>
+<b><i>N</i><sub>data</sub> = 394 </b><br>
+
+<b>Sample size per generation:</b>
+<b><i>N</i><sub>F0</sub> = 137 </b><br>
+<b><i>N</i><sub>F1</sub> = 108 </b><br>
+<b><i>N</i><sub>F2</sub> = 73 </b><br>
+<b><i>N</i><sub>F3</sub> = 76 </b><br>
+
+##### 2b.2. Summarize herbivory data; run the Rmd chunk below.
+Here, we summarize all herbivory-related performance metrics, including total leaf area consumed and percent leaf area consumed, as obtained from the software LeafByte
+
+##### Summarize herbivory data:
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+```
+
+##### 2b.3. Summarize development data; run the Rmd chunk below.
+Here, we summarize all development-related performance metrics, including time to pupation, time from pupation to emergence, pupal mass, and adult mass.
+
+##### Summarize development data:
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+```
