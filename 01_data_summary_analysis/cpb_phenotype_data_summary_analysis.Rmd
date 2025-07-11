@@ -37,7 +37,7 @@ In this step, we read in and clean the full metadata (`../raw_data/metadata.xlsx
    3. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation (only pertaining to type "mated_pair")
    4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation (only pertaining to type "mated_pair")
    5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", and "F3" (only pertaining to type "assayed")
-   6. <b>"lineage"</b>: lineage to which a beetle belongs; beetles of type "assayed" in the F1, F2, and F3 are labeled with generation number followed by either "_C" or "_E", indicating the treatment to which F0 mated pairs in that lineage were exposed.
+   6. <b>"lineage"</b>: lineage to which a beetle belongs; beetles of type "assayed" in the F1, F2, and F3 are labeled with generation number followed by either "_C" or "_E", indicating the treatment to which F0 mated pairs in that lineage were exposed. Beetles in the F0 generation were given a designation of _C since they were the exposed generation.
    7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]) to which a beetle was exposed.
    8. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle
    9. <b>"date_stored"</b>: date on which a beetle was stored in the freezer. No date indicates that beetle was not stored. 
@@ -47,7 +47,7 @@ In this step, we read in and clean the full metadata (`../raw_data/metadata.xlsx
 # read in metadata 
 metadata <- read_excel("../raw_data/metadata.xlsx")
 
-# convert characters to factors in metadata
+# convert characters to factors in metadata and separate lineage column into "lineage" and "background" columns to indicate which treatment was administered to the F0 generation
 metadata <- metadata %>%
   mutate(ind_id = factor(ind_id),
          type = factor(type),
@@ -56,7 +56,8 @@ metadata <- metadata %>%
          larval_generation = factor(larval_generation),
          lineage = factor(lineage),
          treatment = factor(treatment),
-         sex = factor(sex))
+         sex = factor(sex)) %>%
+  separate(lineage, c("lineage", "background"), sep = "_")
 
 # save metadata for downstream analyses
 save(metadata, file = "data/metadata.Rda")
@@ -178,7 +179,7 @@ load("data/metadata.Rda")
 # read in raw performance data 
 performance <- read_excel("../raw_data/performance_data.xlsx")
 
-# convert characters to factors (categorical variables) and numerics (numeric variables) in performance data, eliminate L4 date column, and separate lineage column into "lineage" and "background" treatment columns
+# convert characters to factors (categorical variables) and numerics (numeric variables) in performance data, eliminate L4 date column, separate lineage column into "lineage" and "background" columns to indicate which treatment was administered to the F0 generation
 performance <- performance %>%
   mutate(ind_id = factor(ind_id),
          larval_generation = factor(larval_generation),
@@ -266,7 +267,6 @@ load("data/performance.Rda")
 # get only mobility data from performance data and drop na data in the metrics columns (average speed through total distance)
 mobility <- performance %>%
   select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
-  separate()
   drop_na(ave_speed:total_distance)
 
 # get total mobility metric data points
