@@ -9,10 +9,10 @@ output: html_document
 <font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
 
 # <b>Specific Aim:</b> Herbivory analysis
-<font size="+1">In this analysis, we assess differences in herbivory (i.e., total leaf tissue consumed) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
+<font size="+1">In this analysis, we assess differences in larval herbivory (i.e., total leaf tissue consumed) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: Data preparation and filtering
+### Phase 1: 
 ### Phase 2: 
 
 ### Libraries needed for analysis
@@ -23,21 +23,14 @@ library(readxl)
 library(writexl)
 ```
 
-## PHASE 1: DATA PREPARATION AND FILTERING
-In this phase of the analysis, we read in the full performance dataset (curated and saved in Analysis 1; see `..01_data_summary_analysis/cpb_phenotype_data_summary_analysis.Rmd`) and filter to retain only the herbivory metrics (total_leaf_area, leaf_area_consumed, percent_leaf_consumed). We then save the data frame for downstream analysis. 
+## PHASE 1: 
+In this phase of the analysis, we 
 
-### STEP 1: Read in and filter performance data to retain only herbivory metrics.
-In this step, we read in and filter the performance data to retain herbivory metrics.
+### STEP 1: 
+In this step, we 
 
-##### Read in and retain herbivory metrics:
+##### 
 ```{r}
-# load performance data
-load("../01_data_summary_analysis/data/performance.Rda")
-
-# get only herbivory data from performance data 
-herbivory <- performance %>% 
-  select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) 
-
-# save herbivory data
-save(herbivory, file = "data/herbivory.Rda")
+# load herbivory data
+load("../01_data_summary_analysis/data/herbivory.Rda")
 ```
