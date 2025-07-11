@@ -369,14 +369,201 @@ Here, we summarize all herbivory-related performance metrics, including total le
 # load herbivory data
 load("data/herbivory.Rda")
 
+# get total herbivory metric data points
+herbivory %>%
+  count()
+
+# get number of herbivory data points by larval generation
+herbivory %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of herbivory data points by background and treatment in each larval generation
+herbivory %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
 ```
 
-##### 2b.3. Summarize development data; run the Rmd chunk below.
-Here, we summarize all development-related performance metrics, including time to pupation, time from pupation to emergence, pupal mass, and adult mass.
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 419 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 144 </b><br>
+<b><i>N</i><sub>F1</sub> = 120 </b><br>
+<b><i>N</i><sub>F2</sub> =  79 </b><br>
+<b><i>N</i><sub>F3</sub> =  76 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_C</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_C_E</sub> = 72 </b><br>
+
+<b><i>N</i><sub>F1_C_C</sub> = 31 </b><br>
+<b><i>N</i><sub>F1_C_E</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_C</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_E</sub> = 29 </b><br>
+
+<b><i>N</i><sub>F2_C_C</sub> = 22 </b><br>
+<b><i>N</i><sub>F2_C_E</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_C</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_E_E</sub> = 17 </b><br>
+
+<b><i>N</i><sub>F3_C_C</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_E</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
+
+##### 2b.3. Summarize development data
+Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and ennumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
+
+##### 2b.3.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below
+Here, we isolate each metric individually and save for downstream analysis of development (see Analysis 6: Development analysis; `06_development_analysis/cpb_phenotype_development_analysis.Rmd`). All Rda objects are saved to the `/data` directory in Analysis 6.
 
 ##### Summarize development data:
 ```{r}
 # load development data
 load("data/development.Rda")
 
+# isolate data to calculate time to pupation (pupa date only), including all sample metadata
+pupa_time <- development %>%
+  select(ind_id:sex, assay_date:molt, pupa_date) %>%
+  drop_na(pupa_date)
+
+# isolate data to calculate pupation duration (pupa date and emergence data), including all sample metadata
+pupa_duration <- development %>%
+  select(ind_id:sex, assay_date:molt, pupa_date, emerge_date) %>%
+  drop_na(pupa_date:emerge_date)
+
+# isolate pupa mass data, including all sample metadata
+pupa_mass <- development %>%
+  select(ind_id:sex, assay_date:molt, pupa_mass) %>%
+  drop_na(pupa_mass)
+
+# isolate adult mass data, including all sample metadata
+adult_mass <- development %>%
+  select(ind_id:sex, assay_date:molt, adult_mass) %>%
+  drop_na(adult_mass)
+
+# Save pupa time data 
+save(pupa_time, file = "../06_development_analysis/data/pupa_time.Rda")
+
+# Save pupa duration data 
+save(pupa_duration, file = "../06_development_analysis/data/pupa_duration.Rda")
+
+# Save pupa mass data 
+save(pupa_mass, file = "../06_development_analysis/data/pupa_mass.Rda")
+
+# Save adult mass data 
+save(adult_mass, file = "../06_development_analysis/data/adult_mass.Rda")
 ```
+
+##### 2b.3.2. Summarize time to pupation data; run the Rmd chunk below.
+Here, we summarize data for time to pupation.
+
+##### Summarize time to pupation data:
+```{r}
+# load pupa time data
+load("../06_development_analysis/data/pupa_time.Rda")
+
+# get total development metric data points
+development %>%
+  count()
+
+# get number of development data points by larval generation
+development %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of development data points by background and treatment in each larval generation
+development %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+##### 2b.3.3. Summarize pupation duration data; run the Rmd chunk below.
+Here, we summarize data for duration of pupation.
+
+##### Summarize pupation duration data:
+```{r}
+# load pupa duration data
+load("../06_development_analysis/data/pupa_duration.Rda")
+
+# get total development metric data points
+development %>%
+  count()
+
+# get number of development data points by larval generation
+development %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of development data points by background and treatment in each larval generation
+development %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+##### 2b.3.4. Summarize pupa mass data; run the Rmd chunk below.
+Here, we summarize data for pupa mass.
+
+##### Summarize pupa mass data:
+```{r}
+# load pupa mass data
+load("../06_development_analysis/data/pupa_mas.Rda")
+
+# get total development metric data points
+development %>%
+  count()
+
+# get number of development data points by larval generation
+development %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of development data points by background and treatment in each larval generation
+development %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+##### 2b.3.5. Summarize adult mass data; run the Rmd chunk below.
+Here, we summarize data for adult mass.
+
+##### Summarize adult mass data:
+```{r}
+# load adult mass data
+load("../06_development_analysis/data/adult_mas.Rda")
+```
+
+
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 394 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 137 </b><br>
+<b><i>N</i><sub>F1</sub> = 108 </b><br>
+<b><i>N</i><sub>F2</sub> =  73 </b><br>
+<b><i>N</i><sub>F3</sub> =  76 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_C</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_C_E</sub> = 70 </b><br>
+
+<b><i>N</i><sub>F1_C_C</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_C_E</sub> = 27 </b><br>
+<b><i>N</i><sub>F1_E_C</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_E</sub> = 28 </b><br>
+
+<b><i>N</i><sub>F2_C_C</sub> = 21 </b><br>
+<b><i>N</i><sub>F2_C_E</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_C</sub> = 15 </b><br>
+<b><i>N</i><sub>F2_E_E</sub> = 14 </b><br>
+
+<b><i>N</i><sub>F3_C_C</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_E</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
