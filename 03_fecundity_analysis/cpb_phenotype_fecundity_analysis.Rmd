@@ -12,7 +12,7 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in fecundity (i.e., average daily number of eggs oviposited) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). We use average daily egg counts over the course of adult lifespan as our metric of fecundity rather than total number of eggs laid, because some mated pairs survived longer than other pairs and therefore had the opportunity to lay a greater number of eggs. </font>
 
 ## Phases of Analysis
-### Phase 1: 
+### Phase 1: Data summary statistics
 ### Phase 2: 
 
 ### Libraries needed for analysis
@@ -24,7 +24,25 @@ library(writexl)
 library(nlme)
 ```
 
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we calculate mean, standard deviation, and variance for fecundity within experimental groups of interest.
 
+### STEP 1: Calculate summary statistics for fecundity data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for fecundity (i.e., number of eggs per day) for all experimental groups.
+
+##### Calculate summary statistics for fecundity data:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for fecundity by generation and treatment
+fecundity %>%
+  group_by(adult_generation, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(number_eggs),
+            sd = sd(number_eggs),
+            se = sd/sqrt(n()))
+```
 
 ```{r}
 # load performance data

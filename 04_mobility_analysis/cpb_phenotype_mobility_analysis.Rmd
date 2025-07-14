@@ -12,7 +12,7 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in larval mobility (i.e., total distance walked, average walking rate, and average walking acceleration) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: 
+### Phase 1: Data Summary Statistics
 ### Phase 2: 
 
 ### Libraries needed for analysis:
@@ -23,14 +23,38 @@ library(readxl)
 library(writexl)
 ```
 
-## PHASE 1:
-In this phase of the analysis, we ...
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we calculate mean, standard deviation, and variance for mobility metrics within experimental groups of interest.
 
-### STEP 1: 
-In this step, we
+### STEP 1: Calculate summary statistics for fecundity data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for mobility (i.e., walking speed, walking acceleration, and total distance walked) for all experimental groups.
 
-##### :
+##### Calculate summary statistics for fecundity data:
 ```{r}
 # load mobility data
-load("../01_data_summary_analysis/data/mobility.Rda")
+load("data/mobility.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for walking rate by generation and treatment
+mobility %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(ave_speed),
+            sd = sd(ave_speed),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average acceleration by generation and treatment
+mobility %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(ave_accel),
+            sd = sd(ave_accel),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for distance walked by generation and treatment
+mobility %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(total_distance),
+            sd = sd(total_distance),
+            se = sd/sqrt(n()))
 ```
