@@ -310,6 +310,8 @@ fecundity %>%
 <b><i>N</i><sub>F3_C</sub> = 201 </b><br>
 <b><i>N</i><sub>F3_e</sub> = 139 </b><br>
 
+These data are presented in Table 1 of the final ms.
+
 #### 2b: Summarize performance data
 Here, we summarize all performance trait data (i.e., mobility, herbivory, and development) from the experiment.
 
@@ -366,13 +368,15 @@ performance %>%
 <b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
 
+These data are presented in Table 1 of the final ms.
+
 ##### 2b.2. Summarize mobility data; run the Rmd chunk below.
 Here, we summarize all mobility-related performance metrics as obtained from the software ToxTrac.
 
 ##### Summarize mobility data:
 ```{r}
 # load performance data
-load("data/mobility.Rda")
+load("../04_mobility_analysis/data/mobility.Rda")
 
 # get total mobility metric data points
 mobility %>%
@@ -419,13 +423,15 @@ mobility %>%
 <b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
 
+These data are presented in Table 1 of the final ms.
+
 ##### 2b.3. Summarize herbivory data; run the Rmd chunk below.
 Here, we summarize all herbivory-related performance metrics, including total leaf area consumed and percent leaf area consumed, as obtained from the software LeafByte
 
 ##### Summarize herbivory data:
 ```{r}
 # load herbivory data
-load("data/herbivory.Rda")
+load("../05_herbivory_analysis/data/herbivory.Rda")
 
 # get total herbivory metric data points
 herbivory %>%
@@ -472,26 +478,30 @@ herbivory %>%
 <b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
 
-##### 2b.4. Summarize development data
+These data are presented in Table 1 of the final ms.
+
+##### 2b.4. Summarize development data.
 Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and enumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
 
-##### 2b.4.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below
-Here, we isolate each metric individually and save for downstream analysis of development (see Analysis 6: Development analysis; `06_development_analysis/cpb_phenotype_development_analysis.Rmd`). All Rda objects are saved to the `/data` directory in Analysis 6.
+##### 2b.4.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below.
+Here, we isolate each metric individually and save for downstream analysis of development (see Analysis 6: Development analysis; `06_development_analysis/cpb_phenotype_development_analysis.Rmd`). We also calculate raw data for time metrics (time to pupation and pupation duration). We calculate time to pupation as the number of days between the date of the assay for an individual larva (instar-3) and the date of complete pupa formation. We calculate duration of pupation as the time between the date of full pupa formation and the date of full adult eclosure (i.e., emergence). All Rda objects are saved to the `/data` directory in Analysis 6.
 
-##### Summarize development data:
+##### Isolate and calculate raw metrics:
 ```{r}
 # load development data
-load("data/development.Rda")
+load("../06_development_analysis/data/development.Rda")
 
-# isolate data to calculate time to pupation (pupa date only), including all sample metadata
+# isolate data to calculate time to pupation (pupa date only) and calculate raw metric (number of days to pupation) including all sample metadata
 pupa_time <- development %>%
   select(ind_id:sex, assay_date:molt, pupa_date) %>%
-  drop_na(pupa_date)
+  drop_na(pupa_date) %>%
+  mutate(pupa_time = as.integer(difftime(pupa_date, assay_date, "days")))
 
-# isolate data to calculate pupation duration (pupa date and emergence data), including all sample metadata
+# isolate data to calculate pupation duration (pupa date and emergence data) and calculate raw metric (number of days from pupation to emergence), including all sample metadata
 pupa_duration <- development %>%
   select(ind_id:sex, assay_date:molt, pupa_date, emerge_date) %>%
-  drop_na(pupa_date:emerge_date)
+  drop_na(pupa_date:emerge_date) %>%
+  mutate(pupa_duration = as.integer(difftime(emerge_date, pupa_date, "days")))
 
 # isolate pupa mass data, including all sample metadata
 pupa_mass <- development %>%
@@ -569,6 +579,8 @@ pupa_time %>%
 <b><i>N</i><sub>F3_E_C</sub> = 15 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 7 </b><br>
 
+These data are presented in Table 1 of the final ms.
+
 ##### 2b.4.3. Summarize pupation duration data; run the Rmd chunk below.
 Here, we summarize data for duration of pupation. These data include date of pupation AND date of emergence; if pupa died before emerging, they were not included in this dataset.
 
@@ -620,6 +632,8 @@ pupa_duration %>%
 <b><i>N</i><sub>F3_C_E</sub> = 10 </b><br>
 <b><i>N</i><sub>F3_E_C</sub> = 14 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 6 </b><br>
+
+These data are presented in Table 1 of the final ms.
 
 ##### 2b.4.4. Summarize pupa mass data; run the Rmd chunk below.
 Here, we summarize data for pupa mass. These data include mass of pupae; if larvae died before pupation or did not successfully pupate, they were not included in this dataset.
@@ -674,6 +688,8 @@ b>Data summary:</b> <br>
 <b><i>N</i><sub>F3_E_C</sub> = 15 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 7 </b><br>
 
+These data are presented in Table 1 of the final ms.
+
 ##### 2b.4.5. Summarize adult mass data; run the Rmd chunk below.
 Here, we summarize data for adult mass. These data include mass of adults upon emergence; if pupae died before emergence, they were not included in this dataset.
 
@@ -727,3 +743,4 @@ adult_mass %>%
 <b><i>N</i><sub>F3_E_C</sub> = 14 </b><br>
 <b><i>N</i><sub>F3_E_E</sub> = 6 </b><br>
 
+These data are presented in Table 1 of the final ms.

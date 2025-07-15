@@ -24,34 +24,10 @@ library(writexl)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
-In this phase of the analysis, we calculate raw values for larval development metrics (i.e., time to pupal stage and duration of pupation) and calculate mean, standard deviation, and variance for all metrics (including also pupal mass and adult mass) within experimental groups of interest.
+In this phase of the analysis, we calculate mean, standard deviation, and variance for all metrics (including also pupal mass and adult mass) within experimental groups of interest.
 
-### STEP 1: Calculate raw values and summary statistics for development data
-In this step, we calculate mean, standard deviation, and variance for herbivory (i.e., total leaf area consumed) for all experimental groups.
-
-#### 1a. Calculate raw values for time to pupation and pupal duration metrics; run the Rmd chunk below
-In this step, we calculate time to pupation as the number of days between the date of the assay for an individual larva (instar-3) and the date of complete pupa formation. We calculate duration of pupation as the time between the date of full pupa formation and the date of full adult eclosure (i.e., emergence).
-
-##### Calculate raw values for time to pupation and pual duration:
-```{r}
-# load pupa time data
-load("data/pupa_time.Rda")
-
-# calculate time to pupation ("pupa_time")
-pupa_time <- pupa_time %>%
-  mutate(pupa_time = as.integer(difftime(pupa_date, assay_date, "days")))
-
-# load pupa duration data
-load("data/pupa_duration.Rda")
-
-# calculate duration of pupation ("pupa_duration")
-pupa_duration <- pupa_duration %>%
-  mutate(pupa_duration = as.integer(difftime(emerge_date, pupa_date, "days")))
-
-```
-
-
-#### 1b. Calculate summary statistics for all larval development data; run the Rmd chunk below.
+### STEP 1: Calculate summary statistics for larval development data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for larval development metrics (i.e., time to pupation, pupation duration, pupal mass, and adult mass) for all experimental groups.
 
 ##### Calculate summary statistics for larval development data:
 ```{r}
