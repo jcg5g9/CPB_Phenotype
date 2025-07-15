@@ -240,7 +240,8 @@ load("data/performance.Rda")
 
 # get only herbivory data from performance data 
 herbivory <- performance %>% 
-  select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) 
+  select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) %>%
+  drop_na(total_leaf_area)
 
 # save herbivory data
 save(herbivory, file = "../05_herbivory_analysis/data/herbivory.Rda")
@@ -444,11 +445,11 @@ herbivory %>%
 <b>Data summary:</b> <br>
 
 <b>Total sample size:</b><br>
-<b><i>N</i><sub>data</sub> = 419 </b><br>
+<b><i>N</i><sub>data</sub> = 418 </b><br>
 
 <b>Sample size per generation:</b><br>
 <b><i>N</i><sub>F0</sub> = 144 </b><br>
-<b><i>N</i><sub>F1</sub> = 120 </b><br>
+<b><i>N</i><sub>F1</sub> = 119 </b><br>
 <b><i>N</i><sub>F2</sub> =  79 </b><br>
 <b><i>N</i><sub>F3</sub> =  76 </b><br>
 
@@ -458,7 +459,7 @@ herbivory %>%
 
 <b><i>N</i><sub>F1_C_C</sub> = 31 </b><br>
 <b><i>N</i><sub>F1_C_E</sub> = 30 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_C</sub> = 29 </b><br>
 <b><i>N</i><sub>F1_E_E</sub> = 29 </b><br>
 
 <b><i>N</i><sub>F2_C_C</sub> = 22 </b><br>
@@ -472,7 +473,7 @@ herbivory %>%
 <b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
 
 ##### 2b.4. Summarize development data
-Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and ennumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
+Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and enumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
 
 ##### 2b.4.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below
 Here, we isolate each metric individually and save for downstream analysis of development (see Analysis 6: Development analysis; `06_development_analysis/cpb_phenotype_development_analysis.Rmd`). All Rda objects are saved to the `/data` directory in Analysis 6.

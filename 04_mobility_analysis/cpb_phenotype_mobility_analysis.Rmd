@@ -26,10 +26,10 @@ library(writexl)
 ## PHASE 1: DATA SUMMARY STATISTICS
 In this phase of the analysis, we calculate mean, standard deviation, and variance for mobility metrics within experimental groups of interest.
 
-### STEP 1: Calculate summary statistics for fecundity data; run the Rmd chunk below.
+### STEP 1: Calculate summary statistics for larval mobility data; run the Rmd chunk below.
 In this step, we calculate mean, standard deviation, and variance for mobility (i.e., walking speed, walking acceleration, and total distance walked) for all experimental groups.
 
-##### Calculate summary statistics for fecundity data:
+##### Calculate summary statistics for larval mobility data:
 ```{r}
 # load mobility data
 load("data/mobility.Rda")

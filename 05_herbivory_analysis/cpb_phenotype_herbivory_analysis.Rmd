@@ -12,10 +12,10 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in larval herbivory (i.e., total leaf tissue consumed) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: 
+### Phase 1: Data Summary Statistics
 ### Phase 2: 
 
-### Libraries needed for analysis
+### Libraries needed for analysis:
 ```{r}
 library(tidyverse)
 library(cowplot)
@@ -23,14 +23,22 @@ library(readxl)
 library(writexl)
 ```
 
-## PHASE 1: 
-In this phase of the analysis, we 
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we calculate mean, standard deviation, and variance for larval herbivory metrics within experimental groups of interest.
 
-### STEP 1: 
-In this step, we 
+### STEP 1: Calculate summary statistics for larval herbivory data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for larval herbivory (i.e., total leaf area consumed) for all experimental groups.
 
-##### 
+##### Calculate summary statistics for larval herbivory data:
 ```{r}
 # load herbivory data
-load("../01_data_summary_analysis/data/herbivory.Rda")
+load("data/herbivory.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for walking rate by generation and treatment
+herbivory %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(total_leaf_area),
+            sd = sd(total_leaf_area),
+            se = sd/sqrt(n()))
 ```
