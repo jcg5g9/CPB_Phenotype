@@ -267,48 +267,57 @@ save(development, file = "../06_development_analysis/data/development.Rda")
 In this step, we summarize sample sizes and number of data points for each dataset, including fecundity and three performance phenotypes: herbivory, mobility, and development. We report all summary data here and in the final ms.
 
 #### 2a: Summarize fecundity data; run the Rmd chunk below
-Here, we summarize all fecundity (i.e., egg count) data from the experiment.
+Here, we summarize all fecundity (i.e., egg count) data from the experiment. For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then summarize sample sizes based on the number of replicate lineages represented.
 
 ##### Summarize fecundity data:
 ```{r}
 # load fecundity data
 load("../03_fecundity_analysis/data/fecundity.Rda")
 
+# calculate average eggs per day for each treatment, lineage, and generation and make new dataframe
+average_fecundity <- fecundity %>%
+  group_by(adult_generation, lineage, treatment) %>%
+  summarize(average_number_eggs = mean(number_eggs)) %>%
+  as.data.frame()
+
 # get total number of fecundity data points
-fecundity %>%
+average_fecundity %>%
   count()
 
 # get number of fecundity data points by generation
-fecundity %>%
+average_fecundity %>%
   group_by(adult_generation) %>%
   count()
 
 # get number of fecundity data points by generation and treatment
-fecundity %>%
+average_fecundity %>%
   group_by(adult_generation, treatment) %>%
   count()
+
+# save average fecundity data for downstream analyses
+save(average_fecundity, file = "../03_fecundity_analysis/data/average_fecundity.Rda")
 ```
 
 <b>Data summary:</b> <br>
 
 <b>Total sample size:</b><br>
-<b><i>N</i><sub>data</sub> = 1,501 </b><br>
+<b><i>N</i><sub>data</sub> = 67 </b><br>
 
 <b>Sample size per generation:</b><br>
-<b><i>N</i><sub>F0</sub> = 457 </b><br>
-<b><i>N</i><sub>F1</sub> = 332 </b><br>
-<b><i>N</i><sub>F2</sub> = 372 </b><br>
-<b><i>N</i><sub>F3</sub> = 340 </b><br>
+<b><i>N</i><sub>F0</sub> = 18 </b><br>
+<b><i>N</i><sub>F1</sub> = 17 </b><br>
+<b><i>N</i><sub>F2</sub> = 17 </b><br>
+<b><i>N</i><sub>F3</sub> = 15 </b><br>
 
 <b>Sample size per treatment per generation:</b><br>
-<b><i>N</i><sub>F0_C</sub> = 250 </b><br>
-<b><i>N</i><sub>F0_E</sub> = 207 </b><br>
-<b><i>N</i><sub>F1_C</sub> = 224 </b><br>
-<b><i>N</i><sub>F1_E</sub> = 108 </b><br>
-<b><i>N</i><sub>F2_C</sub> = 241 </b><br>
-<b><i>N</i><sub>F2_E</sub> = 131 </b><br>
-<b><i>N</i><sub>F3_C</sub> = 201 </b><br>
-<b><i>N</i><sub>F3_e</sub> = 139 </b><br>
+<b><i>N</i><sub>F0_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F0_E</sub> = 8 </b><br>
+<b><i>N</i><sub>F1_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F1_E</sub> = 7 </b><br>
+<b><i>N</i><sub>F2_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E</sub> = 7 </b><br>
+<b><i>N</i><sub>F3_C</sub> = 9 </b><br>
+<b><i>N</i><sub>F3_e</sub> = 6 </b><br>
 
 These data are presented in Table 1 of the final ms.
 

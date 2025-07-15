@@ -31,14 +31,47 @@ In this step, we calculate mean, standard deviation, and variance for larval dev
 
 ##### Calculate summary statistics for larval development data:
 ```{r}
-# load herbivory data
-load("data/.Rda")
+# load pupa time data
+load("data/pupa_time.Rda")
 
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for walking rate by generation and treatment
-herbivory %>%
+# load pupa duration data
+load("data/pupa_duration.Rda")
+
+# load pupa mass data
+load("data/pupa_mass.Rda")
+
+# load adult mass data
+load("data/adult_mass.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for time to pupation by generation and treatment
+pupa_time %>%
   group_by(larval_generation, background, treatment) %>% 
   summarize(n = n(),
-            mean = mean(total_leaf_area),
-            sd = sd(total_leaf_area),
+            mean = mean(pupa_time),
+            sd = sd(pupa_time),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
+pupa_duration %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(pupa_duration),
+            sd = sd(pupa_duration),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
+pupa_mass %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(pupa_mass),
+            sd = sd(pupa_mass),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
+adult_mass %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(adult_mass),
+            sd = sd(adult_mass),
             se = sd/sqrt(n()))
 ```

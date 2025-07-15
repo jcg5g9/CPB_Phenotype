@@ -25,51 +25,22 @@ library(nlme)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
-In this phase of the analysis, we calculate mean, standard deviation, and variance for fecundity within experimental groups of interest.
+In this phase of the analysis, we calculate mean, standard deviation, and variance for average fecundity within experimental groups of interest. 
 
 ### STEP 1: Calculate summary statistics for fecundity data; run the Rmd chunk below.
-In this step, we calculate mean, standard deviation, and variance for fecundity (i.e., number of eggs per day) for all experimental groups.
+In this step, we calculate mean, standard deviation, and variance for average fecundity (i.e., average number of eggs per day across lineages) for all experimental groups.
 
 ##### Calculate summary statistics for fecundity data:
 ```{r}
-# load fecundity data
-load("data/fecundity.Rda")
+# load average fecundity data
+load("data/average_fecundity.Rda")
 
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for fecundity by generation and treatment
-fecundity %>%
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+average_fecundity %>%
   group_by(adult_generation, treatment) %>% 
   summarize(n = n(),
-            mean = mean(number_eggs),
-            sd = sd(number_eggs),
+            mean = mean(average_number_eggs),
+            sd = sd(average_number_eggs),
             se = sd/sqrt(n()))
 ```
 
-```{r}
-# load performance data
-load("../01_data_summary_analysis/data/fecundity.Rda")
-
-
-# get total number of fecundity data points
-fecundity %>%
-  count()
-
-# get number of data points per mated pair across the full experiment
-fecundity_days <- fecundity %>%
-  group_by(pair_id, adult_generation, lineage, treatment) %>%
-  summarize(mean = mean(number_eggs),
-            n = n())
-
-# plot
-ggplot(fecundity_days, aes(x = n, y = mean)) + 
-  geom_point() + 
-  geom_smooth(method = "lm")
-
-
-# assess correlation of mean egg count per day with number of days of fecundity data (does more days equate to more average egg count)
-model <- lme(mean ~ n, 
-             random = ~1|lineage, 
-             data = fecundity_days)
-
-# get model statistics
-summary(model)
-```
