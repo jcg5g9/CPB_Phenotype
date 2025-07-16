@@ -216,12 +216,12 @@ mobility %>%
 <b>Analysis results:</b> <br>
 
 <b>Shapiro-wilk p-values for each treatment and generation:</b><br>
-<b>F0_C_C: p < 0.436 </b><br>
-<b>F0_C_E: p < 0.008 </b><br>
+<b>F0_C_C: p = 0.436 </b><br>
+<b>F0_C_E: p = 0.008 </b><br>
 <b>F1_C_C: p = 0.289 </b><br>
 <b>F1_C_E: p = 0.394 </b><br>
-<b>F1_E_C: p < 0.354 </b><br>
-<b>F1_E_E: p < 0.103 </b><br>
+<b>F1_E_C: p = 0.354 </b><br>
+<b>F1_E_E: p = 0.103 </b><br>
 <b>F2_C_C: p = 0.423 </b><br>
 <b>F2_C_E: p = 0.343 </b><br>
 <b>F2_E_C: p = 0.577 </b><br>
@@ -229,11 +229,94 @@ mobility %>%
 <b>F3_C_C: p = 0.100 </b><br>
 <b>F3_C_E: p = 0.548 </b><br>
 <b>F3_E_C: p = 0.169 </b><br>
-<b>F3_E_E: p < 0.159 </b><br>
+<b>F3_E_E: p = 0.159 </b><br>
 
 All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
 
+### STEP 3: Assess differences in average walking acceleration.
+In this step, we assess differences in average walking acceleration by larvae between treatments and across generations.
 
+#### 3a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether average walking acceleration among larvae in each group of interest deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(ave_accel) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_C: p < 0.001 </b><br>
+<b>F0_C_E: p < 0.001 </b><br>
+<b>F1_C_C: p = 0.072 </b><br>
+<b>F1_C_E: p < 0.001 </b><br>
+<b>F1_E_C: p < 0.001 </b><br>
+<b>F1_E_E: p < 0.001 </b><br>
+<b>F2_C_C: p = 0.091 </b><br>
+<b>F2_C_E: p = 0.107 </b><br>
+<b>F2_E_C: p = 0.055 </b><br>
+<b>F2_E_E: p = 0.891 </b><br>
+<b>F3_C_C: p < 0.001 </b><br>
+<b>F3_C_E: p = 0.008 </b><br>
+<b>F3_E_C: p = 0.002 </b><br>
+<b>F3_E_E: p = 0.001 </b><br>
+
+Since 8/14 tests for normality fit indicate a deviation from a normal distribution, we apply a square-root transformation to the raw data to prepare for analysis.
+
+#### 3b: Square-root transform average walking acceleration data and re-assess fit of normal distribution; run the Rmd chunk below.
+In this step, we calculate the square root of the raw average acceleration data and re-assess the fit of the transformed data to a normal distribution.
+
+##### Transform data and re-assess fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# square root transform walking acceleration data and add to dataset
+mobility <- mobility %>%
+  mutate(sqrt_accel = sqrt(ave_accel))
+
+# re-assess fit of normality to square-root-transformed data
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(sqrt_accel) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_C: p = 0.011 </b><br>
+<b>F0_C_E: p = 0.007 </b><br>
+<b>F1_C_C: p = 0.652 </b><br>
+<b>F1_C_E: p = 0.595 </b><br>
+<b>F1_E_C: p = 0.129 </b><br>
+<b>F1_E_E: p = 0.004 </b><br>
+<b>F2_C_C: p = 0.609 </b><br>
+<b>F2_C_E: p = 0.157 </b><br>
+<b>F2_E_C: p = 0.368 </b><br>
+<b>F2_E_E: p = 0.353 </b><br>
+<b>F3_C_C: p = 0.004 </b><br>
+<b>F3_C_E: p = 0.296 </b><br>
+<b>F3_E_C: p = 0.076 </b><br>
+<b>F3_E_E: p = 0.145 </b><br>
+
+All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
 
 ```{r}
 # visualize distribution of total distance walked and generate figure 
