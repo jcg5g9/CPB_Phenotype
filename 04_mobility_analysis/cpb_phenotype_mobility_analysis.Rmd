@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
-<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two treatment groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). A subset of beetles were collected from each treatment within each lineage for each generation and monitored for four performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited phenotypic variation. An additional subset of larvae from each generation were re-exposed to treatments, both experimental (insecticide-exposed) and control (water), to test for potential selection of phenotypic variation across generations.</font>
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two "background" groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). All mated pair beetles across lineages, treatments, and generations were monitored for daily fecundity. A subset of third instar larvae were collected from each treatment within each lineage for each generation and monitored for three  performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited "memory" of phenotypic variation. An additional subset of larvae from each generation were re-exposed to the treatments, both experimental (insecticide-exposed) and control (water), to test for potential inheritance of a phenotypic "response" to insecticide stress.</font>
 
 # <b>Specific Aim:</b> Mobility analysis
 <font size="+1">In this analysis, we assess differences in larval mobility (i.e., total distance walked, average walking rate, and average walking acceleration) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
@@ -61,10 +61,10 @@ mobility %>%
 ```
 
 ## PHASE 2: MOBILITY ANALYSIS
-In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and across generations.
+In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and across generations, accounting for variation across lineages as a random effect in a linear mixed-effect model framework. We conduct two primary analyses: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., mobility metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., mobility metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
 
-### STEP 1: Assess differences in total distance walked.
-In this step, we assess differences in total distance walked by larvae between treatments and across generations.
+### STEP 1: Assess phenotypic memory and response in total distance walked.
+In this step, we assess phenotypic memory and response in total distance walked by larvae.
 
 #### 1a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether total distance walked among larvae in each group of interest deviates from a normal distribution.
@@ -151,30 +151,122 @@ save(distance, file = "data/distance.Rda")
 
 All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
 
-##### Plot transformed data: `figures/distance.jpeg`
+#### 1c: Assess phenotypic memory of insecticide stress in total distance walked; run the Rmd chunk below.
+
+##### Assess phenotypic memory of insecticide stress in total distance walked:
+```{r}
+
+```
+
+#### 1d: Plot transformed data for total distance walked to visualize phenotypic memory; run the Rmd chunk below.
+
+##### Plot transformed data for phenotypic memory analysis: `figures/distance_memory.jpeg`
 ```{r}
 # load distance mobility data
 load("data/distance.Rda")
 
-# plot transformed data by background, generation, and treatment
-jpeg("figures/distance.jpeg", width = 10000, height = 8000, res = 700)
+# get only individuals given the control in each generation (for both background exposure groups)
+distance <- distance %>%
+  filter(treatment == "C")
 
-ggplot(distance, aes(x = larval_generation, y = sqrt_distance, fill = treatment)) + 
-  geom_bar(position=position_dodge(), stat="identity", show.legend = T) + 
-  #geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.4, position=position_dodge(.9)) + 
+# calculate means, standard deviation, and standard error of square-root transformed data 
+distance <- distance %>%
+  group_by(larval_generation, background) %>%
+  summarize(mean = mean(sqrt_distance),
+            sd = sd(sqrt_distance),
+            n = n(),
+            se = sd/sqrt(n))
+
+# plot transformed data by background, generation, and treatment
+jpeg("figures/distance_memory.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(distance, aes(x = larval_generation, y = mean, fill = background)) + 
+  geom_bar(position = position_dodge(), stat = "identity", show.legend = T, color = "black", linewidth = 1.5) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.4, position = position_dodge(0.9), linewidth = 1.5) + 
   theme_set(theme_cowplot(12)) +
-  facet_wrap(~background) + 
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  theme(strip.text.x = element_text(size = 30, color = "black", face = "bold.italic")) +
-  theme(strip.background = element_rect(color = "black", size = 2)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.75)) +
-  theme(legend.position = c(0.36,0.9)) + 
-  theme(legend.text = element_text(size = 20)) +
-  theme(legend.title = element_text(size = 20, face = "bold")) +
+  theme(legend.position = c(0.05,0.87)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(1, 'cm')) +
+  theme(legend.key.spacing.y = unit(0.2, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(10, 10, 10, 10)) +
+  labs(x = "Larval generation", y = "Square root of distance (mm)", fill = "Background") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(15,15,15,15))
+
+dev.off()
+```
+
+#### 1c: Assess phenotypic response to insecticide stress in total distance walked; run the Rmd chunk below.
+
+##### Assess phenotypic response to insecticide stress in total distance walked:
+```{r}
+
+```
+
+#### 1d: Plot transformed data for total distance walked to visualize phenotypic response; run the Rmd chunk below.
+
+##### Plot transformed data for phenotypic response analysis: `figures/distance_response.jpeg`
+```{r}
+# load distance mobility data
+load("data/distance.Rda")
+
+# Convert background to "C" for both F0 groups and change treatment to C and E for each group, respectively
+distance_c <- distance
+distance_c$background[2] <- "C" 
+distance_c$treatment[2] <- "E"
+
+# Convert background to "E" for both F0 groups and change treatment to C and E for each group, respectively
+distance_e <- distance
+distance_e$background[1] <- "E" 
+distance_e$treatment[2] <- "E"
+
+# calculate means, standard deviation, and standard error of square-root transformed data for C background larvae
+distance_c <- distance_c %>%
+  filter(background == "C") %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(mean = mean(sqrt_distance),
+            sd = sd(sqrt_distance),
+            n = n(),
+            se = sd/sqrt(n))
+
+# calculate means, standard deviation, and standard error of square-root transformed data for E background larvae
+distance_e <- distance_e %>%
+  filter(background == "E") %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(mean = mean(sqrt_distance),
+            sd = sd(sqrt_distance),
+            n = n(),
+            se = sd/sqrt(n))
+
+# plot transformed data by background, generation, and treatment
+jpeg("figures/distance_response_control.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(distance_c, aes(x = larval_generation, y = mean, fill = treatment)) + 
+  geom_bar(position = position_dodge(), stat = "identity", show.legend = T, color = "black", linewidth = 1.5) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.4, position = position_dodge(0.9), linewidth = 1.5) + 
+  facet_wrap(~background) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.75)) +
+  theme(legend.position = c(0.05,0.87)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
   theme(legend.key.size = unit(1, 'cm')) +
   theme(legend.key.spacing.y = unit(0.2, 'cm')) +
   theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
@@ -186,8 +278,8 @@ ggplot(distance, aes(x = larval_generation, y = sqrt_distance, fill = treatment)
 dev.off()
 ```
 
-### STEP 2: Assess differences in average walking speed.
-In this step, we assess differences in average walking speed by larvae between treatments and across generations.
+### STEP 2: Assess phenotypic memory and response in average walking speed.
+In this step, we assess phenotypic memory and response in average walking speed by larvae.
 
 #### 2a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether average walking speed among larvae in each group of interest deviates from a normal distribution.
@@ -274,8 +366,8 @@ save(speed, file = "data/speed.Rda")
 
 All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
 
-### STEP 3: Assess differences in average walking acceleration.
-In this step, we assess differences in average walking acceleration by larvae between treatments and across generations.
+### STEP 3: Assess phenotypic memory and response in average walking acceleration.
+In this step, we assess phenotypic memory and response in average walking acceleration by larvae.
 
 #### 3a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether average walking acceleration among larvae in each group of interest deviates from a normal distribution.
