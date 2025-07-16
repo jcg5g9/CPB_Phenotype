@@ -13,7 +13,7 @@ output: html_document
 
 ## Phases of Analysis
 ### Phase 1: Data Summary Statistics
-### Phase 2: 
+### Phase 2: Mobility Analysis
 
 ### Libraries needed for analysis:
 ```{r}
@@ -21,6 +21,7 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
+library(rstatix)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -58,3 +59,210 @@ mobility %>%
             sd = sd(total_distance),
             se = sd/sqrt(n()))
 ```
+
+## PHASE 2: MOBILITY ANALYSIS
+In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and across generations.
+
+### STEP 1: Assess differences in total distance walked.
+In this step, we assess differences in total distance walked by larvae between treatments and across generations.
+
+#### 1a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether total distance walked among larvae in each group of interest deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(total_distance) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_C: p < 0.001 </b><br>
+<b>F0_C_E: p < 0.001 </b><br>
+<b>F1_C_C: p = 0.002 </b><br>
+<b>F1_C_E: p = 0.011 </b><br>
+<b>F1_E_C: p < 0.001 </b><br>
+<b>F1_E_E: p < 0.001 </b><br>
+<b>F2_C_C: p = 0.633 </b><br>
+<b>F2_C_E: p = 0.015 </b><br>
+<b>F2_E_C: p = 0.108 </b><br>
+<b>F2_E_E: p = 0.190 </b><br>
+<b>F3_C_C: p = 0.001 </b><br>
+<b>F3_C_E: p = 0.017 </b><br>
+<b>F3_E_C: p = 0.047 </b><br>
+<b>F3_E_E: p < 0.001 </b><br>
+
+Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we apply a square-root transformation to the raw data to prepare for analysis.
+
+#### 1b: Square-root transform total distance walked data and re-assess fit of normal distribution; run the Rmd chunk below.
+In this step, we calculate the square root of the raw total distance data and re-assess the fit of the transformed data to a normal distribution.
+
+##### Transform data and re-assess fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# square root transform total distance data and add to dataset
+mobility <- mobility %>%
+  mutate(sqrt_distance = sqrt(total_distance))
+
+# re-assess fit of normality to square-root-transformed data
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(sqrt_distance) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_C: p < 0.434 </b><br>
+<b>F0_C_E: p < 0.009 </b><br>
+<b>F1_C_C: p = 0.422 </b><br>
+<b>F1_C_E: p = 0.516 </b><br>
+<b>F1_E_C: p < 0.235 </b><br>
+<b>F1_E_E: p < 0.014 </b><br>
+<b>F2_C_C: p = 0.489 </b><br>
+<b>F2_C_E: p = 0.366 </b><br>
+<b>F2_E_C: p = 0.659 </b><br>
+<b>F2_E_E: p = 0.074 </b><br>
+<b>F3_C_C: p = 0.133 </b><br>
+<b>F3_C_E: p = 0.587 </b><br>
+<b>F3_E_C: p = 0.337 </b><br>
+<b>F3_E_E: p < 0.271 </b><br>
+
+All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
+
+### STEP 2: Assess differences in average walking speed.
+In this step, we assess differences in average walking speed by larvae between treatments and across generations.
+
+#### 2a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether average walking speed among larvae in each group of interest deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(ave_speed) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_C: p < 0.001 </b><br>
+<b>F0_C_E: p < 0.001 </b><br>
+<b>F1_C_C: p < 0.001 </b><br>
+<b>F1_C_E: p = 0.010 </b><br>
+<b>F1_E_C: p = 0.002 </b><br>
+<b>F1_E_E: p < 0.001 </b><br>
+<b>F2_C_C: p = 0.180 </b><br>
+<b>F2_C_E: p = 0.010 </b><br>
+<b>F2_E_C: p = 0.082 </b><br>
+<b>F2_E_E: p = 0.199 </b><br>
+<b>F3_C_C: p < 0.001 </b><br>
+<b>F3_C_E: p = 0.012 </b><br>
+<b>F3_E_C: p = 0.011 </b><br>
+<b>F3_E_E: p < 0.001 </b><br>
+
+Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we apply a square-root transformation to the raw data to prepare for analysis.
+
+#### 2b: Square-root transform average walking speed data and re-assess fit of normal distribution; run the Rmd chunk below.
+In this step, we calculate the square root of the raw average speed data and re-assess the fit of the transformed data to a normal distribution.
+
+##### Transform data and re-assess fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# square root transform walking speed data and add to dataset
+mobility <- mobility %>%
+  mutate(sqrt_speed = sqrt(ave_speed))
+
+# re-assess fit of normality to square-root-transformed data
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(sqrt_speed) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_C: p < 0.436 </b><br>
+<b>F0_C_E: p < 0.008 </b><br>
+<b>F1_C_C: p = 0.289 </b><br>
+<b>F1_C_E: p = 0.394 </b><br>
+<b>F1_E_C: p < 0.354 </b><br>
+<b>F1_E_E: p < 0.103 </b><br>
+<b>F2_C_C: p = 0.423 </b><br>
+<b>F2_C_E: p = 0.343 </b><br>
+<b>F2_E_C: p = 0.577 </b><br>
+<b>F2_E_E: p = 0.094 </b><br>
+<b>F3_C_C: p = 0.100 </b><br>
+<b>F3_C_E: p = 0.548 </b><br>
+<b>F3_E_C: p = 0.169 </b><br>
+<b>F3_E_E: p < 0.159 </b><br>
+
+All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
+
+
+
+```{r}
+# visualize distribution of total distance walked and generate figure 
+jpeg("figures/distance_histogram.jpeg", width = 10000, height = 8000, res = 700)
+
+ggplot(mobility, aes(x = total_distance, fill = treatment)) + 
+  geom_histogram(position = "identity", alpha = 0.7, binwidth = 20, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  facet_wrap(~larval_generation) + 
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  theme(strip.text.x = element_text(size = 30, color = "black", face = "bold.italic")) +
+  theme(strip.background = element_rect(color = "black", size = 2)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.75)) +
+  theme(legend.position = c(0.36,0.9)) + 
+  theme(legend.text = element_text(size = 20)) +
+  theme(legend.title = element_text(size = 20, face = "bold")) +
+  theme(legend.key.size = unit(1, 'cm')) +
+  theme(legend.key.spacing.y = unit(0.2, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(10, 10, 10, 10)) +
+  labs(x = "Total distance walked (mm)", y = "Frequency", fill = "Treatment") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(15,15,15,15))
+
+dev.off()
+```
+
+
