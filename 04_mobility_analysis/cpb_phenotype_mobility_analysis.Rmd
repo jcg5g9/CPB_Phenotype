@@ -568,6 +568,52 @@ summary(mod)
 # load distance mobility data
 load("data/distance.Rda")
 
+#
+distance <- distance %>%
+  mutate(group = ifelse(background == "C" & treatment == "C", "CN",
+                        ifelse(background == "C" & treatment == "E", "CR",
+                               ifelse(background == "E" & treatment == "C", "EN",
+                                      ifelse(background == "E" & treatment == "E", "ER", "done")))))
+
+# calculate means, standard deviation, and standard error of square-root transformed data 
+distance <- distance %>%
+  group_by(larval_generation, group) %>%
+  summarize(mean = mean(sqrt_distance),
+            sd = sd(sqrt_distance),
+            n = n(),
+            se = sd/sqrt(n))
+
+# plot transformed data by background, generation, and treatment
+jpeg("figures/distance_memory_groups.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(distance, aes(x = larval_generation, y = mean, group = group)) + 
+  geom_line(aes(color = group), linewidth = 2) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = group), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
+  geom_point(aes(x = larval_generation, y = mean, group = group, fill = group), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "mediumpurple", "firebrick3", "magenta2")) +
+  scale_fill_manual(values = c("deepskyblue2", "mediumpurple", "firebrick3", "magenta2")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(legend.position = c(0.02,0.17)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Group", color = "Group") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+  
 # get only individuals given the control in each generation (for both background exposure groups)
 distance <- distance %>%
   filter(treatment == "C")

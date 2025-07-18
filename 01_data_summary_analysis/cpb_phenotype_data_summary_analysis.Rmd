@@ -38,16 +38,17 @@ In this step, we read in and clean the full metadata (`../raw_data/metadata.xlsx
    4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation (only pertaining to type "mated_pair")
    5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", and "F3" (only pertaining to type "assayed")
    6. <b>"lineage"</b>: lineage to which a beetle belongs; beetles of type "assayed" in the F1, F2, and F3 are labeled with generation number followed by either "_C" or "_E", indicating the treatment to which F0 mated pairs in that lineage were exposed. Beetles in the F0 generation were given a designation of _C since they were the exposed generation.
-   7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]) to which a beetle was exposed.
-   8. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle
-   9. <b>"date_stored"</b>: date on which a beetle was stored in the freezer. No date indicates that beetle was not stored. 
-
+   7. <b>"background"</b>: background exposure of the beetle in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid])
+   8. <b>"treatment"</b>: indicator of whether the beetle was "re-exposed" ("R") or not ("N") to a 10-ppm dose of aqueous imidacloprid in the respective generation
+   9. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle
+   10. <b>"date_stored"</b>: date on which a beetle was stored in the freezer. No date indicates that beetle was not stored.
+   
 ##### Read in and clean metadata:
 ```{r}
 # read in metadata 
 metadata <- read_excel("../raw_data/metadata.xlsx")
 
-# convert characters to factors in metadata and separate lineage column into "lineage" and "background" columns to indicate which treatment was administered to the F0 generation
+# convert characters to factors in metadata
 metadata <- metadata %>%
   mutate(ind_id = factor(ind_id),
          type = factor(type),
@@ -55,9 +56,9 @@ metadata <- metadata %>%
          adult_generation = factor(adult_generation),
          larval_generation = factor(larval_generation),
          lineage = factor(lineage),
+         background = factor(background),
          treatment = factor(treatment),
-         sex = factor(sex)) %>%
-  separate(lineage, c("lineage", "background"), sep = "_")
+         sex = factor(sex))
 
 # save metadata for downstream analyses
 save(metadata, file = "data/metadata.Rda")
@@ -74,15 +75,15 @@ Fecundity data (type "mated_pair", see metadata info in Step 1a above) include: 
    4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
    5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
    6. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the mated pair belongs
-   7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the mated pair beetles were exposed. Founder ("FNDR") mated pairs were only used to generate F0 beetles and not exposed to either treatment
-   8. <b>"number_eggs"</b>: count of total number of eggs laid on a given date (i.e., fecundity)
+   7. <b>"background"</b>: background exposure of the mated pair beetles in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
+   8. <b>"number_eggs"</b>: count of total number of eggs laid on a given date (i.e., fecundity).
    9. <b>"status"</b>: indication of whether the beetle was alive (i.e., "alive"), dead (i.e., "dead"), or stored (i.e., "stored") on a given date <br>
 
 Mass data include: <br>
 
    1. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the mated pair belongs
    2. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
-   3. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the mated pair beetles were exposed. Founder ("FNDR") mated pairs were only used to generate F0 beetles and not exposed to either treatment
+   3. <b>"background"</b>: background exposure of the mated pair beetles in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
    4. <b>"temp_label"</b>: a temporary numerical label to indicate different mated pairs used as either main experimental pairs or contingency pairs (see column 11)
    5. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation
    6. <b>"date_paired"</b>: the date on which a mated pair was initially paired together
@@ -110,7 +111,7 @@ fecundity <- fecundity %>%
          pair_id = factor(pair_id),
          adult_generation = factor(adult_generation),
          lineage = factor(lineage),
-         treatment = factor(treatment),
+         background = factor(background),
          status = factor(status)) %>% 
   filter(adult_generation != "FNDR")
 
@@ -119,7 +120,7 @@ mass <- mass %>%
   select(-c(notebook)) %>%
   mutate(lineage = factor(lineage),
          adult_generation = factor(adult_generation),
-         treatment = factor(treatment),
+         background = factor(background),
          temp_label = factor(temp_label),
          pair_id = factor(pair_id),
          sex = factor(sex),
@@ -134,7 +135,7 @@ mass <- mass %>%
 fecundity <- mass %>%
   filter(designation == "main") %>%
   select(-c(temp_label)) %>%
-  full_join(fecundity, by = c("pair_id","adult_generation","lineage","treatment")) %>%
+  full_join(fecundity, by = c("pair_id","adult_generation","lineage","background")) %>%
   mutate(days_since_oviposition = as.numeric(difftime(date, 
                                                       date_first_eggs_used, 
                                                       units = "days")))
@@ -153,25 +154,26 @@ In this step, we read in and clean the full performance dataset (`../raw_data/pe
    5. <b>"lineage"</b>: lineage (i.e., L1-L12; L1_C-L12_C, L1_E-L12_E) to which the beetle belongs
    6. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
    7. <b>"ind_number"</b>: numerical identifier for the individual beetle within each larval generation
-   7. <b>"treatment"</b>: treatment ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10ppm aqueous imidacloprid]) to which the beetle was exposed during assays (note: for beetles in the F1, F2, and F3 generation, this column is distinct from the identifier in the lineage column (i.e., "_C" or "_E") which indicates the initial treatment given to the F0 generation in that lineage
-   8. <b>"dose"</b>: the imidacloprid dose (ppm) given ("0", i.e., 0-ppm control, or "10", i.e., 10-ppm exposure)
-   9. <b>"molt"</b>: an indication of whether the larva used in the assay molted (i.e., "yes") or did not molt (i.e., "no") before or during the herbivory or mobility assays
-   10. <b>"total_leaf_area"</b>: total leaf area (cm<sup>2</sup>) used in the herbivory assay
-   11. <b>"leaf_area_consumed"</b>: total leaf area consumed (cm<sup>2</sup>) by the beetle during the herbivory assay
-   12. <b>"percent_leaf_consumed"</b>: percentage of leaf area consumed (leaf_area_consumed/total_leaf_area) by the beetle during the herbivory assay
-   13. <b>"ave_speed"</b>: average movement rate (mm/s) of the beetle during the mobility assay
-   14. <b>"ave_accel"</b>: average movement acceleration (mm/s<sup>2</sup>) of the beetle during the mobility assay
-   15. <b>"mobility_rate"</b>: average number of pixels in which beetle is recorded as moving during the mobility assay
-   16. <b>"total_distance"</b>: total distance traveled (mm) by the beetle during the mobility assay
-   17-53. "...hr_status"</b>: a binary indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
-   54. <b>"L4_date"</b>: date on which the beetle molted to instar-4
-   55. <b>"pupa_date"</b>: date on which the beetle pupated
-   56. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle, assessed on the day of pupation 
-   57. <b>"pupa_mass"</b>: mass of the pupa (mg), measured on the day of pupation
-   57. <b>"emerge_date"</b>: date on which the beetle emerged as an adult
-   58. <b>"adult_mass"</b>: mass of the emerged adult beetle (mg), measured on the day of emergence
-   59. <b>"deformity"</b>: a binary indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
-   60. <b>"stored_date"</b>: date on which the adult beetle was stored in the freezer
+   8. <b>"background"</b>: background exposure of the mated pair beetles in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
+   9. <b>"treatment"</b>: indicator of whether the beetle was "re-exposed" ("R") or not ("N") to a 10-ppm dose of aqueous imidacloprid in the respective generation
+   10. <b>"dose"</b>: the imidacloprid dose (ppm) given ("0", i.e., 0-ppm control, or "10", i.e., 10-ppm exposure)
+   11. <b>"molt"</b>: an indication of whether the larva used in the assay molted (i.e., "yes") or did not molt (i.e., "no") before or during the herbivory or mobility assays
+   12. <b>"total_leaf_area"</b>: total leaf area (cm<sup>2</sup>) used in the herbivory assay
+   13. <b>"leaf_area_consumed"</b>: total leaf area consumed (cm<sup>2</sup>) by the beetle during the herbivory assay
+   14. <b>"percent_leaf_consumed"</b>: percentage of leaf area consumed (leaf_area_consumed/total_leaf_area) by the beetle during the herbivory assay
+   15. <b>"ave_speed"</b>: average movement rate (mm/s) of the beetle during the mobility assay
+   16. <b>"ave_accel"</b>: average movement acceleration (mm/s<sup>2</sup>) of the beetle during the mobility assay
+   17. <b>"mobility_rate"</b>: average number of pixels in which beetle is recorded as moving during the mobility assay
+   18. <b>"total_distance"</b>: total distance traveled (mm) by the beetle during the mobility assay
+   19-55. "...hr_status"</b>: a binary indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
+   56. <b>"L4_date"</b>: date on which the beetle molted to instar-4
+   57. <b>"pupa_date"</b>: date on which the beetle pupated
+   58. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle, assessed on the day of pupation 
+   59. <b>"pupa_mass"</b>: mass of the pupa (mg), measured on the day of pupation
+   60. <b>"emerge_date"</b>: date on which the beetle emerged as an adult
+   61. <b>"adult_mass"</b>: mass of the emerged adult beetle (mg), measured on the day of emergence
+   62. <b>"deformity"</b>: a binary indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
+   63. <b>"stored_date"</b>: date on which the adult beetle was stored in the freezer
    
 The dataset is then saved to the this analysis directory for downstream data summary and ennumeration.
 
@@ -186,11 +188,12 @@ load("data/metadata.Rda")
 # read in raw performance data 
 performance <- read_excel("../raw_data/performance_data.xlsx")
 
-# convert characters to factors (categorical variables) and numerics (numeric variables) in performance data, eliminate L4 date column, separate lineage column into "lineage" and "background" columns to indicate which treatment was administered to the F0 generation
+# convert characters to factors (categorical variables) and numerics (numeric variables) in performance data and eliminate L4 date column
 performance <- performance %>%
   mutate(ind_id = factor(ind_id),
          larval_generation = factor(larval_generation),
          lineage = factor(lineage),
+         background= factor(background),
          treatment = factor(treatment),
          sex = factor(sex),
          plate = factor(plate),
@@ -201,8 +204,7 @@ performance <- performance %>%
          total_leaf_area = as.numeric(total_leaf_area),
          leaf_area_consumed = as.numeric(leaf_area_consumed),
          percent_leaf_consumed = as.numeric(percent_leaf_consumed)) %>%
-  select(-c(L4_date)) %>%
-  separate(lineage, c("lineage", "background"), sep = "_")
+  select(-c(L4_date))
 
 # merge performance data with metadata (get only "assayed" individuals from metadata to reduce confusion, and then merge)
 performance <- metadata %>%
@@ -274,9 +276,9 @@ Here, we summarize all fecundity (i.e., egg count) data from the experiment. For
 # load fecundity data
 load("../03_fecundity_analysis/data/fecundity.Rda")
 
-# calculate average eggs per day for each treatment, lineage, and generation and make new dataframe
+# calculate average eggs per day for each background, lineage, and generation and make new dataframe
 average_fecundity <- fecundity %>%
-  group_by(adult_generation, lineage, treatment) %>%
+  group_by(adult_generation, lineage, background) %>%
   summarize(average_number_eggs = mean(number_eggs)) %>%
   as.data.frame()
 
@@ -285,13 +287,13 @@ average_fecundity %>%
   count()
 
 # get number of fecundity data points by generation
-average_fecundity %>%
+average_fecundity %>% 
   group_by(adult_generation) %>%
   count()
 
-# get number of fecundity data points by generation and treatment
+# get number of fecundity data points by generation and background
 average_fecundity %>%
-  group_by(adult_generation, treatment) %>%
+  group_by(adult_generation, background) %>%
   count()
 
 # save average fecundity data for downstream analyses
@@ -309,7 +311,7 @@ save(average_fecundity, file = "../03_fecundity_analysis/data/average_fecundity.
 <b><i>N</i><sub>F2</sub> = 17 </b><br>
 <b><i>N</i><sub>F3</sub> = 15 </b><br>
 
-<b>Sample size per treatment per generation:</b><br>
+<b>Sample size per background per generation:</b><br>
 <b><i>N</i><sub>F0_C</sub> = 10 </b><br>
 <b><i>N</i><sub>F0_E</sub> = 8 </b><br>
 <b><i>N</i><sub>F1_C</sub> = 10 </b><br>
@@ -359,23 +361,23 @@ performance %>%
 <b><i>N</i><sub>F3</sub> =  76 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 72 </b><br>
-<b><i>N</i><sub>F0_E_E</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_R</sub> = 72 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 31 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 30 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 30 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 29 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 29 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 22 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 23 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 17 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 17 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 16 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 19 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
 These data are presented in Table 1 of the final ms.
 
@@ -414,23 +416,23 @@ mobility %>%
 <b><i>N</i><sub>F3</sub> =  76 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 67 </b><br>
-<b><i>N</i><sub>F0_C_E</sub> = 70 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_E_R</sub> = 70 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 30 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 27 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 23 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 28 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 27 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 28 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 21 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 23 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 15 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 14 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 21 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 15 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 14 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 16 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 19 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
 These data are presented in Table 1 of the final ms.
 
@@ -469,23 +471,23 @@ herbivory %>%
 <b><i>N</i><sub>F3</sub> =  76 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 72 </b><br>
-<b><i>N</i><sub>F0_C_E</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_R</sub> = 72 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 31 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 30 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 29 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 29 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 29 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 29 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 22 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 23 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 17 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 17 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 16 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 19 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 18 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 23 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
 These data are presented in Table 1 of the final ms.
 
@@ -570,23 +572,23 @@ pupa_time %>%
 <b><i>N</i><sub>F3</sub> =  46 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 67 </b><br>
-<b><i>N</i><sub>F0_C_E</sub> = 42 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_C_R</sub> = 42 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 25 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 13 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 23 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 18 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 25 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 13 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 18 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 19 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 12 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 14 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 11 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 19 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 13 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 11 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 15 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 7 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 15 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 7 </b><br>
 
 These data are presented in Table 1 of the final ms.
 
@@ -624,23 +626,23 @@ pupa_duration %>%
 <b><i>N</i><sub>F3</sub> =  41 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 58 </b><br>
-<b><i>N</i><sub>F0_C_E</sub> = 38 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 58 </b><br>
+<b><i>N</i><sub>F0_C_R</sub> = 38 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 23 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 12 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 22 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 15 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 15 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 18 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 10 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 13 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 11 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 11 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 10 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 14 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 6 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 6 </b><br>
 
 These data are presented in Table 1 of the final ms.
 
@@ -679,23 +681,23 @@ b>Data summary:</b> <br>
 <b><i>N</i><sub>F3</sub> =  46 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 67 </b><br>
-<b><i>N</i><sub>F0_C_E</sub> = 42 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_C_R</sub> = 42 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 25 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 12 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 23 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 18 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 25 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 18 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 19 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 12 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 14 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 11 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 19 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 13 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 11 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 15 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 7 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 15 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 7 </b><br>
 
 These data are presented in Table 1 of the final ms.
 
@@ -734,22 +736,22 @@ adult_mass %>%
 <b><i>N</i><sub>F3</sub> = 41 </b><br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
-<b><i>N</i><sub>F0_C_C</sub> = 58 </b><br>
-<b><i>N</i><sub>F0_C_E</sub> = 38 </b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 58 </b><br>
+<b><i>N</i><sub>F0_C_R</sub> = 38 </b><br>
 
-<b><i>N</i><sub>F1_C_C</sub> = 24 </b><br>
-<b><i>N</i><sub>F1_C_E</sub> = 12 </b><br>
-<b><i>N</i><sub>F1_E_C</sub> = 22 </b><br>
-<b><i>N</i><sub>F1_E_E</sub> = 15 </b><br>
+<b><i>N</i><sub>F1_C_N</sub> = 24 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 15 </b><br>
 
-<b><i>N</i><sub>F2_C_C</sub> = 18 </b><br>
-<b><i>N</i><sub>F2_C_E</sub> = 10 </b><br>
-<b><i>N</i><sub>F2_E_C</sub> = 13 </b><br>
-<b><i>N</i><sub>F2_E_E</sub> = 11 </b><br>
+<b><i>N</i><sub>F2_C_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
 
-<b><i>N</i><sub>F3_C_C</sub> = 11 </b><br>
-<b><i>N</i><sub>F3_C_E</sub> = 10 </b><br>
-<b><i>N</i><sub>F3_E_C</sub> = 14 </b><br>
-<b><i>N</i><sub>F3_E_E</sub> = 6 </b><br>
+<b><i>N</i><sub>F3_C_N</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 6 </b><br>
 
 These data are presented in Table 1 of the final ms.
