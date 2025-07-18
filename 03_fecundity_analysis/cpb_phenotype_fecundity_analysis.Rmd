@@ -37,7 +37,7 @@ load("data/average_fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
 average_fecundity %>%
-  group_by(adult_generation, treatment) %>% 
+  group_by(adult_generation, background) %>% 
   summarize(n = n(),
             mean = mean(average_number_eggs),
             sd = sd(average_number_eggs),
