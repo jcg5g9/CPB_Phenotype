@@ -23,7 +23,8 @@ library(readxl)
 library(writexl)
 library(rstatix)
 library(lme4)
-library(broom)
+library(rsq)
+library(scales)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -60,6 +61,132 @@ mobility %>%
             mean = mean(total_distance),
             sd = sd(total_distance),
             se = sd/sqrt(n()))
+```
+
+### STEP 2: Test for pairwise correlations between mobility metrics.
+In this step, we test whether each pair of mobility-related metrics (i.e., total distance walked vs. average walking speed; total distance walked vs. average acceleration; and average speed vs. average acceleration) are tightly correlated. Assessing differences between groups in highly correlated variables is redundant for addressing experimental questions. In the event that multiple variables are highly correlated, they do not all need to be analyzed.
+
+#### 2a: Test for correlations between each pair of variables using a linear mixed effect model framework; run the Rmd chunk below.
+
+##### Test for correlations between variables:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# test for correlation between total distance walked and average speed
+distance_speed <- lmer(total_distance ~ ave_speed + (1|lineage),
+                       data = mobility)
+
+# test for correlation between total distance walked and average acceleration
+distance_accel <- lmer(total_distance ~ ave_accel + (1|lineage),
+                       data = mobility)
+
+# test for correlation between total distance walked and average acceleration
+speed_accel <- lmer(ave_speed ~ ave_accel + (1|lineage),
+                       data = mobility)
+
+# summarize model results for distance and speed
+anova(distance_speed) # get F values
+Anova(distance_speed) # get p-values
+rsq.lmm(distance_speed) # get r-squared values
+
+# summarize model results for distance and acceleration
+anova(distance_accel) # get F values
+Anova(distance_accel) # get p-values
+rsq.lmm(distance_accel) # get r-squared values
+
+# summarize model results for speed and acceleration
+anova(speed_accel) # get F values
+Anova(speed_accel) # get p-values
+rsq.lmm(speed_accel) # get r-squared values
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
+<b>distance and speed: F = 33932; p < 0.0001; r-squared = 0.9887 </b><br>
+<b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
+<b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
+
+#### 2b: Plot correlations ; run the Rmd chunk below.
+
+##### Plot correlations: `figures/correlations.jpeg`
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# plot distance and speed correlation
+distance_speed <- ggplot(mobility, aes(x = total_distance, y = ave_speed)) + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  xlim(0,500) +
+  ylim(0,1.6) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
+  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  labs(x = "Total distance walked (mm)", y = "Speed (mm/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot distance and speed correlation
+distance_accel <- ggplot(mobility, aes(x = total_distance, y = ave_accel)) + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  xlim(0,500) +
+  ylim(0,7) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
+  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  labs(x = "Total distance walked (mm)", y = "Acceleration (mm/s/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot distance and speed correlation
+speed_accel <- ggplot(mobility, aes(x = ave_speed, y = ave_accel)) + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  xlim(0,1.6) +
+  ylim(0,7) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
+  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  labs(x = "Speed (mm/s)", y = "Acceleration (mm/s/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all together
+jpeg("figures/correlations.jpeg", width = 25000, height = 8000, res = 1000)
+
+plot_grid(distance_speed,
+          distance_accel, 
+          speed_accel,
+          nrow = 1,
+          ncol = 3,
+          labels = c("a","b","c"),
+          label_size = 40)
+
+dev.off()
 ```
 
 ## PHASE 2: MOBILITY ANALYSIS
@@ -404,21 +531,22 @@ f3_model <- lmer(sqrt_distance ~ background + (1|lineage),
 options(scipen = 999)
 
 # summarize F0 model
-anova(f0_model)
-Anova(f0_model)
+anova(f0_model) # get F-values
+Anova(f0_model) # get p-values
 
 # summarize F1 model
-anova(f1_model)
-Anova(f1_model)
+anova(f1_model) # get F-values
+Anova(f1_model) # get p-values
 
 # summarize F2 model
-anova(f2_model)
-Anova(f2_model)
+anova(f2_model) # get F-values
+Anova(f2_model) # get p-values
 
 # summarize F3 model
-anova(f3_model)
-Anova(f3_model)
+anova(f3_model) # get F-values
+Anova(f3_model) # get p-values
 ```
+
 <b>Analysis results:</b> <br>
 
 <b>Coefficients of linear mixed effect models by generation:</b><br>
@@ -530,20 +658,20 @@ f3_model <- lmer(sqrt_distance ~ treatment + (1|lineage),
 options(scipen = 999)
 
 # summarize F0 model
-anova(f0_model)
-Anova(f0_model)
+anova(f0_model) # get F-values
+Anova(f0_model) # get p-values
 
 # summarize F1 model
-anova(f1_model)
-Anova(f1_model)
+anova(f1_model) # get F-values
+Anova(f1_model) # get p-values
 
 # summarize F2 model
-anova(f2_model)
-Anova(f2_model)
+anova(f2_model) # get F-values
+Anova(f2_model) # get p-values
 
 # summarize F3 model
-anova(f3_model)
-Anova(f3_model)
+anova(f3_model) # get F-values
+Anova(f3_model) # get p-values
 ```
 <b>Analysis results:</b> <br>
 
