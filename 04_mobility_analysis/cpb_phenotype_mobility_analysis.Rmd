@@ -86,7 +86,7 @@ hn_memory <- tibble(
   mean = as.numeric(c(rep("10", times = 1),
            rep("5", times = 1),
            rep("10", times = 6))),
-  se = as.numeric(c(rep("0.8", times = 8))),
+  se = as.numeric(c(rep("0.8", times = 8)))
   )
 
 # plot hypothesis data by background, generation, and treatment
@@ -235,7 +235,7 @@ ha_response <- tibble(
   mean = as.numeric(c(rep("10", times = 1),
            rep("5", times = 1),
            rep(c("10","14"), times = 3))),
-  se = as.numeric(c(rep("0.8", times = 8))),
+  se = as.numeric(c(rep("0.8", times = 8)))
   )
 
 # plot hypothesis data by background, generation, and treatment
@@ -384,19 +384,19 @@ f2 <- distance %>%
 f3 <- distance %>%
   filter(larval_generation == "F3")
 
-# run linear mixed effect model for F0
+# run linear mixed effect model for F0 with lineage as a random effect
 f0_model <- lmer(sqrt_distance ~ background + (1|lineage),
              data = f0)
 
-# run linear mixed effect model for F1
+# run linear mixed effect model for F1 with lineage as a random effect
 f1_model <- lmer(sqrt_distance ~ background + (1|lineage),
              data = f1)
 
-# run linear mixed effect model for F2
+# run linear mixed effect model for F2 with lineage as a random effect
 f2_model <- lmer(sqrt_distance ~ background + (1|lineage),
              data = f2)
 
-# run linear mixed effect model for F3
+# run linear mixed effect model for F3 with lineage as a random effect
 f3_model <- lmer(sqrt_distance ~ background + (1|lineage),
              data = f3)
 
@@ -404,17 +404,28 @@ f3_model <- lmer(sqrt_distance ~ background + (1|lineage),
 options(scipen = 999)
 
 # summarize F0 model
+anova(f0_model)
 Anova(f0_model)
 
-# summarize F1model
+# summarize F1 model
+anova(f1_model)
 Anova(f1_model)
 
 # summarize F2 model
+anova(f2_model)
 Anova(f2_model)
 
 # summarize F3 model
+anova(f3_model)
 Anova(f3_model)
 ```
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models by generation:</b><br>
+<b>F0: F = 32.258; p < 0.0001 </b><br>
+<b>F1: F = 1.0040; p = 0.3163 </b><br>
+<b>F2: F = 0.0725; p = 0.7878 </b><br>
+<b>F3: F = 1.4969; p = 0.2211 </b><br>
 
 #### 4b: Plot transformed data for total distance walked to visualize phenotypic memory; run the Rmd chunk below.
 
@@ -473,8 +484,74 @@ dev.off()
 
 ##### Assess phenotypic response to insecticide stress in total distance walked:
 ```{r}
+# load distance mobility data
+load("data/distance.Rda")
 
+# get only F0 individuals
+f0 <- distance %>%
+  filter(larval_generation == "F0")
+
+# convert background designation to treatment for analysis
+f0 <- f0 %>%
+  mutate(treatment = background)
+
+# get only F1 individuals
+f1 <- distance %>%
+  filter(larval_generation == "F1") %>%
+  filter(background == "E")
+
+# get only F2 individuals
+f2 <- distance %>%
+  filter(larval_generation == "F2") %>%
+  filter(background == "E")
+
+# get only F3 individuals
+f3 <- distance %>%
+  filter(larval_generation == "F3") %>%
+  filter(background == "E")
+
+# run linear mixed effect model for F0 with lineage as a random effect
+f0_model <- lmer(sqrt_distance ~ treatment + (1|lineage),
+             data = f0)
+
+# run linear mixed effect model for F1 with lineage as a random effect
+f1_model <- lmer(sqrt_distance ~ treatment + (1|lineage),
+             data = f1)
+
+# run linear mixed effect model for F2 with lineage as a random effect
+f2_model <- lmer(sqrt_distance ~ treatment + (1|lineage),
+             data = f2)
+
+# run linear mixed effect model for F3 with lineage as a random effect
+f3_model <- lmer(sqrt_distance ~ treatment + (1|lineage),
+             data = f3)
+
+# set scipen to remove scientific notation
+options(scipen = 999)
+
+# summarize F0 model
+anova(f0_model)
+Anova(f0_model)
+
+# summarize F1 model
+anova(f1_model)
+Anova(f1_model)
+
+# summarize F2 model
+anova(f2_model)
+Anova(f2_model)
+
+# summarize F3 model
+anova(f3_model)
+Anova(f3_model)
 ```
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models by generation:</b><br>
+<b>F0: F = 32.258; p < 0.0001 </b><br>
+<b>F1: F = 6.4223; p = 0.0113 </b><br>
+<b>F2: F = 0.2620; p = 0.6087 </b><br>
+<b>F3: F = 16.218; p < 0.0001 </b><br>
 
 #### 5b: Plot transformed data for total distance walked to visualize phenotypic response; run the Rmd chunk below.
 
