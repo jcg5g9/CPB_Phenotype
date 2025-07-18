@@ -22,6 +22,8 @@ library(cowplot)
 library(readxl)
 library(writexl)
 library(rstatix)
+library(lme4)
+library(broom)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -366,8 +368,52 @@ load("data/distance.Rda")
 distance <- distance %>%
   filter(treatment == "C")
 
+# get only F0 individuals
+f0 <- distance %>%
+  filter(larval_generation == "F0")
 
-# run linear model  
+# get only F1 individuals
+f1 <- distance %>%
+  filter(larval_generation == "F1")
+
+# get only F2 individuals
+f2 <- distance %>%
+  filter(larval_generation == "F2")
+
+# get only F3 individuals
+f3 <- distance %>%
+  filter(larval_generation == "F3")
+
+# run linear mixed effect model for F0
+f0_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f0)
+
+# run linear mixed effect model for F1
+f1_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f1)
+
+# run linear mixed effect model for F2
+f2_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f2)
+
+# run linear mixed effect model for F3
+f3_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f3)
+
+# set scipen to remove scientific notation
+options(scipen = 999)
+
+# summarize F0 model
+Anova(f0_model)
+
+# summarize F1model
+Anova(f1_model)
+
+# summarize F2 model
+Anova(f2_model)
+
+# summarize F3 model
+Anova(f3_model)
 ```
 
 #### 4b: Plot transformed data for total distance walked to visualize phenotypic memory; run the Rmd chunk below.
