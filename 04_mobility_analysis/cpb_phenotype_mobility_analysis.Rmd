@@ -25,6 +25,7 @@ library(rstatix)
 library(lme4)
 library(rsq)
 library(scales)
+library(lmerTest)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -545,6 +546,11 @@ Anova(f2_model) # get p-values
 # summarize F3 model
 anova(f3_model) # get F-values
 Anova(f3_model) # get p-values
+
+mod <- lmer(sqrt_distance ~ larval_generation*background + (1|lineage),
+            data = distance)
+
+summary(mod)
 ```
 
 <b>Analysis results:</b> <br>
