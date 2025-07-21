@@ -205,104 +205,6 @@ load("data/mobility.Rda")
 # set to show decimals rather than scientific notation for p-value assessments
 options(scipen = 999)
 
-mobility <- mobility %>%
-  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
-  mutate(group = factor(group))
-
-levels <- levels(mobility$group)
-
-pois <- list()
-
-for(i in levels) {
-  subset <- mobility[mobility$group == i, ]
-  fit_pois <- fitdist(subset$total_distance, "pois")
-  pois[[i]] <- fit_pois
-}
-
-print(pois)
-
-
-
-fo_c_n <- mobility %>%
-  filter(larval_generation == "F0",
-         background == "C",
-         treatment == "N")
-
-fo_e_n <- mobility %>%
-  filter(larval_generation == "F0",
-         background == "E",
-         treatment == "N")
-
-f1_c_n <- mobility %>%
-  filter(larval_generation == "F1",
-         background == "C",
-         treatment == "N")
-
-f1_c_r <- mobility %>%
-  filter(larval_generation == "F1",
-         background == "C",
-         treatment == "R")
-
-f1_e_n <- mobility %>%
-  filter(larval_generation == "F1",
-         background == "E",
-         treatment == "N")
-
-f1_e_r <- mobility %>%
-  filter(larval_generation == "F1",
-         background == "E",
-         treatment == "R")
-
-# Fit uniform distribution to all acetylation data
-fit_unif <- fitdist(fo_e_n$total_distance, "unif")
-plot(fit_unif)
-
-# Fit normal distribution to all acetylation data
-fit_norm <- fitdist(fo_e_n$total_distance, "norm")
-plot(fit_norm)
-
-# Fit poisson distribution to all acetylation data
-fit_pois <- fitdist(fo_e_n$total_distance, "pois")
-plot(fit_pois)
-
-# Fit negative binomial distribution to all acetylation data
-fit_nb <- fitdist(fo_e_n$total_distance, "nbinom")
-plot(fit_nb)
-
-# Fit gamma distribution to all acetylation data
-fit_gamma <- fitdist(fo_e_n$total_distance, "gamma")
-plot(fit_gamma)
-
-# Fit cauchy distribution to all acetylation data
-fit_cauchy <- fitdist(fo_e_n$total_distance, "cauchy")
-plot(fit_cauchy)
-
-# Fit exponential distribution to all acetylation data
-fit_exp <- fitdist(fo_e_n$total_distance, "exp")
-plot(fit_exp)
-
-# Compare fit by assessing AIC for all distribution fits
-gofstat(list(fit_unif, 
-             fit_norm, 
-             fit_pois,
-             fit_nb,
-             fit_gamma,
-             fit_cauchy,
-             fit_exp), 
-        fitnames = c("uniform",
-                     "normal",
-                     "poisson",
-                     "negative binomial",
-                     "gamma",
-                     "cauchy",
-                     "exponential"))
-
-gofstat(fit_pois, 
-        fitnames = c("poisson"))
-
-ggplot(fo_c_n, aes(x = total_distance)) + 
-  geom_histogram()
-
 # test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
 mobility %>%
   group_by(larval_generation, background, treatment) %>%
@@ -329,7 +231,168 @@ mobility %>%
 <b>F3_E_N: p = 0.047 </b><br>
 <b>F3_E_R: p < 0.001 </b><br>
 
-Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we apply a square-root transformation to the raw data to prepare for analysis.
+Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
+
+### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest.
+
+##### Test fit of alternative distributions:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# Generate combined "group" factor, which includes larval generation, background, and treatment, to test distributions within each group of interest.
+mobility <- mobility %>%
+  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+# generate list of levels wihtin group factor
+levels <- levels(mobility$group)
+
+# define empty lists to hold statistics for each distribution test
+unif <- list() # list for uniform distribution results
+norm <- list() # list for normal distribution results
+nbin <- list() # list for negative binomial distribution results
+pois <- list() # list for poisson distribution results
+
+# Write for loop to fit each distribution to data, iterating through group levels (i)
+for(i in levels) {
+  subset <- mobility[mobility$group == i, ] # generate discrete subsets for each group level
+  fit_unif <- fitdist(subset$total_distance, "unif") # fit uniform distribution to total distance data within subset
+  fit_norm <- fitdist(subset$total_distance, "norm") # fit normal distribution to total distance data within subset
+  fit_nbin <- fitdist(subset$total_distance, "nbinom") # fit negative binomial distribution to total distance data within subset
+  fit_pois <- fitdist(subset$total_distance, "pois") # fit poisson distribution to total distance data within subset
+  unif[[i]] <- fit_unif  # fill list with fit results for uniform distribution
+  norm[[i]] <- fit_norm # fill list with fit results for normal distribution
+  nbin[[i]] <- fit_nbin # fill list with fit results for negative binomial distribution
+  pois[[i]] <- fit_pois # fill list with fit results for poisson distribution
+}
+
+# Get table of distribution stats for F0 C N group
+stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N, 
+                                            norm$F0_C_N, 
+                                            nbin$F0_C_N,
+                                            pois$F0_C_N))$aic)
+
+# Get table of distribution stats for F0 E N group
+stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N, 
+                                            norm$F0_E_N, 
+                                            nbin$F0_E_N,
+                                            pois$F0_E_N))$aic)
+
+# Get table of distribution stats for F1 C N group
+stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N, 
+                                            norm$F1_C_N, 
+                                            nbin$F1_C_N,
+                                            pois$F1_C_N))$aic)
+
+# Get table of distribution stats for F1 C R group
+stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
+                                            norm$F1_C_R, 
+                                            nbin$F1_C_R,
+                                            pois$F1_C_R))$aic)
+
+# Get table of distribution stats for F1 E N group
+stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
+                                            norm$F1_E_N, 
+                                            nbin$F1_E_N,
+                                            pois$F1_E_N))$aic)
+
+# Get table of distribution stats for F1 E R group
+stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
+                                            norm$F1_E_R, 
+                                            nbin$F1_E_R,
+                                            pois$F1_E_R))$aic)
+
+# Get table of distribution stats for F2 C N group
+stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
+                                            norm$F2_C_N, 
+                                            nbin$F2_C_N,
+                                            pois$F2_C_N))$aic)
+
+# Get table of distribution stats for F2 C R group
+stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
+                                            norm$F2_C_R, 
+                                            nbin$F2_C_R,
+                                            pois$F2_C_R))$aic)
+
+# Get table of distribution stats for F2 E N group
+stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
+                                            norm$F2_E_N, 
+                                            nbin$F2_E_N,
+                                            pois$F2_E_N))$aic)
+
+# Get table of distribution stats for F2 E R group
+stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
+                                             norm$F2_E_R, 
+                                             nbin$F2_E_R,
+                                             pois$F2_E_R))$aic)
+
+# Get table of distribution stats for F3 C N group
+stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
+                                             norm$F3_C_N, 
+                                             nbin$F3_C_N,
+                                             pois$F3_C_N))$aic)
+
+# Get table of distribution stats for F3 C R group
+stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
+                                             norm$F3_C_R, 
+                                             nbin$F3_C_R,
+                                             pois$F3_C_R))$aic)
+
+# Get table of distribution stats for F3 E N group
+stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
+                                             norm$F3_E_N, 
+                                             nbin$F3_E_N,
+                                             pois$F3_E_N))$aic)
+
+# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate poisson statistics)
+stats_14 <- rbind(data_frame(F3_E_R = gofstat(list(unif$F3_E_R, 
+                                             norm$F3_E_R, 
+                                             nbin$F3_E_R))$aic), 
+                  data_frame(F3_E_R = as.numeric(c("NA"))))
+
+# combine all stats into a single table
+stats <- cbind(distribution = c("uniform", "normal", "negative binomial", "poisson"), 
+               stats_1, 
+               stats_2, 
+               stats_3, 
+               stats_4,
+               stats_5, 
+               stats_6, 
+               stats_7,
+               stats_8, 
+               stats_9, 
+               stats_10, 
+               stats_11, 
+               stats_12, 
+               stats_13, 
+               stats_14)
+```
+
+<b>Analysis results:</b> <br>
+
+| Group     | Uniform          | Normal           | Negative binomial | Poisson            |
+|:----------|:-----------------|:-----------------|:----------------- | :----------------- |
+| F0_C_N    | 799.66061        | 793.08081        | 20.93976          | 218.88755          |
+| F0_E_N    | 786.36417        | 772.21851        | 4.00000           | 2.02436            |
+| F1_C_N    | 359.610281       | 359.847226       | 4.000000          | 2.001106           |
+| F1_C_R    | 307.836541       | 311.045625       | 4.000000          | 2.005478           |
+| F1_E_N    | 293.9411         | 288.2671         | 4294967298.0000   | 4294967296.0000    |
+| F1_E_R    | 359.4397         | 344.6546         | 4294967298.0000   | 4294967296.0000    |
+| F2_C_N    | 238.030629       | 238.508264       | 4.000000          | 2.000125           |
+| F2_C_R    | 231.371703       | 239.143692       | 4.000000          | 2.004739           |
+| F2_E_N    | 170.6102         | 177.3019         | 4294967298.0000   | 4294967296.0000    |
+| F2_E_R    | 148.713510       | 157.030897       | 4.000000          | 2.001583           |
+| F3_C_N    | 188.3238         | 185.6926         | 4294967298.0000   | 4294967296.0000    |
+| F3_C_R    | 203.738880       | 208.776378       | 8.680893          | 6.680893           |
+| F3_E_N    | 204.9075         | 209.2528         | 4294967298.0000   | 4294967296.0000    |
+| F3_E_R    | 253.9000         | 253.8374         | 4.0000            | NA                 |
+
+Although the data in the majority of groups were best fit to a poisson distribution, the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_R), some were best fit by a negative binomial distribution (e.g., F0_C_N), and one distribution could not be fit given the available data (i.e., F3_E_R). For this reason, we opted to instead normalize the raw data using a square-root transformation. We assessed the validity of the transformation by re-testing the fit of the data in each group to the normal distribution.
 
 ### STEP 3: Square-root transform total distance walked data and re-assess fit of normal distribution; run the Rmd chunk below.
 In this step, we calculate the square root of the raw total distance data and re-assess the fit of the transformed data to a normal distribution.
