@@ -543,3 +543,207 @@ ggplot(distance_c, aes(x = larval_generation, y = mean, fill = treatment)) +
 
 dev.off()
 ```
+
+### STEP 1: Simulate data to visualize hypotheses for assessing phenotypic memory and phenotypic response following insecticide exposure.
+In this step, we generate figures representing null and alternative hypotheses for assessing phenotypic memory vs. phenotypic response following exposure to the insecticide and control treatments in the transgenerational experiment. We generate simulated data and graphically visualize expected patterns of phenotypic variation between treatments and across generations.
+
+#### 1a: Simulate data and visualize null (H<sub>n</sub>) and alternative (H<sub>a</sub>) hypotheses for phenotypic memory analysis.
+Here, we generate data tables to simulate expected patterns in phenotpyic memory assuming the null hypothesis (i.e., that any phenotypic difference between control and insecticide-exposed individuals in the F0 generation will not be maintained over successive generations) and alternative hypothesis (i.e., that any phenotypic difference between control and insecticide-treated F0 individuals will be maintained accross generations).
+
+##### 1a.1. Simulate and visualize data for H<sub>n</sub>; run the Rmd chunk below.
+
+##### Simulate data and generate figure for H<sub>n</sub>: `figures/hn_memory.jpeg`
+```{r}
+# generate test data for null hypothesis
+hn_memory <- tibble(
+  larval_generation = c(rep("F0", times = 2),
+                        rep("F1", times = 2), 
+                        rep("F2", times = 2), 
+                        rep("F3", times = 2)),
+  background = c(rep(c("C","E"), times = 4)),
+  treatment = c(rep("C", times = 8)),
+  mean = as.numeric(c(rep("10", times = 1),
+           rep("5", times = 1),
+           rep("10", times = 6))),
+  se = as.numeric(c(rep("0.8", times = 8)))
+  )
+
+# plot hypothesis data by background, generation, and treatment
+jpeg("figures/hn_memory.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(hn_memory, aes(x = larval_generation, y = mean, group = background)) + 
+  geom_line(aes(color = background), linewidth = 2) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
+  geom_point(aes(x = larval_generation, y = mean, group = background, fill = background), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(legend.position = c(0.05,0.87)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Background", color = "Background") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+##### 1a.2. Simulate and visualize data for H<sub>a</sub>; run the Rmd chunk below.
+
+##### Simulate data and generate figure for H<sub>a</sub>: `figures/ha_memory.jpeg`
+```{r}
+# generate test dataset for alternative hypothesis
+ha_memory <- tibble(
+  larval_generation = c(rep("F0", times = 2),
+                        rep("F1", times = 2), 
+                        rep("F2", times = 2), 
+                        rep("F3", times = 2)),
+  background = c(rep(c("C","E"), times = 4)),
+  treatment = c(rep("C", times = 8)),
+  mean = as.numeric(c(rep(c("10","5"), times = 4))),
+  se = as.numeric(c(rep("0.8", times = 8)))
+  )
+
+# plot hypothesis data by background, generation, and treatment
+jpeg("figures/ha_memory.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(ha_memory, aes(x = larval_generation, y = mean, group = background)) + 
+  geom_line(aes(color = background), linewidth = 2) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
+  geom_point(aes(x = larval_generation, y = mean, group = background, fill = background), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(legend.position = c(0.05,0.87)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Background", color = "Background") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+#### 1b: Simulate data and visualize null (H<sub>n</sub>) and alternative (H<sub>a</sub>) hypotheses for phenotypic response analysis.
+Here, we generate data tables to simulate expected patterns in phenotpyic response assuming the null hypothesis (i.e., that any phenotypic difference between control and insecticide-treated individuals with a background of insecticide exposure in the F0 generation will be maintained over successive generations) and alternative hypothesis (i.e., that any phenotypic difference between control and insecticide-treated exposed F0 individuals will vary across generations).
+
+##### 1b.1. Simulate and visualize data for H<sub>n</sub>; run the Rmd chunk below.
+
+##### Simulate data and generate figure for H<sub>n</sub>: `figures/hn_response.jpeg`
+```{r}
+# generate test data for null hypothesis
+hn_response <- tibble(
+  larval_generation = c(rep("F0", times = 2),
+                        rep("F1", times = 2), 
+                        rep("F2", times = 2), 
+                        rep("F3", times = 2)),
+  background = c(rep("E", times = 8)),
+  treatment = c(rep(c("C","E"), times = 4)),
+  mean = as.numeric(c(rep(c("10","5"), times = 4))),
+  se = as.numeric(c(rep("0.8", times = 8)))
+  )
+
+# plot hypothesis data by background, generation, and treatment
+jpeg("figures/hn_response.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(hn_response, aes(x = larval_generation, y = mean, group = treatment)) + 
+  geom_line(aes(color = treatment), linewidth = 2) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = treatment), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
+  geom_point(aes(x = larval_generation, y = mean, group = treatment, fill = treatment), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(legend.position = c(0.05,0.87)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Treatment", color = "Treatment") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+##### 1b.2. Simulate and visualize data for H<sub>a</sub>; run the Rmd chunk below.
+
+##### Simulate data and generate figure for H<sub>a</sub>: `figures/ha_response.jpeg`
+```{r}
+# generate test dataset for alternative hypothesis
+ha_response <- tibble(
+  larval_generation = c(rep("F0", times = 2),
+                        rep("F1", times = 2), 
+                        rep("F2", times = 2), 
+                        rep("F3", times = 2)),
+  background = c(rep("E", times = 8)),
+  treatment = c(rep(c("C","E"), times = 4)),
+  mean = as.numeric(c(rep("10", times = 1),
+           rep("5", times = 1),
+           rep(c("10","14"), times = 3))),
+  se = as.numeric(c(rep("0.8", times = 8)))
+  )
+
+# plot hypothesis data by background, generation, and treatment
+jpeg("figures/ha_response.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(ha_response, aes(x = larval_generation, y = mean, group = treatment)) + 
+  geom_line(aes(color = treatment), linewidth = 2) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = treatment), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
+  geom_point(aes(x = larval_generation, y = mean, group = treatment, fill = treatment), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(legend.position = c(0.05,0.87)) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Treatment", color = "Treatment") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()

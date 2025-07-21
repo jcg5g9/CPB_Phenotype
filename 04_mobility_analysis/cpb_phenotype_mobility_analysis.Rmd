@@ -26,6 +26,7 @@ library(lme4)
 library(rsq)
 library(scales)
 library(lmerTest)
+library(fitdistrplus)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -191,214 +192,9 @@ dev.off()
 ```
 
 ## PHASE 2: MOBILITY ANALYSIS
-In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and across generations, accounting for variation across lineages as a random effect in a linear mixed-effect model framework. We conduct two primary analyses: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., mobility metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., mobility metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and across generations, accounting for variation across lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., mobility metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., mobility metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
 
-### STEP 1: Simulate data to visualize hypotheses for assessing phenotypic memory and phenotypic response following insecticide exposure.
-In this step, we generate figures representing null and alternative hypotheses for assessing phenotypic memory vs. phenotypic response following exposure to the insecticide and control treatments in the transgenerational experiment. We generate simulated data and graphically visualize expected patterns of phenotypic variation between treatments and across generations.
-
-#### 1a: Simulate data and visualize null (H<sub>n</sub>) and alternative (H<sub>a</sub>) hypotheses for phenotypic memory analysis.
-Here, we generate data tables to simulate expected patterns in phenotpyic memory assuming the null hypothesis (i.e., that any phenotypic difference between control and insecticide-exposed individuals in the F0 generation will not be maintained over successive generations) and alternative hypothesis (i.e., that any phenotypic difference between control and insecticide-treated F0 individuals will be maintained accross generations).
-
-##### 1a.1. Simulate and visualize data for H<sub>n</sub>; run the Rmd chunk below.
-
-##### Simulate data and generate figure for H<sub>n</sub>: `figures/hn_memory.jpeg`
-```{r}
-# generate test data for null hypothesis
-hn_memory <- tibble(
-  larval_generation = c(rep("F0", times = 2),
-                        rep("F1", times = 2), 
-                        rep("F2", times = 2), 
-                        rep("F3", times = 2)),
-  background = c(rep(c("C","E"), times = 4)),
-  treatment = c(rep("C", times = 8)),
-  mean = as.numeric(c(rep("10", times = 1),
-           rep("5", times = 1),
-           rep("10", times = 6))),
-  se = as.numeric(c(rep("0.8", times = 8)))
-  )
-
-# plot hypothesis data by background, generation, and treatment
-jpeg("figures/hn_memory.jpeg", width = 10000, height = 8000, res = 700)
- 
-ggplot(hn_memory, aes(x = larval_generation, y = mean, group = background)) + 
-  geom_line(aes(color = background), linewidth = 2) + 
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
-  geom_point(aes(x = larval_generation, y = mean, group = background, fill = background), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
-  theme_set(theme_cowplot(12)) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
-  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
-  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
-  theme(legend.position = c(0.05,0.87)) + 
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Background", color = "Background") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-dev.off()
-```
-
-##### 1a.2. Simulate and visualize data for H<sub>a</sub>; run the Rmd chunk below.
-
-##### Simulate data and generate figure for H<sub>a</sub>: `figures/ha_memory.jpeg`
-```{r}
-# generate test dataset for alternative hypothesis
-ha_memory <- tibble(
-  larval_generation = c(rep("F0", times = 2),
-                        rep("F1", times = 2), 
-                        rep("F2", times = 2), 
-                        rep("F3", times = 2)),
-  background = c(rep(c("C","E"), times = 4)),
-  treatment = c(rep("C", times = 8)),
-  mean = as.numeric(c(rep(c("10","5"), times = 4))),
-  se = as.numeric(c(rep("0.8", times = 8)))
-  )
-
-# plot hypothesis data by background, generation, and treatment
-jpeg("figures/ha_memory.jpeg", width = 10000, height = 8000, res = 700)
- 
-ggplot(ha_memory, aes(x = larval_generation, y = mean, group = background)) + 
-  geom_line(aes(color = background), linewidth = 2) + 
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
-  geom_point(aes(x = larval_generation, y = mean, group = background, fill = background), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
-  theme_set(theme_cowplot(12)) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
-  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
-  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
-  theme(legend.position = c(0.05,0.87)) + 
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Background", color = "Background") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-dev.off()
-```
-
-#### 1b: Simulate data and visualize null (H<sub>n</sub>) and alternative (H<sub>a</sub>) hypotheses for phenotypic response analysis.
-Here, we generate data tables to simulate expected patterns in phenotpyic response assuming the null hypothesis (i.e., that any phenotypic difference between control and insecticide-treated individuals with a background of insecticide exposure in the F0 generation will be maintained over successive generations) and alternative hypothesis (i.e., that any phenotypic difference between control and insecticide-treated exposed F0 individuals will vary across generations).
-
-##### 1b.1. Simulate and visualize data for H<sub>n</sub>; run the Rmd chunk below.
-
-##### Simulate data and generate figure for H<sub>n</sub>: `figures/hn_response.jpeg`
-```{r}
-# generate test data for null hypothesis
-hn_response <- tibble(
-  larval_generation = c(rep("F0", times = 2),
-                        rep("F1", times = 2), 
-                        rep("F2", times = 2), 
-                        rep("F3", times = 2)),
-  background = c(rep("E", times = 8)),
-  treatment = c(rep(c("C","E"), times = 4)),
-  mean = as.numeric(c(rep(c("10","5"), times = 4))),
-  se = as.numeric(c(rep("0.8", times = 8)))
-  )
-
-# plot hypothesis data by background, generation, and treatment
-jpeg("figures/hn_response.jpeg", width = 10000, height = 8000, res = 700)
- 
-ggplot(hn_response, aes(x = larval_generation, y = mean, group = treatment)) + 
-  geom_line(aes(color = treatment), linewidth = 2) + 
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = treatment), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
-  geom_point(aes(x = larval_generation, y = mean, group = treatment, fill = treatment), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
-  theme_set(theme_cowplot(12)) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
-  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
-  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
-  theme(legend.position = c(0.05,0.87)) + 
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Treatment", color = "Treatment") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-dev.off()
-```
-
-##### 1b.2. Simulate and visualize data for H<sub>a</sub>; run the Rmd chunk below.
-
-##### Simulate data and generate figure for H<sub>a</sub>: `figures/ha_response.jpeg`
-```{r}
-# generate test dataset for alternative hypothesis
-ha_response <- tibble(
-  larval_generation = c(rep("F0", times = 2),
-                        rep("F1", times = 2), 
-                        rep("F2", times = 2), 
-                        rep("F3", times = 2)),
-  background = c(rep("E", times = 8)),
-  treatment = c(rep(c("C","E"), times = 4)),
-  mean = as.numeric(c(rep("10", times = 1),
-           rep("5", times = 1),
-           rep(c("10","14"), times = 3))),
-  se = as.numeric(c(rep("0.8", times = 8)))
-  )
-
-# plot hypothesis data by background, generation, and treatment
-jpeg("figures/ha_response.jpeg", width = 10000, height = 8000, res = 700)
- 
-ggplot(ha_response, aes(x = larval_generation, y = mean, group = treatment)) + 
-  geom_line(aes(color = treatment), linewidth = 2) + 
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = treatment), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
-  geom_point(aes(x = larval_generation, y = mean, group = treatment, fill = treatment), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
-  theme_set(theme_cowplot(12)) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
-  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
-  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
-  theme(legend.position = c(0.05,0.87)) + 
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Treatment", color = "Treatment") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-dev.off()
-```
-
-### STEP 2: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+### STEP 1: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether total distance walked among larvae in each group of interest deviates from a normal distribution.
 
 ##### Test fit of normality:
@@ -408,6 +204,104 @@ load("data/mobility.Rda")
 
 # set to show decimals rather than scientific notation for p-value assessments
 options(scipen = 999)
+
+mobility <- mobility %>%
+  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+levels <- levels(mobility$group)
+
+pois <- list()
+
+for(i in levels) {
+  subset <- mobility[mobility$group == i, ]
+  fit_pois <- fitdist(subset$total_distance, "pois")
+  pois[[i]] <- fit_pois
+}
+
+print(pois)
+
+
+
+fo_c_n <- mobility %>%
+  filter(larval_generation == "F0",
+         background == "C",
+         treatment == "N")
+
+fo_e_n <- mobility %>%
+  filter(larval_generation == "F0",
+         background == "E",
+         treatment == "N")
+
+f1_c_n <- mobility %>%
+  filter(larval_generation == "F1",
+         background == "C",
+         treatment == "N")
+
+f1_c_r <- mobility %>%
+  filter(larval_generation == "F1",
+         background == "C",
+         treatment == "R")
+
+f1_e_n <- mobility %>%
+  filter(larval_generation == "F1",
+         background == "E",
+         treatment == "N")
+
+f1_e_r <- mobility %>%
+  filter(larval_generation == "F1",
+         background == "E",
+         treatment == "R")
+
+# Fit uniform distribution to all acetylation data
+fit_unif <- fitdist(fo_e_n$total_distance, "unif")
+plot(fit_unif)
+
+# Fit normal distribution to all acetylation data
+fit_norm <- fitdist(fo_e_n$total_distance, "norm")
+plot(fit_norm)
+
+# Fit poisson distribution to all acetylation data
+fit_pois <- fitdist(fo_e_n$total_distance, "pois")
+plot(fit_pois)
+
+# Fit negative binomial distribution to all acetylation data
+fit_nb <- fitdist(fo_e_n$total_distance, "nbinom")
+plot(fit_nb)
+
+# Fit gamma distribution to all acetylation data
+fit_gamma <- fitdist(fo_e_n$total_distance, "gamma")
+plot(fit_gamma)
+
+# Fit cauchy distribution to all acetylation data
+fit_cauchy <- fitdist(fo_e_n$total_distance, "cauchy")
+plot(fit_cauchy)
+
+# Fit exponential distribution to all acetylation data
+fit_exp <- fitdist(fo_e_n$total_distance, "exp")
+plot(fit_exp)
+
+# Compare fit by assessing AIC for all distribution fits
+gofstat(list(fit_unif, 
+             fit_norm, 
+             fit_pois,
+             fit_nb,
+             fit_gamma,
+             fit_cauchy,
+             fit_exp), 
+        fitnames = c("uniform",
+                     "normal",
+                     "poisson",
+                     "negative binomial",
+                     "gamma",
+                     "cauchy",
+                     "exponential"))
+
+gofstat(fit_pois, 
+        fitnames = c("poisson"))
+
+ggplot(fo_c_n, aes(x = total_distance)) + 
+  geom_histogram()
 
 # test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
 mobility %>%
@@ -420,20 +314,20 @@ mobility %>%
 <b>Analysis results:</b> <br>
 
 <b>Shapiro-wilk p-values for each treatment and generation:</b><br>
-<b>F0_C_C: p < 0.001 </b><br>
-<b>F0_C_E: p < 0.001 </b><br>
-<b>F1_C_C: p = 0.002 </b><br>
-<b>F1_C_E: p = 0.011 </b><br>
-<b>F1_E_C: p < 0.001 </b><br>
-<b>F1_E_E: p < 0.001 </b><br>
-<b>F2_C_C: p = 0.633 </b><br>
-<b>F2_C_E: p = 0.015 </b><br>
-<b>F2_E_C: p = 0.108 </b><br>
-<b>F2_E_E: p = 0.190 </b><br>
-<b>F3_C_C: p = 0.001 </b><br>
-<b>F3_C_E: p = 0.017 </b><br>
-<b>F3_E_C: p = 0.047 </b><br>
-<b>F3_E_E: p < 0.001 </b><br>
+<b>F0_C_N: p < 0.001 </b><br>
+<b>F0_E_N: p < 0.001 </b><br>
+<b>F1_C_N: p = 0.002 </b><br>
+<b>F1_C_R: p = 0.011 </b><br>
+<b>F1_E_N: p < 0.001 </b><br>
+<b>F1_E_R: p < 0.001 </b><br>
+<b>F2_C_N: p = 0.633 </b><br>
+<b>F2_C_R: p = 0.015 </b><br>
+<b>F2_E_N: p = 0.108 </b><br>
+<b>F2_E_R: p = 0.190 </b><br>
+<b>F3_C_N: p = 0.001 </b><br>
+<b>F3_C_R: p = 0.017 </b><br>
+<b>F3_E_N: p = 0.047 </b><br>
+<b>F3_E_R: p < 0.001 </b><br>
 
 Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we apply a square-root transformation to the raw data to prepare for analysis.
 
@@ -466,28 +360,28 @@ save(distance, file = "data/distance.Rda")
 <b>Analysis results:</b> <br>
 
 <b>Shapiro-wilk p-values for each treatment and generation:</b><br>
-<b>F0_C_C: p < 0.434 </b><br>
-<b>F0_C_E: p < 0.009 </b><br>
-<b>F1_C_C: p = 0.422 </b><br>
-<b>F1_C_E: p = 0.516 </b><br>
-<b>F1_E_C: p < 0.235 </b><br>
-<b>F1_E_E: p < 0.014 </b><br>
-<b>F2_C_C: p = 0.489 </b><br>
-<b>F2_C_E: p = 0.366 </b><br>
-<b>F2_E_C: p = 0.659 </b><br>
-<b>F2_E_E: p = 0.074 </b><br>
-<b>F3_C_C: p = 0.133 </b><br>
-<b>F3_C_E: p = 0.587 </b><br>
-<b>F3_E_C: p = 0.337 </b><br>
-<b>F3_E_E: p < 0.271 </b><br>
+<b>F0_C_N: p < 0.434 </b><br>
+<b>F0_E_N: p < 0.009 </b><br>
+<b>F1_C_N: p = 0.422 </b><br>
+<b>F1_C_R: p = 0.516 </b><br>
+<b>F1_E_N: p < 0.235 </b><br>
+<b>F1_E_R: p < 0.014 </b><br>
+<b>F2_C_N: p = 0.489 </b><br>
+<b>F2_C_R: p = 0.366 </b><br>
+<b>F2_E_N: p = 0.659 </b><br>
+<b>F2_E_R: p = 0.074 </b><br>
+<b>F3_C_N: p = 0.133 </b><br>
+<b>F3_C_R: p = 0.587 </b><br>
+<b>F3_E_N: p = 0.337 </b><br>
+<b>F3_E_R: p < 0.271 </b><br>
 
 All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
 
-### STEP 4: Assess phenotypic memory of insecticide stress in total distance walked.
+### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
-#### 4a: Run linear mixed effect model to test the effect of insecticide stress on phenotypic memory in total distance walked; run the Rmd chunk below.
+#### 4a: Run linear mixed effect model to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
 
-##### Run linear model for phenotypic memory of insecticide stress in total distance walked:
+##### Run linear mixed effect models for total distance walked:
 ```{r}
 # load distance mobility data
 load("data/distance.Rda")
@@ -568,12 +462,12 @@ summary(mod)
 # load distance mobility data
 load("data/distance.Rda")
 
-#
+# Generate factor for combined background and treatment ("group")
 distance <- distance %>%
-  mutate(group = ifelse(background == "C" & treatment == "C", "CN",
-                        ifelse(background == "C" & treatment == "E", "CR",
-                               ifelse(background == "E" & treatment == "C", "EN",
-                                      ifelse(background == "E" & treatment == "E", "ER", "done")))))
+  mutate(group = ifelse(background == "C" & treatment == "N", "CN",
+                        ifelse(background == "C" & treatment == "R", "CR",
+                               ifelse(background == "E" & treatment == "N", "EN",
+                                      ifelse(background == "E" & treatment == "R", "ER", "done")))))
 
 # calculate means, standard deviation, and standard error of square-root transformed data 
 distance <- distance %>%
@@ -584,7 +478,7 @@ distance <- distance %>%
             se = sd/sqrt(n))
 
 # plot transformed data by background, generation, and treatment
-jpeg("figures/distance_memory_groups.jpeg", width = 10000, height = 8000, res = 700)
+jpeg("figures/distance.jpeg", width = 10000, height = 8000, res = 700)
  
 ggplot(distance, aes(x = larval_generation, y = mean, group = group)) + 
   geom_line(aes(color = group), linewidth = 2) + 
@@ -609,49 +503,6 @@ ggplot(distance, aes(x = larval_generation, y = mean, group = group)) +
   theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
   theme(legend.box.margin = margin(5, 10, 1, 10)) +
   labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Group", color = "Group") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-dev.off()
-  
-# get only individuals given the control in each generation (for both background exposure groups)
-distance <- distance %>%
-  filter(treatment == "C")
-
-# calculate means, standard deviation, and standard error of square-root transformed data 
-distance <- distance %>%
-  group_by(larval_generation, background) %>%
-  summarize(mean = mean(sqrt_distance),
-            sd = sd(sqrt_distance),
-            n = n(),
-            se = sd/sqrt(n))
-
-# plot transformed data by background, generation, and treatment
-jpeg("figures/distance_memory.jpeg", width = 10000, height = 8000, res = 700)
- 
-ggplot(distance, aes(x = larval_generation, y = mean, group = background)) + 
-  geom_line(aes(color = background), linewidth = 2) + 
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
-  geom_point(aes(x = larval_generation, y = mean, group = background, fill = background), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
-  theme_set(theme_cowplot(12)) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
-  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
-  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
-  theme(legend.position = c(0.05,0.87)) + 
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Background", color = "Background") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 

@@ -118,7 +118,7 @@ rsq.lmm(time) # get r-squared values
 <b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
 <b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
 
-#### 2b: Plot correlations ; run the Rmd chunk below.
+#### 2b: Plot correlations; run the Rmd chunk below.
 
 ##### Plot correlations: `figures/correlations.jpeg`
 ```{r}

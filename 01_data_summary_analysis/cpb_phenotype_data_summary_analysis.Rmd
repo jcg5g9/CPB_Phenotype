@@ -362,7 +362,7 @@ performance %>%
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
-<b><i>N</i><sub>F0_E_R</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 72 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
@@ -417,7 +417,7 @@ mobility %>%
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
-<b><i>N</i><sub>F0_E_R</sub> = 70 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 70 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 30 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 27 </b><br>
@@ -472,7 +472,7 @@ herbivory %>%
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
-<b><i>N</i><sub>F0_E_R</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 72 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
@@ -573,7 +573,7 @@ pupa_time %>%
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
-<b><i>N</i><sub>F0_C_R</sub> = 42 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 42 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 25 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 13 </b><br>
@@ -627,7 +627,7 @@ pupa_duration %>%
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 58 </b><br>
-<b><i>N</i><sub>F0_C_R</sub> = 38 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 38 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 23 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
@@ -682,7 +682,7 @@ b>Data summary:</b> <br>
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
-<b><i>N</i><sub>F0_C_R</sub> = 42 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 42 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 25 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
@@ -737,7 +737,7 @@ adult_mass %>%
 
 <b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
 <b><i>N</i><sub>F0_C_N</sub> = 58 </b><br>
-<b><i>N</i><sub>F0_C_R</sub> = 38 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 38 </b><br>
 
 <b><i>N</i><sub>F1_C_N</sub> = 24 </b><br>
 <b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
