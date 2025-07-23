@@ -881,3 +881,112 @@ ggplot(distance, aes(x = larval_generation, y = mean, group = treatment)) +
 dev.off()
 ```
 
+```{r}
+
+# get only F0 individuals
+f0 <- distance %>%
+  filter(larval_generation == "F0")
+
+# get only F1 individuals
+f1 <- distance %>%
+  filter(larval_generation == "F1")
+
+# get only F2 individuals
+f2 <- distance %>%
+  filter(larval_generation == "F2")
+
+# get only F3 individuals
+f3 <- distance %>%
+  filter(larval_generation == "F3")
+
+# run linear mixed effect model for F0 with lineage as a random effect
+f0_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f0)
+
+# run linear mixed effect model for F1 with lineage as a random effect
+f1_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f1)
+
+# run linear mixed effect model for F2 with lineage as a random effect
+f2_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f2)
+
+# run linear mixed effect model for F3 with lineage as a random effect
+f3_model <- lmer(sqrt_distance ~ background + (1|lineage),
+             data = f3)
+
+# set scipen to remove scientific notation
+options(scipen = 999)
+
+# summarize F0 model
+anova(f0_model) # get F-values
+Anova(f0_model) # get p-values
+
+# summarize F1 model
+anova(f1_model) # get F-values
+Anova(f1_model) # get p-values
+
+# summarize F2 model
+anova(f2_model) # get F-values
+Anova(f2_model) # get p-values
+
+# summarize F3 model
+anova(f3_model) # get F-values
+Anova(f3_model) # get p-values
+
+
+
+# plot transformed data by background, generation, and treatment
+jpeg("figures/distance.jpeg", width = 10000, height = 8000, res = 700)
+ 
+ggplot(distance_r, aes(x = larval_generation, y = mean, group = group)) +
+  geom_rect(data = distance_r, aes(x = larval_generation, y = mean), 
+            xmin = as.numeric(distance_r$larval_generation[[1]]) - 1.8, 
+            xmax = as.numeric(distance_r$larval_generation[[3]]) + 1.8, 
+            ymin = 9.944165-0.5209383,
+            ymax = 9.944165+0.5209383,
+            fill = "grey85",
+            alpha = 0.3) +
+    geom_rect(data = distance_r, aes(x = larval_generation, y = mean), 
+            xmin = as.numeric(distance_r$larval_generation[[1]]) - 1.8, 
+            xmax = as.numeric(distance_r$larval_generation[[3]]) + 1.8, 
+            ymin = 5.883139-0.5088491,
+            ymax = 5.883139+0.5088491,
+            fill = "grey85",
+            alpha = 0.3) +
+  geom_hline(yintercept = 9.944165, color = "deepskyblue2", size = 3) +
+  geom_hline(yintercept = 5.883139, color = "firebrick3", size = 3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = group), position = position_dodge(width = 0.3), width = 0.2, linewidth = 2) +
+  geom_point(aes(x = larval_generation, y = mean, group = group, fill = group), position = position_dodge(width = 0.3), size = 7, pch = 22, stroke = 2, color = "black") +
+  theme_set(theme_cowplot(12)) +
+  
+  scale_color_manual(values = c("deepskyblue2", 
+                                "mediumpurple", 
+                                "firebrick3", 
+                                "magenta2")) +
+  scale_fill_manual(values = c("deepskyblue2", 
+                               "mediumpurple", 
+                               "firebrick3",
+                               "magenta2")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  guides(color = guide_legend(nrow = 1, byrow = T)) +
+  theme(legend.position = c(0.03,0.91)) + 
+  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Group", color = "Group") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```

@@ -27,6 +27,7 @@ library(rsq)
 library(scales)
 library(lmerTest)
 library(fitdistrplus)
+library(forcats)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -249,7 +250,7 @@ mobility <- mobility %>%
   unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
   mutate(group = factor(group))
 
-# generate list of levels wihtin group factor
+# generate list of levels within group factor
 levels <- levels(mobility$group)
 
 # define empty lists to hold statistics for each distribution test
@@ -258,17 +259,26 @@ norm <- list() # list for normal distribution results
 nbin <- list() # list for negative binomial distribution results
 pois <- list() # list for poisson distribution results
 
+unif_stats <- list()
+norm_stats <- list()
+nbin_stats <- list()
+pois_stats <- list()
+
 # Write for loop to fit each distribution to data, iterating through group levels (i)
 for(i in levels) {
+  
   subset <- mobility[mobility$group == i, ] # generate discrete subsets for each group level
-  fit_unif <- fitdist(subset$total_distance, "unif") # fit uniform distribution to total distance data within subset
-  fit_norm <- fitdist(subset$total_distance, "norm") # fit normal distribution to total distance data within subset
-  fit_nbin <- fitdist(subset$total_distance, "nbinom") # fit negative binomial distribution to total distance data within subset
+  
+  fit_unif <- fitdist(subset$total_distance, "unif") # fit uniform distribution to total distance within subset
+  fit_norm <- fitdist(subset$total_distance, "norm") # fit normal distribution to total distance within subset
+  fit_nbin <- fitdist(subset$total_distance, "nbinom") # fit negative binomial distribution to total distance within subset
   fit_pois <- fitdist(subset$total_distance, "pois") # fit poisson distribution to total distance data within subset
+  
   unif[[i]] <- fit_unif  # fill list with fit results for uniform distribution
   norm[[i]] <- fit_norm # fill list with fit results for normal distribution
   nbin[[i]] <- fit_nbin # fill list with fit results for negative binomial distribution
   pois[[i]] <- fit_pois # fill list with fit results for poisson distribution
+  
 }
 
 # Get table of distribution stats for F0 C N group
@@ -355,7 +365,7 @@ stats_14 <- rbind(data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
                                              nbin$F3_E_R))$aic), 
                   data_frame(F3_E_R = as.numeric(c("NA"))))
 
-# combine all stats into a single table
+# combine all stats into a single table and add a first column with the name of the distribution being tested
 stats <- cbind(distribution = c("uniform", "normal", "negative binomial", "poisson"), 
                stats_1, 
                stats_2, 
@@ -442,132 +452,256 @@ All 14 tests indicate fit of the normal distribution, so we continue with analys
 
 ### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
-#### 4a: Run linear mixed effect model to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
+#### 4a: Run two-factor linear mixed effect interaction anova models to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
 
-##### Run linear mixed effect models for total distance walked:
+##### Run linear mixed effect interaction anova models for total distance walked:
 ```{r}
 # load distance mobility data
 load("data/distance.Rda")
 
-# get only individuals given the control in each generation (for both background exposure groups)
-distance <- distance %>%
-  filter(treatment == "C")
-
-# get only F0 individuals
+# isolate only F0 data
 f0 <- distance %>%
   filter(larval_generation == "F0")
 
-# get only F1 individuals
+# isolate only F0 dat and the a
 f1 <- distance %>%
   filter(larval_generation == "F1")
 
-# get only F2 individuals
+# isolate only F0 data
 f2 <- distance %>%
   filter(larval_generation == "F2")
 
-# get only F3 individuals
+# isolate only F0 data
 f3 <- distance %>%
   filter(larval_generation == "F3")
 
-# run linear mixed effect model for F0 with lineage as a random effect
-f0_model <- lmer(sqrt_distance ~ background + (1|lineage),
-             data = f0)
+# f0 linear mixed effect model
+f0_mod <- lmer(sqrt_distance ~ background + (1|lineage),
+               data = f0)
 
-# run linear mixed effect model for F1 with lineage as a random effect
-f1_model <- lmer(sqrt_distance ~ background + (1|lineage),
-             data = f1)
+# f1 linear mixed effect model
+f1_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
+               data = f1)
 
-# run linear mixed effect model for F2 with lineage as a random effect
-f2_model <- lmer(sqrt_distance ~ background + (1|lineage),
-             data = f2)
+# f2 linear mixed effect model
+f2_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
+               data = f2)
 
-# run linear mixed effect model for F3 with lineage as a random effect
-f3_model <- lmer(sqrt_distance ~ background + (1|lineage),
-             data = f3)
+# f2 linear mixed effect model
+f3_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
+               data = f3)
 
-# set scipen to remove scientific notation
-options(scipen = 999)
+# summarize f0 model
+summary(f0_mod) 
+anova(f0_mod)
 
-# summarize F0 model
-anova(f0_model) # get F-values
-Anova(f0_model) # get p-values
+# summarize f1 model
+summary(f1_mod) 
+anova(f1_mod)
 
-# summarize F1 model
-anova(f1_model) # get F-values
-Anova(f1_model) # get p-values
+# summarize f2 model
+summary(f2_mod) 
+anova(f2_mod)
 
-# summarize F2 model
-anova(f2_model) # get F-values
-Anova(f2_model) # get p-values
-
-# summarize F3 model
-anova(f3_model) # get F-values
-Anova(f3_model) # get p-values
-
-mod <- lmer(sqrt_distance ~ larval_generation*background + (1|lineage),
-            data = distance)
-
-summary(mod)
+# summarize f3 model
+summary(f3_mod) 
+anova(f3_mod)
 ```
 
 <b>Analysis results:</b> <br>
 
 <b>Coefficients of linear mixed effect models by generation:</b><br>
-<b>F0: F = 32.258; p < 0.0001 </b><br>
-<b>F1: F = 1.0040; p = 0.3163 </b><br>
-<b>F2: F = 0.0725; p = 0.7878 </b><br>
-<b>F3: F = 1.4969; p = 0.2211 </b><br>
+<b>F0</b>: <br>
+Background: F = 32.258; p < 0.001 <br>
 
-#### 4b: Plot transformed data for total distance walked to visualize phenotypic memory; run the Rmd chunk below.
+<b>F1</b>: <br>
+Background: F = 0.8294; p = 0.364566 <br>
+Treatment: F = 10.1547; p = 0.001901 <br>
+Background x Treatment: F = 0.2653; p = 0.607587 <br>
 
-##### Plot transformed data for phenotypic memory analysis: `figures/distance_memory.jpeg`
+<b>F2</b>: <br>
+Background: F = 6.9989; p = 0.010216 <br>
+Treatment: F = 7.1985; p = 0.009302 <br>
+Background x Treatment: F = 4.3120; p = 0.041927 <br>
+
+<b>F3</b>: <br>
+Background: F = 0.2977; p = 0.5870 <br>
+Treatment: F = 19.2496; p < 0.001 <br>
+Background x Treatment: F = 1.4071; p = 0.2394 <br>
+
+#### 4b: Plot transformed data for total distance walked; run the Rmd chunk below.
+
+##### Plot transformed data: `figures/distance.jpeg`
 ```{r}
 # load distance mobility data
 load("data/distance.Rda")
 
-# Generate factor for combined background and treatment ("group")
+# calculate means, standard deviation, and standard error of square-root transformed data  and recode background for plotting
 distance <- distance %>%
-  mutate(group = ifelse(background == "C" & treatment == "N", "CN",
-                        ifelse(background == "C" & treatment == "R", "CR",
-                               ifelse(background == "E" & treatment == "N", "EN",
-                                      ifelse(background == "E" & treatment == "R", "ER", "done")))))
-
-# calculate means, standard deviation, and standard error of square-root transformed data 
-distance <- distance %>%
-  group_by(larval_generation, group) %>%
+  group_by(larval_generation, background, treatment) %>%
   summarize(mean = mean(sqrt_distance),
             sd = sd(sqrt_distance),
             n = n(),
-            se = sd/sqrt(n))
+            se = sd/sqrt(n)) %>%
+  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
+         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
 
-# plot transformed data by background, generation, and treatment
-jpeg("figures/distance.jpeg", width = 10000, height = 8000, res = 700)
- 
-ggplot(distance, aes(x = larval_generation, y = mean, group = group)) + 
-  geom_line(aes(color = group), linewidth = 2) + 
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = group), position = position_dodge(width = 0.1), width = 0.2, linewidth = 2) +
-  geom_point(aes(x = larval_generation, y = mean, group = group, fill = group), position = position_dodge(width = 0.1), size = 5, pch = 22, stroke = 2, color = "black") +
+# isolate only F0 data
+f0 <- distance %>%
+  filter(larval_generation == "F0")
+
+# isolate only F0 data
+f1 <- distance %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- distance %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- distance %>%
+  filter(larval_generation == "F3")
+
+# plot f0 data
+f0 <- ggplot(f0, aes(x = background, y = mean, group = background, color = background)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = background, y = mean, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  scale_color_manual(values = c("deepskyblue2", "mediumpurple", "firebrick3", "magenta2")) +
-  scale_fill_manual(values = c("deepskyblue2", "mediumpurple", "firebrick3", "magenta2")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
   ylim(0,15) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
-  theme(axis.title = element_text(size = 40, hjust = 0.5)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  theme(legend.position = c(0.02,0.17)) + 
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Larval generation", y = expression(sqrt("distance (mm)")), fill = "Group", color = "Group") +
+  labs(x = "Original exposure", y = expression(sqrt("distance (mm)"))) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
+
+# plot f1 data
+f1 <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.title = element_text(size = 30)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  #theme(legend.text = element_text(size = 30)) +
+  #theme(legend.title = element_text(size = 30, face = "bold")) +
+  #theme(legend.key.size = unit(2, 'cm')) +
+  #theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  #theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  #theme(legend.position = c(0.05,0.2)) + 
+  labs(x = "Treatment", y = expression(sqrt("distance (mm)")), fill = "Parental exposure", color = "Parental exposure") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f2 data
+f2 <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f3 data
+f3 <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = mean, group = background, fill = background),
+              position = position_dodge(width = 0.4), 
+              size = 7,
+              pch = 22,
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all distance figures together
+jpeg("figures/distance.jpeg", width = 17000, height = 15000, res = 1000)
+
+plot_grid(f0,
+          f1,
+          f2,
+          f3,
+          nrow = 2,
+          ncol = 2,
+          labels = c("a","b","c","d"),
+          label_size = 40,
+          label_x = -0.02,
+          label_y = 1.02)
 
 dev.off()
 ```
