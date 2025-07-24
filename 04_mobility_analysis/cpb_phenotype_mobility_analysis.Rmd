@@ -111,7 +111,7 @@ rsq.lmm(speed_accel) # get r-squared values
 <b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
 <b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
 
-#### 2b: Plot correlations ; run the Rmd chunk below.
+#### 2b: Plot correlations; run the Rmd chunk below.
 
 ##### Plot correlations: `figures/correlations.jpeg`
 ```{r}
@@ -193,7 +193,7 @@ dev.off()
 ```
 
 ## PHASE 2: MOBILITY ANALYSIS
-In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and across generations, accounting for variation across lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., mobility metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., mobility metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., mobility metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., mobility metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
 
 ### STEP 1: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether total distance walked among larvae in each group of interest deviates from a normal distribution.
@@ -232,7 +232,7 @@ mobility %>%
 <b>F3_E_N: p = 0.047 </b><br>
 <b>F3_E_R: p < 0.001 </b><br>
 
-Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
+Since 7/14 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
 
 ### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
 In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest. 
@@ -259,25 +259,23 @@ norm <- list() # list for normal distribution results
 nbin <- list() # list for negative binomial distribution results
 pois <- list() # list for poisson distribution results
 
-unif_stats <- list()
-norm_stats <- list()
-nbin_stats <- list()
-pois_stats <- list()
-
 # Write for loop to fit each distribution to data, iterating through group levels (i)
 for(i in levels) {
   
-  subset <- mobility[mobility$group == i, ] # generate discrete subsets for each group level
+  # generate subsets of data for each group level
+  subset <- mobility[mobility$group == i, ]
   
-  fit_unif <- fitdist(subset$total_distance, "unif") # fit uniform distribution to total distance within subset
-  fit_norm <- fitdist(subset$total_distance, "norm") # fit normal distribution to total distance within subset
-  fit_nbin <- fitdist(subset$total_distance, "nbinom") # fit negative binomial distribution to total distance within subset
-  fit_pois <- fitdist(subset$total_distance, "pois") # fit poisson distribution to total distance data within subset
+  # fit distributions to leaf area for each subset
+  fit_unif <- fitdist(subset$total_distance, "unif")
+  fit_norm <- fitdist(subset$total_distance, "norm")
+  fit_nbin <- fitdist(subset$total_distance, "nbinom")
+  fit_pois <- fitdist(subset$total_distance, "pois")
   
-  unif[[i]] <- fit_unif  # fill list with fit results for uniform distribution
-  norm[[i]] <- fit_norm # fill list with fit results for normal distribution
-  nbin[[i]] <- fit_nbin # fill list with fit results for negative binomial distribution
-  pois[[i]] <- fit_pois # fill list with fit results for poisson distribution
+  # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif 
+  norm[[i]] <- fit_norm
+  nbin[[i]] <- fit_nbin
+  pois[[i]] <- fit_pois
   
 }
 

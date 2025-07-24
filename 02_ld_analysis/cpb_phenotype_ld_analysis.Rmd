@@ -142,9 +142,13 @@ In this step, we fit the data using logistic regression with a probit link funct
 # Load in raw LD data
 load("data/ld.Rda")
 
+# manipulate zeros (control) so that they can be included in og-transformed data (log10) by adding 1 to all values
+ld_probit <- ld %>%
+  mutate(log_dosage = log10(dosage + 1))
+
 # Run probit analysis (logistic regression with probit link function) using glm()
-probit <- glm(survival_status ~ dosage, 
-              data = ld, 
+probit <- glm(survival_status ~ log_dosage, 
+              data = ld_probit, 
               family = binomial(link = "probit"))
 
 # Get coefficients of probit function
@@ -153,14 +157,17 @@ summary(probit)
 # Define a function to extract the ld25 value (dosage at which 75% of individuals survive on average)
 findInt <- function(model, value) {
     function(x) {
-        predict(model, data.frame(dosage = x), 
+        predict(model, data.frame(log_dosage = x), 
                 type = "response") - value
     }
 }
 
 # Extract ld25 value
-uniroot(findInt(probit, 0.5), 
-        range(ld$dosage))$root
+uniroot(findInt(probit, 0.75), 
+        range(ld_probit$log_dosage))$root
+
+# save ld probit data with log transformation
+save(ld_probit, file = "data/ld_probit.Rda")
 ```
 
 <b>Summary results</b>:
@@ -170,19 +177,17 @@ LD<sub>25</sub> (initial estimate) = 12.21458 ppm
 
 ##### Plot probit regression: `figures/ld.pdf`
 ```{r}
-# Load in raw LD data
-load("data/ld.Rda")
+# Load in log probit data
+load("data/ld_probit.Rda")
 
 # Plot probit curve of survival at all dosages
 jpeg("figures/ld.jpeg", width = 5000, height = 4000, res = 800)
 
-ggplot(ld, aes(x = dosage, y = survival_status)) + 
+ggplot(ld_probit, aes(x = log_dosage, y = survival_status)) + 
   geom_point(position = position_jitter(height = 0.05), size = 4, color = "black", fill = "grey", pch = 21) + 
   geom_smooth(method = "glm", method.args = list(family = "binomial"), color = "black", fullrange = T) + 
   theme_set(theme_cowplot(12)) +
-  geom_hline(yintercept = 0.75, color = "blue", linetype = "longdash", size = 1) +
-  geom_vline(xintercept = 12.21458, color = "blue", linetype = "longdash", size = 1) +
-  scale_x_continuous(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0), limits = c(0,2)) +
   labs(x = "Dosage (ppm)", y = "Survival proportion") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(axis.title = element_text(size = 15)) +

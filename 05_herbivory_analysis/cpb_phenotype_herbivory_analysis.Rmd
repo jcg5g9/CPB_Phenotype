@@ -21,6 +21,13 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
+library(rstatix)
+library(lme4)
+library(rsq)
+library(scales)
+library(lmerTest)
+library(fitdistrplus)
+library(forcats)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -34,6 +41,16 @@ In this step, we calculate mean, standard deviation, and variance for larval her
 # load herbivory data
 load("data/herbivory.Rda")
 
+herbivory <- herbivory %>%
+  mutate(consumed = as.numeric(ifelse(leaf_area_consumed != 0, "1", "0"))) %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(sum_consumed = sum(consumed),
+            n = n(),
+            prop_consumed = sum_consumed/n,
+            mean_consumed = mean(leaf_area_consumed),
+            sd_consumed = sd(leaf_area_consumed),
+            se_consumed = sd_consumed/sqrt(n))
+
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for walking rate by generation and treatment
 herbivory %>%
   group_by(larval_generation, background, treatment) %>% 
@@ -41,4 +58,207 @@ herbivory %>%
             mean = mean(total_leaf_area),
             sd = sd(total_leaf_area),
             se = sd/sqrt(n()))
+
+
+f1 <- herbivory %>%
+  filter(larval_generation == "F1")
+
+model = glmer(consumed ~ background*treatment + (1|lineage), 
+            family = 'binomial',
+            data = f1)
+
+summary(model)
+
+
+dat = as.data.frame(Titanic)
+dat = dat[rep(1:nrow(dat), dat$Freq), -5]
+```
+## PHASE 2: HERBIVORY ANALYSIS
+In this phase of the analysis, we assess differences in larval herbivory (i.e., total leaf area consumed) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+
+### STEP 1: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether total leaf area consumed among larvae in each group of interest deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+herbivory %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(leaf_area_consumed) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_N: p < 0.001 </b><br>
+<b>F0_E_N: p < 0.001 </b><br>
+<b>F1_C_N: p = 0.015 </b><br>
+<b>F1_C_R: p < 0.001</b><br>
+<b>F1_E_N: p = 0.005 </b><br>
+<b>F1_E_R: p < 0.001 </b><br>
+<b>F2_C_N: p = 0.209 </b><br>
+<b>F2_C_R: p < 0.001 </b><br>
+<b>F2_E_N: p = 0.007 </b><br>
+<b>F2_E_R: p < 0.001</b><br>
+<b>F3_C_N: p < 0.001 </b><br>
+<b>F3_C_R: p < 0.001 </b><br>
+<b>F3_E_N: p < 0.001 </b><br>
+<b>F3_E_R: p < 0.001 </b><br>
+
+Since 10/14 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
+
+### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest. 
+
+##### Test fit of alternative distributions:
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# Generate combined "group" factor, which includes larval generation, background, and treatment, to test distributions within each group of interest.
+herbivory <- herbivory %>%
+  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+# generate list of levels within group factor
+levels <- levels(herbivory$group)
+
+# define empty lists to hold statistics for each distribution test
+unif <- list() 
+norm <- list()
+nbin <- list() 
+pois <- list()
+
+# Write for loop to fit each distribution to data, iterating through group levels (i)
+for(i in levels) {
+  
+  # generate subsets of data for each group level
+  subset <- herbivory[herbivory$group == i, ]
+  
+  # fit distributions to leaf area for each subset
+  fit_unif <- fitdist(subset$leaf_area_consumed, "unif") 
+  fit_norm <- fitdist(subset$leaf_area_consumed, "norm") 
+  fit_nbin <- fitdist(subset$leaf_area_consumed, "nbinom") 
+  fit_pois <- fitdist(subset$leaf_area_consumed, "pois")
+  
+  # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif 
+  norm[[i]] <- fit_norm 
+  nbin[[i]] <- fit_nbin 
+  pois[[i]] <- fit_pois
+  
+}
+
+# Get table of distribution stats for F0 C N group
+stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N, 
+                                            norm$F0_C_N, 
+                                            nbin$F0_C_N,
+                                            pois$F0_C_N))$aic)
+
+# Get table of distribution stats for F0 E N group
+stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N, 
+                                            norm$F0_E_N, 
+                                            nbin$F0_E_N,
+                                            pois$F0_E_N))$aic)
+
+# Get table of distribution stats for F1 C N group
+stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N, 
+                                            norm$F1_C_N, 
+                                            nbin$F1_C_N,
+                                            pois$F1_C_N))$aic)
+
+# Get table of distribution stats for F1 C R group
+stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
+                                            norm$F1_C_R, 
+                                            nbin$F1_C_R,
+                                            pois$F1_C_R))$aic)
+         
+# Get table of distribution stats for F1 E N group
+stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
+                                            norm$F1_E_N, 
+                                            nbin$F1_E_N,
+                                            pois$F1_E_N))$aic)
+
+# Get table of distribution stats for F1 E R group
+stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
+                                            norm$F1_E_R, 
+                                            nbin$F1_E_R,
+                                            pois$F1_E_R))$aic)
+
+# Get table of distribution stats for F2 C N group
+stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
+                                            norm$F2_C_N, 
+                                            nbin$F2_C_N,
+                                            pois$F2_C_N))$aic)
+
+# Get table of distribution stats for F2 C R group
+stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
+                                            norm$F2_C_R, 
+                                            nbin$F2_C_R,
+                                            pois$F2_C_R))$aic)
+
+# Get table of distribution stats for F2 E N group
+stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
+                                            norm$F2_E_N, 
+                                            nbin$F2_E_N,
+                                            pois$F2_E_N))$aic)
+
+# Get table of distribution stats for F2 E R group
+stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
+                                             norm$F2_E_R, 
+                                             nbin$F2_E_R,
+                                             pois$F2_E_R))$aic)
+
+# Get table of distribution stats for F3 C N group
+stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
+                                             norm$F3_C_N, 
+                                             nbin$F3_C_N,
+                                             pois$F3_C_N))$aic)
+
+# Get table of distribution stats for F3 C R group
+stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
+                                             norm$F3_C_R, 
+                                             nbin$F3_C_R,
+                                             pois$F3_C_R))$aic)
+
+# Get table of distribution stats for F3 E N group
+stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
+                                             norm$F3_E_N, 
+                                             nbin$F3_E_N,
+                                             pois$F3_E_N))$aic)
+
+# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate poisson statistics)
+stats_14 <- rbind(data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
+                                                   norm$F3_E_R, 
+                                                   nbin$F3_E_R,
+                                                   pois$F3_E_R))$aic), 
+                  data_frame(F3_E_R = as.numeric(c("NA"))))
+
+# combine all stats into a single table and add a first column with the name of the distribution being tested
+stats <- cbind(distribution = c("uniform", "normal", "negative binomial", "poisson"), 
+               stats_1, 
+               stats_2, 
+               stats_3, 
+               stats_4,
+               stats_5, 
+               stats_6, 
+               stats_7,
+               stats_8, 
+               stats_9, 
+               stats_10, 
+               stats_11, 
+               stats_12, 
+               stats_13, 
+               stats_14)
 ```
