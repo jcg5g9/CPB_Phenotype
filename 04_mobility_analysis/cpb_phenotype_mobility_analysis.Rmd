@@ -28,6 +28,7 @@ library(scales)
 library(lmerTest)
 library(fitdistrplus)
 library(forcats)
+library(patchwork)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -182,13 +183,10 @@ speed_accel <- ggplot(mobility, aes(x = ave_speed, y = ave_accel)) +
 # plot all together
 jpeg("figures/correlations.jpeg", width = 25000, height = 8000, res = 1000)
 
-plot_grid(distance_speed,
-          distance_accel, 
-          speed_accel,
-          nrow = 1,
-          ncol = 3,
-          labels = c("a","b","c"),
-          label_size = 40)
+distance_speed + 
+  distance_accel + 
+  speed_accel + 
+  plot_layout(nrow = 1, ncol = 3)
 
 dev.off()
 ```
@@ -615,7 +613,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   ylim(0,15) +
   theme(axis.title = element_text(size = 30)) +
   theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -684,6 +683,7 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
   labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -691,16 +691,11 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
 # plot all distance figures together
 jpeg("figures/distance.jpeg", width = 17000, height = 15000, res = 1000)
 
-plot_grid(f0_plot,
-          f1_plot,
-          f2_plot,
-          f3_plot,
-          nrow = 2,
-          ncol = 2,
-          labels = c("a","b","c","d"),
-          label_size = 40,
-          label_x = -0.02,
-          label_y = 1.02)
+f0_plot + 
+  f1_plot + 
+  f2_plot + 
+  f3_plot + 
+  plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```
