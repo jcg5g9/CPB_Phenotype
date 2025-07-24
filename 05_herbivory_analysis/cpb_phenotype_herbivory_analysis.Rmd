@@ -30,6 +30,7 @@ library(fitdistrplus)
 library(forcats)
 library(emmeans)
 library(patchwork)
+library(glmmTMB)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -58,16 +59,15 @@ herbivory %>%
 
 These data are presented in Table 1 of the final ms.
 
-
-
 ## PHASE 2: HERBIVORY ANALYSIS
-In this phase of the analysis, we assess differences in larval herbivory (i.e., total leaf area consumed) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+In this phase of the analysis, we assess differences in larval herbivory (i.e., total leaf area consumed) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. For each of these modes of phenotypic effect, we assess both the probability of herbivory, i.e., the probability that an individual larva will consume leaf tissue (Step 1 below), and average herbivory, i.e., total leaf consumed (Step 2 below).
 
 ### STEP 1: Assess phenotypic effects of insecticide stress in probability of herbivory
+In this step, we assess the probability of herbivory dependent on background exposure and treatment across generations. We use a mixed effect logistic regression.
 
-#### 1a: Run two-factor general mixed effect logistic regression models to test the relative effects of background and treatment of insecticide stress on probability of consuming leaf tissue; run the Rmd chunk below.
+#### 1a: Run two-factor mixed effect logistic regression models to test the relative effects of background and treatment of insecticide stress on probability of consuming leaf tissue; run the Rmd chunk below.
 
-##### Run linear mixed effect interaction anova models for total distance walked:
+##### Run mixed effect regression models for herbivory probability:
 ```{r}
 # load herbivory data
 load("data/herbivory.Rda")
@@ -332,7 +332,10 @@ dev.off()
 ```
 
 
-### STEP 1: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+### STEP 2: Assess phenotypic effects of insecticide stress in total herbivory (leaf area consumed).
+In this step, we assess average total herbivory dependent on background exposure and treatment across generations. We first test the fit of raw data to different distributions...
+
+#### 2a: Test fit of empirical herbivory data (leaf area consumed) to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether total leaf area consumed among larvae in each group of interest deviates from a normal distribution.
 
 ##### Test fit of normality:
@@ -517,4 +520,57 @@ stats <- cbind(distribution = c("uniform", "normal", "negative binomial", "poiss
                stats_12, 
                stats_13, 
                stats_14)
+```
+
+
+
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# isolate only F0 data
+f0 <- herbivory %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- herbivory %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- herbivory %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- herbivory %>%
+  filter(larval_generation == "F3")
+
+# f0 general linear mixed effect model
+f0_mod <- glmmTMB(leaf_area_consumed ~ background + (1|lineage),
+                  data = f0,
+                  ziformula = ~1,
+                  family = beta_family())
+
+# f1 general linear mixed effect model
+f1_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+                  data = f1,
+                  ziformula = ~1,
+                  family = beta_family())
+
+# f2 general linear mixed effect model
+f2_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+                  data = f2,
+                  ziformula = ~1,
+                  family = beta_family())
+
+# f2 general linear mixed effect model
+f3_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+                  data = f3,
+                  ziformula = ~1,
+                  family = beta_family())
+
+
+summary(f3_mod)
 ```
