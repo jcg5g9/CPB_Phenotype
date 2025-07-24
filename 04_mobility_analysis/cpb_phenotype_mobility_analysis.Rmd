@@ -235,7 +235,7 @@ mobility %>%
 Since 7/14 tests for normality fit indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
 
 ### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
-In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest.
+In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest. 
 
 ##### Test fit of alternative distributions:
 ```{r}
@@ -536,7 +536,7 @@ Background x Treatment: F = 1.4071; p = 0.2394 <br>
 # load distance mobility data
 load("data/distance.Rda")
 
-# calculate means, standard deviation, and standard error of square-root transformed data  and recode background for plotting
+# calculate means, standard deviation, and standard error of square-root transformed data and recode background for plotting
 distance <- distance %>%
   group_by(larval_generation, background, treatment) %>%
   summarize(mean = mean(sqrt_distance),
@@ -563,7 +563,7 @@ f3 <- distance %>%
   filter(larval_generation == "F3")
 
 # plot f0 data
-f0 <- ggplot(f0, aes(x = background, y = mean, group = background, color = background)) +
+f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = background)) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
@@ -592,7 +592,7 @@ f0 <- ggplot(f0, aes(x = background, y = mean, group = background, color = backg
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f1 data
-f1 <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = background)) +
+f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
@@ -629,7 +629,7 @@ f1 <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = backgr
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f2 data
-f2 <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = background)) +
+f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
@@ -660,7 +660,7 @@ f2 <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = backgr
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f3 data
-f3 <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = background)) +
+f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
@@ -692,10 +692,10 @@ f3 <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = backgr
 # plot all distance figures together
 jpeg("figures/distance.jpeg", width = 17000, height = 15000, res = 1000)
 
-plot_grid(f0,
-          f1,
-          f2,
-          f3,
+plot_grid(f0_plot,
+          f1_plot,
+          f2_plot,
+          f3_plot,
           nrow = 2,
           ncol = 2,
           labels = c("a","b","c","d"),
