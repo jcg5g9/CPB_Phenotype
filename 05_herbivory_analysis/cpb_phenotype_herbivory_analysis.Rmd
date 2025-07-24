@@ -28,6 +28,7 @@ library(scales)
 library(lmerTest)
 library(fitdistrplus)
 library(forcats)
+library(emmeans)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -41,38 +42,86 @@ In this step, we calculate mean, standard deviation, and variance for larval her
 # load herbivory data
 load("data/herbivory.Rda")
 
-herbivory <- herbivory %>%
-  mutate(consumed = as.numeric(ifelse(leaf_area_consumed != 0, "1", "0"))) %>%
-  group_by(larval_generation, background, treatment) %>%
-  summarize(sum_consumed = sum(consumed),
-            n = n(),
-            prop_consumed = sum_consumed/n,
-            mean_consumed = mean(leaf_area_consumed),
-            sd_consumed = sd(leaf_area_consumed),
-            se_consumed = sd_consumed/sqrt(n))
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for walking rate by generation and treatment
+# get sample size (n), mean or proportion, standard deviation (sd), and standard error (se) for herbivory by generation, background, and treatment
 herbivory %>%
-  group_by(larval_generation, background, treatment) %>% 
+  group_by(larval_generation, background, treatment) %>%
   summarize(n = n(),
-            mean = mean(total_leaf_area),
-            sd = sd(total_leaf_area),
-            se = sd/sqrt(n()))
+            prop_consumed = sum(consumed)/n,
+            sd_consumed = sd(consumed),
+            se_consumed = sd_consumed/sqrt(n),
+            se_leaf = sd_consumed/sqrt(n),
+            mean_leaf = mean(leaf_area_consumed),
+            sd_leaf = sd(leaf_area_consumed),
+            se_leaf = sd_leaf/sqrt(n))
+```
 
+These data are presented in Table 1 of the final ms.
 
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# isolate only F0 data
+f0 <- herbivory %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
 f1 <- herbivory %>%
   filter(larval_generation == "F1")
 
-model = glmer(consumed ~ background*treatment + (1|lineage), 
-            family = 'binomial',
-            data = f1)
+# isolate only F0 data
+f2 <- herbivory %>%
+  filter(larval_generation == "F2")
 
-summary(model)
+# isolate only F0 data
+f3 <- herbivory %>%
+  filter(larval_generation == "F3")
 
+# f0 general linear mixed effect model
+f0_mod <- glmer(consumed ~ background + (1|lineage),
+               family = binomial(link = "logit"),
+               data = f0)
 
-dat = as.data.frame(Titanic)
-dat = dat[rep(1:nrow(dat), dat$Freq), -5]
+# f1 general linear mixed effect model
+f1_mod <- glmer(consumed ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f1)
+
+# f2 general linear mixed effect model
+f2_mod <- glmer(consumed ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- glmer(consumed ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f3)
+
+# summarize f0 model
+summary(f0_mod)
+emmeans(f0_mod, pairwise ~ background,
+        type = "response", 
+        infer = T)
+
+# summarize f1 model
+summary(f1_mod)
+emmeans(f1_mod, pairwise ~ background*treatment,
+        type = "response", 
+        infer = T)
+
+# summarize f2 model
+summary(f2_mod)
+emmeans(f2_mod, pairwise ~ background*treatment,
+        type = "response", 
+        infer = T)
+
+# summarize f3 model
+summary(f3_mod)
+emmeans(f3_mod, pairwise ~ background*treatment,
+        type = "response", 
+        infer = T)
 ```
+
 ## PHASE 2: HERBIVORY ANALYSIS
 In this phase of the analysis, we assess differences in larval herbivory (i.e., total leaf area consumed) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
 

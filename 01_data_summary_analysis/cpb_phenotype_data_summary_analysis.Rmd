@@ -105,7 +105,7 @@ mass <- read_excel("../raw_data/mass_data.xlsx")
 
 # convert characters to factors in fecundity data, omit larval generation column (not needed), and omit founder generation (will not be analyzed)
 fecundity <- fecundity %>%
-  select(-c(larval_generation)) %>%
+  dplyr::select(-c(larval_generation)) %>%
   drop_na(number_eggs) %>%
   mutate(notebook = factor(notebook),
          pair_id = factor(pair_id),
@@ -117,7 +117,7 @@ fecundity <- fecundity %>%
 
 # convert characters to factors in mass data (and omit notebook data since those are different data and are not shared between the two datasets)
 mass <- mass %>%
-  select(-c(notebook)) %>%
+  dplyr::select(-c(notebook)) %>%
   mutate(lineage = factor(lineage),
          adult_generation = factor(adult_generation),
          background = factor(background),
@@ -134,7 +134,7 @@ mass <- mass %>%
 # merge fecundity data with mass, and calculate days between first date of eggs laid (i.e., observed) and date of data collection
 fecundity <- mass %>%
   filter(designation == "main") %>%
-  select(-c(temp_label)) %>%
+  dplyr::select(-c(temp_label)) %>%
   full_join(fecundity, by = c("pair_id","adult_generation","lineage","background")) %>%
   mutate(days_since_oviposition = as.numeric(difftime(date, 
                                                       date_first_eggs_used, 
@@ -204,7 +204,7 @@ performance <- performance %>%
          total_leaf_area = as.numeric(total_leaf_area),
          leaf_area_consumed = as.numeric(leaf_area_consumed),
          percent_leaf_consumed = as.numeric(percent_leaf_consumed)) %>%
-  select(-c(L4_date))
+  dplyr::select(-c(L4_date))
 
 # merge performance data with metadata (get only "assayed" individuals from metadata to reduce confusion, and then merge)
 performance <- metadata %>%
@@ -225,7 +225,7 @@ load("data/performance.Rda")
 
 # get only mobility data from performance data and drop na data in the metrics columns (average speed through total distance)
 mobility <- performance %>%
-  select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
+  dplyr::select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
   drop_na(ave_speed:total_distance)
 
 # save mobility data
@@ -233,16 +233,17 @@ save(mobility, file = "../04_mobility_analysis/data/mobility.Rda")
 ```
 
 ##### 1c.3. Isolate, filter, and clean larval herbivory metrics from performance data; run the Rmd chunk below.
-In this step, we get only the larval herbivory metric of interest (i.e., total leaf tissue consumed) and filter and clean the herbivory dataset. The dataset is then saved to the corresponding analysis directory (`05_herbivory_analysis`).
+In this step, we get only the larval herbivory metric of interest (i.e., total leaf tissue consumed) and filter and clean the herbivory dataset. Additionally, we generate a new variable (additional column) in the dataset (i.e., "consumed") to represent whether any leaf tissue was consumed at all by a beetle (i.e., if leaf area consumed was non-zero and therefore some tissue was eaten, the individual was assigned a value of "1"; if leaf area consumed was zero and therefore no tissue was eaten, the individual was assigned a value "0"). The dataset is then saved to the corresponding analysis directory (`05_herbivory_analysis`).
 
 ##### Isolate, filter and clean herbivory metrics: 
 ```{r}
 # load performance data
 load("data/performance.Rda")
 
-# get only herbivory data from performance data 
+# get only herbivory data from performance data and add binary value indicating whether there was consumption 
 herbivory <- performance %>% 
-  select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) %>%
+  dplyr::select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) %>%
+  mutate(consumed = as.numeric(ifelse(leaf_area_consumed != 0, "1", "0"))) %>%
   drop_na(total_leaf_area)
 
 # save herbivory data
@@ -259,7 +260,7 @@ load("data/performance.Rda")
 
 # get only development data from performance data
 development <- performance %>%
-  select(c(ind_id:type, larval_generation:molt, `24hr_status`:stored_date), -c(pair_id:adult_generation))
+  dplyr::select(c(ind_id:type, larval_generation:molt, `24hr_status`:stored_date), -c(pair_id:adult_generation))
 
 # save development data
 save(development, file = "../06_development_analysis/data/development.Rda")
@@ -504,24 +505,24 @@ load("../06_development_analysis/data/development.Rda")
 
 # isolate data to calculate time to pupation (pupa date only) and calculate raw metric (number of days to pupation) including all sample metadata
 pupa_time <- development %>%
-  select(ind_id:sex, assay_date:molt, pupa_date) %>%
+  dplyr::select(ind_id:sex, assay_date:molt, pupa_date) %>%
   drop_na(pupa_date) %>%
   mutate(pupa_time = as.integer(difftime(pupa_date, assay_date, "days")))
 
 # isolate data to calculate pupation duration (pupa date and emergence data) and calculate raw metric (number of days from pupation to emergence), including all sample metadata
 pupa_duration <- development %>%
-  select(ind_id:sex, assay_date:molt, pupa_date, emerge_date) %>%
+  dplyr::select(ind_id:sex, assay_date:molt, pupa_date, emerge_date) %>%
   drop_na(pupa_date:emerge_date) %>%
   mutate(pupa_duration = as.integer(difftime(emerge_date, pupa_date, "days")))
 
 # isolate pupa mass data, including all sample metadata
 pupa_mass <- development %>%
-  select(ind_id:sex, assay_date:molt, pupa_mass) %>%
+  dplyr::select(ind_id:sex, assay_date:molt, pupa_mass) %>%
   drop_na(pupa_mass)
 
 # isolate adult mass data, including all sample metadata
 adult_mass <- development %>%
-  select(ind_id:sex, assay_date:molt, adult_mass) %>%
+  dplyr::select(ind_id:sex, assay_date:molt, adult_mass) %>%
   drop_na(adult_mass)
 
 # Save pupa time data 
