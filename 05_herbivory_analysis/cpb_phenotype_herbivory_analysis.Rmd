@@ -522,11 +522,18 @@ stats <- cbind(distribution = c("uniform", "normal", "negative binomial", "poiss
                stats_14)
 ```
 
+<b>Analysis results:</b> <br>
 
+For many of our groups of interest, specific distributions failed to be fitted successfully, likely becasue of insufficient data. The best  
 
 ```{r}
 # load herbivory data
 load("data/herbivory.Rda")
+
+herbivory <- herbivory %>%
+  filter(leaf_area_consumed != 0)
+
+ggplot(herbivory, aes(leaf_area_consumed)) + geom_histogram()
 
 # set to show decimals rather than scientific notation for p-value assessments
 options(scipen = 999)
@@ -572,5 +579,5 @@ f3_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
                   family = beta_family())
 
 
-summary(f3_mod)
+summary(f0_mod)
 ```
