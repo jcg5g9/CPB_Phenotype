@@ -366,6 +366,24 @@ stats <- cbind(distribution = c("uniform", "normal", "gamma", "exponential"),
                stats_12, 
                stats_13, 
                stats_14)
+
+# Run global distribution to test if gamma is best fitting
+
+# Run individual global distributions 
+unif <- fitdist(mobility$total_distance, "unif")
+norm <- fitdist(mobility$total_distance, "norm")
+gamm <- fitdist(mobility$total_distance, "gamma")
+expo <- fitdist(mobility$total_distance, "exp")
+
+# compare AIC values 
+gofstat(list(unif, 
+             norm, 
+             gamm, 
+             expo),
+        fitnames = c("uniform",
+                     "normal",
+                     "gamma",
+                     "exponential"))$aic
 ```
 
 <b>Analysis results:</b> <br>
@@ -386,8 +404,9 @@ stats <- cbind(distribution = c("uniform", "normal", "gamma", "exponential"),
 | F3_C_R    | 203.739          | 208.776          | 199.298           | <b>198.670</b>     |
 | F3_E_N    | <b>204.908</b>   | 209.253          | 205.425           | 214.352            |
 | F3_E_R    | 253.900          | 253.838          | <b>228.467</b>    | 235.938            |
+| Global    | 5006.063         | 4602.635         | <b>4092.766</b>   | 4341.828           |
 
-The data in the majority of groups were best fit to a Gamma distribution, but the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_N and F3_E_N), and others were best fit by a an exponential distribution (e.g., F1_E_R and F3_C_R). We opted to assume a Gamma distribution in all general linear model analyses given that the majority and since we would not expect a uniform or exponential distribution for these data.
+The data in the majority of groups were best fit to a Gamma distribution, but the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_N and F3_E_N), and others were best fit by a an exponential distribution (e.g., F1_E_R and F3_C_R). The best fitting distribution to the global dataset across groups is the Gamma distribution. We opted to assume a Gamma distribution in all general linear model analyses given the majority and since we would not expect a uniform or exponential distribution for these data.
 
 ### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
@@ -512,29 +531,29 @@ mobility <- mobility %>%
          treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
 
 # isolate only F0 data
-f0 <- herbivory %>%
+f0 <- mobility %>%
   filter(larval_generation == "F0")
 
-# isolate only F0 data
-f1 <- herbivory %>%
+# isolate only F1 data
+f1 <- mobility %>%
   filter(larval_generation == "F1")
 
-# isolate only F0 data
-f2 <- herbivory %>%
+# isolate only F2 data
+f2 <- mobility %>%
   filter(larval_generation == "F2")
 
-# isolate only F0 data
-f3 <- herbivory %>%
+# isolate only F3 data
+f3 <- mobility %>%
   filter(larval_generation == "F3")
 
 # plot f0 data
-f0_plot <- ggplot(f0, aes(x = background, y = prop_consumed, group = background, color = background)) +
-  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+f0_plot <- ggplot(f0, aes(x = background, y = prop_mobility, group = background, color = background)) +
+  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = background, y = prop_consumed, group = background, fill = background), 
+   geom_point(aes(x = background, y = prop_mobility, group = background, fill = background), 
               position = position_dodge(width = 0.4), 
               size = 7, 
               pch = 22, 
@@ -552,22 +571,22 @@ f0_plot <- ggplot(f0, aes(x = background, y = prop_consumed, group = background,
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  labs(x = "Original exposure", y = "P(Herbivory)") +
+  labs(x = "Original exposure", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f1 data
-f1_plot <- ggplot(f1, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+f1_plot <- ggplot(f1, aes(x = treatment, y = prop_mobility, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) + 
-  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+   geom_point(aes(x = treatment, y = prop_mobility, group = background, fill = background), 
               position = position_dodge(width = 0.4), 
               size = 7, 
               pch = 22, 
@@ -590,22 +609,22 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = prop_consumed, group = background, 
   #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
   #theme(legend.box.margin = margin(5, 10, 1, 10)) +
   #theme(legend.position = c(0.05,0.2)) + 
-  labs(x = "Treatment", y = "P(Herbivory)") +
+  labs(x = "Treatment", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f2 data
-f2_plot <- ggplot(f2, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+f2_plot <- ggplot(f2, aes(x = treatment, y = prop_mobility, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) + 
-  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+   geom_point(aes(x = treatment, y = prop_mobility, group = background, fill = background), 
               position = position_dodge(width = 0.4), 
               size = 7, 
               pch = 22, 
@@ -621,22 +640,22 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = prop_consumed, group = background, 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
-  labs(x = "Treatment", y = "P(Herbivory)") +
+  labs(x = "Treatment", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f3 data
-f3_plot <- ggplot(f3, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+f3_plot <- ggplot(f3, aes(x = treatment, y = prop_mobility, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) + 
-  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background),
+   geom_point(aes(x = treatment, y = prop_mobility, group = background, fill = background),
               position = position_dodge(width = 0.4), 
               size = 7,
               pch = 22,
@@ -652,12 +671,12 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = prop_consumed, group = background, 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_text(vjust = -0.5)) +
-  labs(x = "Treatment", y = "P(Herbivory)") +
+  labs(x = "Treatment", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot all distance figures together
-jpeg("figures/herbivory_probability.jpeg", width = 17000, height = 15000, res = 1000)
+# plot all mobility figures together
+jpeg("figures/mobility_probability.jpeg", width = 17000, height = 15000, res = 1000)
 
 f0_plot + 
   f1_plot + 

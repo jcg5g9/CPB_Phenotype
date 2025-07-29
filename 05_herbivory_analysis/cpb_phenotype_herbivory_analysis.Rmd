@@ -265,27 +265,57 @@ stats <- cbind(distribution = c("uniform", "normal", "gamma", "expo", "beta"),
                stats_12, 
                stats_13, 
                stats_14)
+
+# Run global distribution to test if gamma is best fitting
+
+# Run individual global distributions 
+unif <- fitdist(herbivory$leaf_area_consumed, "unif")
+norm <- fitdist(herbivory$leaf_area_consumed, "norm")
+gamm <- fitdist(herbivory$leaf_area_consumed, "gamma")
+expo <- fitdist(herbivory$leaf_area_consumed, "exp")
+beta <- fitdist(herbivory$leaf_area_consumed, "beta")
+
+# compare AIC values 
+gofstat(list(unif, 
+             norm,
+             gamm, 
+             expo, 
+             beta),
+        fitnames = c("uniform",
+                     "normal",
+                     "gamma",
+                     "exponential",
+                     "beta"))$aic
 ```
 
 <b>Analysis results:</b> <br>
 
-| Group     | Uniform          | Normal           | Gamma             | Exponential        |
-|:----------|:-----------------|:-----------------|:----------------- | :----------------- |
-| F0_C_N    | 799.661          | 793.081          | <b>730.569</b>    | 773.899            |
-| F0_E_N    | 786.364          | 772.219          | <b>592.358</b>    | 696.453	           |
-| F1_C_N    | 359.610          | 359.847          | <b>339.233</b>    | 347.899            |
-| F1_C_R    | 307.837          | 311.046          | <b>265.957</b>    | 290.346            |
-| F1_E_N    | 293.941          | 288.267          | <b>275.841</b>    | 276.791            |
-| F1_E_R    | 359.440          | 344.655          | 305.858           | <b>304.793</b>     |
-| F2_C_N    | 238.031          | 238.508          | <b>223.573</b>    | 240.342            |
-| F2_C_R    | 231.372          | 239.144          | <b>200.328</b>    | 222.147            |
-| F2_E_N    | <b>170.610</b>   | 177.302          | 172.336           | 173.402            | 
-| F2_E_R    | 148.714          | 157.031          | <b>144.594</b>    | 158.265            |
-| F3_C_N    | 188.324          | 185.693          | <b>177.693</b>    | 183.262            |
-| F3_C_R    | 203.739          | 208.776          | 199.298           | <b>198.670</b>     |
-| F3_E_N    | <b>204.908</b>   | 209.253          | 205.425           | 214.352            |
-| F3_E_R    | 253.900          | 253.838          | <b>228.467</b>    | 235.938            |
+| Group     | Uniform          | Normal           | Gamma             | Exponential        | Beta              |
+|:----------|:-----------------|:-----------------|:----------------- | :----------------- |:----------------- |
+| F0_C_N    | -223.503         | -205.761         | <b>-88.812</b>    | -323.386           | -89.887           |
+| F0_E_N    | -203.925         | -197.072         | <b>-69.398</b>    | -332.413	         | -70.716           |
+| F1_C_N    | -85.261          | -80.147          | <b>-66.657</b>    | -100.362           | -67.11998         |
+| F1_C_R    | NA               |  NA              | NA                | NA                 | NA                |
+| F1_E_N    | -75.030          | -63.358          | <b>-59.169</b>    | -85.599            | -59.426           |	
+| F1_E_R    | NA               |  NA              | NA                | NA                 | NA	               |
+| F2_C_N    | -55.271          | -48.551          | <b>-46.886</b>    | -54.286            | -47.167           |
+| F2_C_R    | NA               | NA               | NA                | NA                 | NA                |
+| F2_E_N    | -50.383          | -40.278          | <b>-26.729</b>    | -60.092            | -27.258           |
+| F2_E_R    | NA               | NA               | NA                | NA                 | NA                |
+| F3_C_N    | NA               | NA               | NA                | NA                 | NA                |
+| F3_C_R    | NA               | NA               | NA                | NA                 | NA                |
+| F3_E_N    | NA               | NA               | NA                | NA                 | NA                |
+| F3_E_R    | NA               | NA               | NA                | NA                 | NA                |
+| Global    | -1122.154        | -1159.560        | <b>-487.994</b>   | -1909.659          | -494.259          |
 
+The data in the majority of groups were best fit to a Gamma distribution. However, AIC values could not be estimated for eight groups. The best fitting distribution to the global dataset across groups is the Gamma distribution. We opted to assume a Gamma distribution in all general linear model analyses given the majority.
+
+### STEP 3: Assess phenotypic effects of insecticide stress in total herbivory walked.
+
+#### 4a: Run two-factor general linear mixed effect interaction models assuming a zero-inflated gamma distribution to test the relative effects of background and treatment of insecticide stress on herbivory; run the Rmd chunk below.
+In this step, we run general linear mixed effect interaction models with raw herbivory (leaf area consumed) as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying Gamma distribution for the data (see Step 3 above). We also assume zero-inflation of the data, given that there may be distinct processes driving the ability of an individual larva to eat at all (zero or non-zero) and how much they are able to eat if they can (non-zero). We therefore run a zero-inflation gamma model, estimating coefficients of both the zero/non-zero model (i.e., zero-inflation; logistic regression) and the conditional model (non-zero; general linear regression).
+
+##### Run general linear mixed effect interaction models for herbivory:
 ```{r}
 # load herbivory data
 load("data/herbivory.Rda")
@@ -313,27 +343,37 @@ f3 <- herbivory %>%
 f0_mod <- glmmTMB(leaf_area_consumed ~ background + (1|lineage),
                   data = f0,
                   ziformula = ~background,
-                  family = beta_family())
+                  family = ziGamma(link = "log"))
 
 # f1 general linear mixed effect zero-inflation model with conditional beta distribution
 f1_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
                   data = f1,
                   ziformula = ~background*treatment,
-                  family = Gamma())
+                  family = ziGamma(link = "log"))
 
 # f2 general linear mixed effect zero-inflation model with conditional beta distribution
 f2_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
                   data = f2,
                   ziformula = ~background*treatment,
-                  family = beta_family())
+                  family = ziGamma(link = "log"))
 
 # f2 general linear mixed effect zero-inflation model with conditional beta distribution
 f3_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
                   data = f3,
                   ziformula = ~background*treatment,
-                  family = beta_family())
+                  family = ziGamma(link = "log"))
 
-summary(f0_mod)
+# summarize f0 model
+summary(f0_mod) 
+
+# summarize f1 model
+summary(f1_mod) 
+
+# summarize f2 model
+summary(f2_mod) 
+
+# summarize f3 model
+summary(f3_mod) 
 ```
 
 #### 1b: Plot probability of hervivory data; run the Rmd chunk below.
