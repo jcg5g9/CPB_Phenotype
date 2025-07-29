@@ -221,8 +221,10 @@ mobility %>%
 
 Since 7/14 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
 
-### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
-In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest. 
+### STEP 2: Test fit of empirical data to alternative distributions.
+In this step, we plot the raw data distribution and test the fit of four potential distributions that commonly underlie continuous data (excluding negative poisson, binomial, and negative binomial distributions, given that they are typically used to describe count data), and determine the best fitting distribution for each group of interest. We specifically test uniform, normal, Gamma, and exponential distributions.
+
+#### 2a: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
 
 ##### Test fit of alternative distributions:
 ```{r}
@@ -384,6 +386,9 @@ gofstat(list(unif,
                      "normal",
                      "gamma",
                      "exponential"))$aic
+
+# save gamma distribution object for plotting
+save(gamm, file = "data/gamma.Rda")
 ```
 
 <b>Analysis results:</b> <br>
@@ -407,6 +412,39 @@ gofstat(list(unif,
 | Global    | 5006.063         | 4602.635         | <b>4092.766</b>   | 4341.828           |
 
 The data in the majority of groups were best fit to a Gamma distribution, but the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_N and F3_E_N), and others were best fit by a an exponential distribution (e.g., F1_E_R and F3_C_R). The best fitting distribution to the global dataset across groups is the Gamma distribution. We opted to assume a Gamma distribution in all general linear model analyses given the majority and since we would not expect a uniform or exponential distribution for these data.
+
+#### 2b: Plot empirical data distribution; run the Rmd chunk below.
+
+##### Plot empirical data distribution for total distance walked: `figures/distribution.jpeg`
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# load gamma distribution
+load("data/gamma.Rda")
+
+# plot distribution
+jpeg("figures/distribution.jpeg", width = 5000, height = 4000, res = 500)
+
+ggplot(mobility, aes(x = total_distance)) +
+  geom_histogram(binwidth = 10, color = "black", fill = "grey", linewidth = 1) +
+  geom_line(aes(x = total_distance, y = dgamma(mobility$total_distance, gamm$estimate["shape"], gamm$estimate["rate"])), color = "black", linetype = "longdash", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 600, by = 100)) +
+  ylim(0,50) +
+  xlab("Distance (mm)") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
 
 ### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
@@ -745,7 +783,7 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  labs(x = "Original exposure", "Distance (mm)") +
+  labs(x = "Original exposure", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
