@@ -1,0 +1,759 @@
+---
+title: "Analysis 1: Data filtering and summary analysis"
+author: "Joe Gunn"
+date: "2024-09-19"
+output: html_document
+---
+
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two "background" groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). All mated pair beetles across lineages, treatments, and generations were monitored for daily fecundity. A subset of third instar larvae were collected from each treatment within each lineage for each generation and monitored for three  performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited "memory" of phenotypic variation. An additional subset of larvae from each generation were re-exposed to the treatments, both experimental (insecticide-exposed) and control (water), to test for potential inheritance of a phenotypic "response" to insecticide stress.</font>
+
+# <b>Specific Aim:</b> Data enumeration, preparation, and filtering
+<font size="+1">In this analysis, we clean, filter and fully prepare data for downstream analyses. We then summarize the full phenotype data set (including metrics for survival, mobility, herbivory, and development) for XXX larval Colorado potato beetle samples (<i>Leptinotarsa decemlineata</i>; CPB) derived from 12 founder lineages, two insecticide treatment groups (exposed and control), and four successive generations (F0-F3) in a transgenerational experiment. We include a full description of all types of data collected. Additionally, we provide the total number of samples in all group combinations. </font>
+
+## Phases of Analysis
+### Phase 1: Data preparation and filtering
+### Phase 2: Data summarization and enumeration
+
+### Libraries needed for analysis
+```{r}
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(writexl)
+```
+
+## PHASE 1: DATA PREPARATION AND FILTERING
+In this phase of the analysis, we read in and clean the raw metadata, performance data, fecundity data, and adult parental mass data for all samples and generate separate datasets for each performance metric of interest, along with a complete, clean dataset with all metrics for multivariate analysis.
+
+### STEP 1: Read in and clean metadata, fecundity data, and performance data.
+In this step, we read in, clean all data and merge metadata with raw fecundity (and adult parental mass) and performance data. We prepare clean datasets for downstream filtering and organization.
+
+#### 1a: Read in and clean metadata; run the Rmd chunk below.
+In this step, we read in and clean the full metadata (`../raw_data/metadata.xlsx`) for all beetles included in the study. Data include: 
+
+   1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
+   2. <b>"type"</b>: an identifier of the data category to which the beetle belows, including "mated_pair", i.e., an adult beetle used to beget the next generation from which fecundity data were collected; "assayed", i.e., a larval beetle from which performance data were collected; and "adults", i.e., an adult beetle that was not used to beget the next generation but was collected as a contingency. 
+   3. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation (only pertaining to type "mated_pair")
+   4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation (only pertaining to type "mated_pair")
+   5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", and "F3" (only pertaining to type "assayed")
+   6. <b>"lineage"</b>: lineage to which a beetle belongs; beetles of type "assayed" in the F1, F2, and F3 are labeled with generation number followed by either "_C" or "_E", indicating the treatment to which F0 mated pairs in that lineage were exposed. Beetles in the F0 generation were given a designation of _C since they were the exposed generation.
+   7. <b>"background"</b>: background exposure of the beetle in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid])
+   8. <b>"treatment"</b>: indicator of whether the beetle was "re-exposed" ("R") or not ("N") to a 10-ppm dose of aqueous imidacloprid in the respective generation
+   9. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle
+   10. <b>"date_stored"</b>: date on which a beetle was stored in the freezer. No date indicates that beetle was not stored.
+   
+##### Read in and clean metadata:
+```{r}
+# read in metadata 
+metadata <- read_excel("../raw_data/metadata.xlsx")
+
+# convert characters to factors in metadata
+metadata <- metadata %>%
+  mutate(ind_id = factor(ind_id),
+         type = factor(type),
+         pair_id = factor(pair_id),
+         adult_generation = factor(adult_generation),
+         larval_generation = factor(larval_generation),
+         lineage = factor(lineage),
+         background = factor(background),
+         treatment = factor(treatment),
+         sex = factor(sex))
+
+# save metadata for downstream analyses
+save(metadata, file = "data/metadata.Rda")
+```
+
+#### 1b: Read in and clean fecundity data; run the Rmd chunk below.
+In this step, we read in and clean the full fecundity dataset (`../raw_data/fecundity_data.xlsx`) and parental mass dataset (`../raw_data/mass_data.xlsx`) for mated pair beetles and merge the datasets. We omit all fecundity data from the founder generation ('FNDR') from downstream statistical analyses. <br>
+
+Fecundity data (type "mated_pair", see metadata info in Step 1a above) include: <br>
+
+   1. <b>"date"</b>: date on which fecundity data were collected for a mated pair
+   2. <b>"notebook"</b>: researcher who observed and measured fecundity (i.e., notebook in which the raw data are recorded)
+   3. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation
+   4. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
+   5. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
+   6. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the mated pair belongs
+   7. <b>"background"</b>: background exposure of the mated pair beetles in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
+   8. <b>"number_eggs"</b>: count of total number of eggs laid on a given date (i.e., fecundity).
+   9. <b>"status"</b>: indication of whether the beetle was alive (i.e., "alive"), dead (i.e., "dead"), or stored (i.e., "stored") on a given date <br>
+
+Mass data include: <br>
+
+   1. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the mated pair belongs
+   2. <b>"adult_generation"</b>: generation of the mated pair begetting the next generation, including "FNDR", i.e., founder mated pair beetles (the adults used to initiate the experiment); "F0", i.e., offspring of founder beetles and used to beget the F1 generation; "F1", i.e., offspring of the F0 mated pairs and used to beget the F2 generation; "F2", i.e., offspring of the F1 mated pairs and used to beget the F3 generation; "F3", i.e., offspring of the F2 mated pairs and used to beget the F4 generation 
+   3. <b>"background"</b>: background exposure of the mated pair beetles in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
+   4. <b>"temp_label"</b>: a temporary numerical label to indicate different mated pairs used as either main experimental pairs or contingency pairs (see column 11)
+   5. <b>"pair_id"</b>: a unique, alphanumeric ID for each mated pair used to beget the next generation
+   6. <b>"date_paired"</b>: the date on which a mated pair was initially paired together
+   7. <b>"notebook"</b>: researcher who observed and measured mass (i.e., notebook in which the raw data are recorded)
+   8. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the adult beetle
+   9. <b>"mass"</b>: mass (mg) of the adult beetle
+   10. <b>"date_first_eggs_used"</b>: date on which the first clutch of eggs was laid and used for the experiment
+   11. <b>"designation"</b>: indication of whether the mated pair was used to beget offspring for the next generation (i.e., "main") or used as a contingency pair in case of main pair die-off (i.e., "contingency") <br>
+   
+The fecundity dataset is then saved to the corresponding analysis directory (`03_fecundity_analysis`).
+
+##### Read in and clean fecundity data:
+```{r}
+# read in raw fecundity data
+fecundity <- read_excel("../raw_data/fecundity_data.xlsx")
+
+# read in adult parental mass data
+mass <- read_excel("../raw_data/mass_data.xlsx")
+
+# convert characters to factors in fecundity data, omit larval generation column (not needed), and omit founder generation (will not be analyzed)
+fecundity <- fecundity %>%
+  dplyr::select(-c(larval_generation)) %>%
+  drop_na(number_eggs) %>%
+  mutate(notebook = factor(notebook),
+         pair_id = factor(pair_id),
+         adult_generation = factor(adult_generation),
+         lineage = factor(lineage),
+         background = factor(background),
+         status = factor(status)) %>% 
+  filter(adult_generation != "FNDR")
+
+# convert characters to factors in mass data (and omit notebook data since those are different data and are not shared between the two datasets)
+mass <- mass %>%
+  dplyr::select(-c(notebook)) %>%
+  mutate(lineage = factor(lineage),
+         adult_generation = factor(adult_generation),
+         background = factor(background),
+         temp_label = factor(temp_label),
+         pair_id = factor(pair_id),
+         sex = factor(sex),
+         designation = factor(designation)) %>%
+  filter(adult_generation != "FNDR")
+
+# spread mass dataset by sex
+mass <- mass %>%
+  spread(sex, mass)
+
+# merge fecundity data with mass, and calculate days between first date of eggs laid (i.e., observed) and date of data collection
+fecundity <- mass %>%
+  filter(designation == "main") %>%
+  dplyr::select(-c(temp_label)) %>%
+  full_join(fecundity, by = c("pair_id","adult_generation","lineage","background")) %>%
+  mutate(days_since_oviposition = as.numeric(difftime(date, 
+                                                      date_first_eggs_used, 
+                                                      units = "days")))
+
+# save fecundity data for downstream analyses
+save(fecundity, file = "../03_fecundity_analysis/data/fecundity.Rda")
+```
+
+#### 1c: Read in, clean, and separate performance data into different performance metrics of interest.
+In this step, we read in and clean the full performance dataset (`../raw_data/performance_data.xlsx`). We then merge the performance data with sample metadata and separate into distinct datasets for each performance metric of interest. Data (type "assayed", see metadata info in Step 1a above) include: <br>
+
+   1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
+   2. <b>"assay_date"</b>: date on which assays were conducted
+   3. <b>"plate"</b>: plate in which the beetle was given the corresponding treatment 
+   4. <b>"well"</b>: well of the plate (see column 3) in which the beetle was given the corresponding treatment
+   5. <b>"lineage"</b>: lineage (i.e., L1-L12; L1_C-L12_C, L1_E-L12_E) to which the beetle belongs
+   6. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4"
+   7. <b>"ind_number"</b>: numerical identifier for the individual beetle within each larval generation
+   8. <b>"background"</b>: background exposure of the mated pair beetles in the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
+   9. <b>"treatment"</b>: indicator of whether the beetle was "re-exposed" ("R") or not ("N") to a 10-ppm dose of aqueous imidacloprid in the respective generation
+   10. <b>"dose"</b>: the imidacloprid dose (ppm) given ("0", i.e., 0-ppm control, or "10", i.e., 10-ppm exposure)
+   11. <b>"molt"</b>: an indication of whether the larva used in the assay molted (i.e., "yes") or did not molt (i.e., "no") before or during the herbivory or mobility assays
+   12. <b>"total_leaf_area"</b>: total leaf area (cm<sup>2</sup>) used in the herbivory assay
+   13. <b>"leaf_area_consumed"</b>: total leaf area consumed (cm<sup>2</sup>) by the beetle during the herbivory assay
+   14. <b>"percent_leaf_consumed"</b>: percentage of leaf area consumed (leaf_area_consumed/total_leaf_area) by the beetle during the herbivory assay
+   15. <b>"ave_speed"</b>: average movement rate (mm/s) of the beetle during the mobility assay
+   16. <b>"ave_accel"</b>: average movement acceleration (mm/s<sup>2</sup>) of the beetle during the mobility assay
+   17. <b>"mobility_rate"</b>: average number of pixels in which beetle is recorded as moving during the mobility assay
+   18. <b>"total_distance"</b>: total distance traveled (mm) by the beetle during the mobility assay
+   19-55. "...hr_status"</b>: a binary indicator of whether the beetle was alive (i.e., "1") or dead (i.e., "0") after each 24-hour interval over 888 hrs total. Note: individuals were marked with "0" for all days following storage in the freezer.
+   56. <b>"L4_date"</b>: date on which the beetle molted to instar-4
+   57. <b>"pupa_date"</b>: date on which the beetle pupated
+   58. <b>"sex"</b>: sex ("M", i.e., male, or "F", i.e., female) of the beetle, assessed on the day of pupation 
+   59. <b>"pupa_mass"</b>: mass of the pupa (mg), measured on the day of pupation
+   60. <b>"emerge_date"</b>: date on which the beetle emerged as an adult
+   61. <b>"adult_mass"</b>: mass of the emerged adult beetle (mg), measured on the day of emergence
+   62. <b>"deformity"</b>: a binary indicator of whether the adult beetle exhibited developmental abnormalities/deformities upon emergence (i.e., "1") or appeared developmentally normal (i.e., "0")
+   63. <b>"stored_date"</b>: date on which the adult beetle was stored in the freezer
+   
+The dataset is then saved to the this analysis directory for downstream data summary and ennumeration.
+
+##### 1c.1. Read in and clean full performance data; run the Rmd chunk below.
+In this step, we clean the full performance data.
+
+##### Read in and clean full performance data:
+```{r, warning = F}
+# load metadata
+load("data/metadata.Rda")
+
+# read in raw performance data 
+performance <- read_excel("../raw_data/performance_data.xlsx")
+
+# convert characters to factors (categorical variables) and numerics (numeric variables) in performance data and eliminate L4 date column
+performance <- performance %>%
+  mutate(ind_id = factor(ind_id),
+         larval_generation = factor(larval_generation),
+         lineage = factor(lineage),
+         background= factor(background),
+         treatment = factor(treatment),
+         sex = factor(sex),
+         plate = factor(plate),
+         well = factor(well),
+         ind_number = factor(ind_number),
+         dose = factor(dose),
+         molt = factor(molt),
+         total_leaf_area = as.numeric(total_leaf_area),
+         leaf_area_consumed = as.numeric(leaf_area_consumed),
+         percent_leaf_consumed = as.numeric(percent_leaf_consumed)) %>%
+  dplyr::select(-c(L4_date))
+
+# merge performance data with metadata (get only "assayed" individuals from metadata to reduce confusion, and then merge)
+performance <- metadata %>%
+  filter(type == "assayed") %>%
+  full_join(performance, by = c("ind_id","larval_generation","lineage","background","treatment","sex"))
+
+# save performance data for downstream analyses
+save(performance, file = "data/performance.Rda")
+```
+
+##### 1c.2. Isolate, filter, and clean larval mobility metrics from performance data; run the Rmd chunk below.
+In this step, we get only larval mobility metrics of interest (i.e., total distance walked, average walking rate, and average walking acceleration) and filter and clean the mobility dataset. The dataset is then saved to the corresponding analysis directory (`04_mobility_analysis`).
+
+##### Isolate, filter and clean mobility metrics: 
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+# get only mobility data from performance data and drop na data in the metrics columns (average speed through total distance)
+mobility <- performance %>%
+  dplyr::select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
+  mutate(mobility = as.numeric(ifelse(total_distance != 0, "1", "0"))) %>%
+  drop_na(ave_speed:total_distance)
+
+# save mobility data
+save(mobility, file = "../04_mobility_analysis/data/mobility.Rda")
+```
+
+##### 1c.3. Isolate, filter, and clean larval herbivory metrics from performance data; run the Rmd chunk below.
+In this step, we get only the larval herbivory metric of interest (i.e., total leaf tissue consumed) and filter and clean the herbivory dataset. Additionally, we generate a new variable (additional column) in the dataset (i.e., "consumed") to represent whether any leaf tissue was consumed at all by a beetle (i.e., if leaf area consumed was non-zero and therefore some tissue was eaten, the individual was assigned a value of "1"; if leaf area consumed was zero and therefore no tissue was eaten, the individual was assigned a value "0"). The dataset is then saved to the corresponding analysis directory (`05_herbivory_analysis`).
+
+##### Isolate, filter and clean herbivory metrics: 
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+# get only herbivory data from performance data and add binary value indicating whether there was consumption 
+herbivory <- performance %>% 
+  dplyr::select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) %>%
+  mutate(consumed = as.numeric(ifelse(leaf_area_consumed != 0, "1", "0"))) %>%
+  drop_na(total_leaf_area)
+
+# save herbivory data
+save(herbivory, file = "../05_herbivory_analysis/data/herbivory.Rda")
+```
+
+##### 1c.3. Isolate, filter, and clean larval development metrics from performance data; run the Rmd chunk below.
+In this step, we get only larval development metrics of interest (i.e., time to pupation, time from pupae to adult emergence, pupal mass, and adult mass) and filter and clean the development dataset. The dataset is then saved to the corresponding analysis directory (`06_development_analysis`).
+
+##### Isolate, filter and clean development metrics: 
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+# get only development data from performance data
+development <- performance %>%
+  dplyr::select(c(ind_id:type, larval_generation:molt, `24hr_status`:stored_date), -c(pair_id:adult_generation))
+
+# save development data
+save(development, file = "../06_development_analysis/data/development.Rda")
+```
+
+### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)
+In this step, we summarize sample sizes and number of data points for each dataset, including fecundity and three performance phenotypes: herbivory, mobility, and development. We report all summary data here and in the final ms.
+
+#### 2a: Summarize fecundity data; run the Rmd chunk below
+Here, we summarize all fecundity (i.e., egg count) data from the experiment. For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then summarize sample sizes based on the number of replicate lineages represented.
+
+##### Summarize fecundity data:
+```{r}
+# load fecundity data
+load("../03_fecundity_analysis/data/fecundity.Rda")
+
+# calculate average eggs per day for each background, lineage, and generation and make new dataframe
+average_fecundity <- fecundity %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(average_number_eggs = mean(number_eggs)) %>%
+  as.data.frame()
+
+# get total number of fecundity data points
+average_fecundity %>%
+  count()
+
+# get number of fecundity data points by generation
+average_fecundity %>% 
+  group_by(adult_generation) %>%
+  count()
+
+# get number of fecundity data points by generation and background
+average_fecundity %>%
+  group_by(adult_generation, background) %>%
+  count()
+
+# save average fecundity data for downstream analyses
+save(average_fecundity, file = "../03_fecundity_analysis/data/average_fecundity.Rda")
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 67 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 18 </b><br>
+<b><i>N</i><sub>F1</sub> = 17 </b><br>
+<b><i>N</i><sub>F2</sub> = 17 </b><br>
+<b><i>N</i><sub>F3</sub> = 15 </b><br>
+
+<b>Sample size per background per generation:</b><br>
+<b><i>N</i><sub>F0_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F0_E</sub> = 8 </b><br>
+<b><i>N</i><sub>F1_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F1_E</sub> = 7 </b><br>
+<b><i>N</i><sub>F2_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E</sub> = 7 </b><br>
+<b><i>N</i><sub>F3_C</sub> = 9 </b><br>
+<b><i>N</i><sub>F3_e</sub> = 6 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+#### 2b: Summarize performance data
+Here, we summarize all performance trait data (i.e., mobility, herbivory, and development) from the experiment.
+
+##### 2b.1. Summarize full performance data; run the Rmd chunk below.
+Here, we summarize all performance data to account for all samples assayed during the experiment.
+
+##### Summarize all performance data:
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+# get total performance assay data points
+performance %>%
+  count()
+
+# get number of performance assay points by larval generation
+performance %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of performance assay data points by background and treatment in each larval generation
+performance %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 419 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 144 </b><br>
+<b><i>N</i><sub>F1</sub> = 120 </b><br>
+<b><i>N</i><sub>F2</sub> =  79 </b><br>
+<b><i>N</i><sub>F3</sub> =  76 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 72 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 29 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 17 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+##### 2b.2. Summarize mobility data; run the Rmd chunk below.
+Here, we summarize all mobility-related performance metrics as obtained from the software ToxTrac.
+
+##### Summarize mobility data:
+```{r}
+# load performance data
+load("../04_mobility_analysis/data/mobility.Rda")
+
+# get total mobility metric data points
+mobility %>%
+  count()
+
+# get number of mobility data points by larval generation
+mobility %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of mobility data points by background and treatment in each larval generation
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 394 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 137 </b><br>
+<b><i>N</i><sub>F1</sub> = 108 </b><br>
+<b><i>N</i><sub>F2</sub> =  73 </b><br>
+<b><i>N</i><sub>F3</sub> =  76 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 70 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 27 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 28 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 21 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 15 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 14 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+##### 2b.3. Summarize herbivory data; run the Rmd chunk below.
+Here, we summarize all herbivory-related performance metrics, including total leaf area consumed and percent leaf area consumed, as obtained from the software LeafByte
+
+##### Summarize herbivory data:
+```{r}
+# load herbivory data
+load("../05_herbivory_analysis/data/herbivory.Rda")
+
+# get total herbivory metric data points
+herbivory %>%
+  count()
+
+# get number of herbivory data points by larval generation
+herbivory %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of herbivory data points by background and treatment in each larval generation
+herbivory %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 418 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 144 </b><br>
+<b><i>N</i><sub>F1</sub> = 119 </b><br>
+<b><i>N</i><sub>F2</sub> =  79 </b><br>
+<b><i>N</i><sub>F3</sub> =  76 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 72 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 29 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 29 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 17 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+##### 2b.4. Summarize development data.
+Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and enumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
+
+##### 2b.4.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below.
+Here, we isolate each metric individually and save for downstream analysis of development (see Analysis 6: Development analysis; `06_development_analysis/cpb_phenotype_development_analysis.Rmd`). We also calculate raw data for time metrics (time to pupation and pupation duration). We calculate time to pupation as the number of days between the date of the assay for an individual larva (instar-3) and the date of complete pupa formation. We calculate duration of pupation as the time between the date of full pupa formation and the date of full adult eclosure (i.e., emergence). All Rda objects are saved to the `/data` directory in Analysis 6.
+
+##### Isolate and calculate raw metrics:
+```{r}
+# load development data
+load("../06_development_analysis/data/development.Rda")
+
+# isolate data to calculate time to pupation (pupa date only) and calculate raw metric (number of days to pupation) including all sample metadata
+pupa_time <- development %>%
+  dplyr::select(ind_id:sex, assay_date:molt, pupa_date) %>%
+  drop_na(pupa_date) %>%
+  mutate(pupa_time = as.integer(difftime(pupa_date, assay_date, "days")))
+
+# isolate data to calculate pupation duration (pupa date and emergence data) and calculate raw metric (number of days from pupation to emergence), including all sample metadata
+pupa_duration <- development %>%
+  dplyr::select(ind_id:sex, assay_date:molt, pupa_date, emerge_date) %>%
+  drop_na(pupa_date:emerge_date) %>%
+  mutate(pupa_duration = as.integer(difftime(emerge_date, pupa_date, "days")))
+
+# isolate pupa mass data, including all sample metadata
+pupa_mass <- development %>%
+  dplyr::select(ind_id:sex, assay_date:molt, pupa_mass) %>%
+  drop_na(pupa_mass)
+
+# isolate adult mass data, including all sample metadata
+adult_mass <- development %>%
+  dplyr::select(ind_id:sex, assay_date:molt, adult_mass) %>%
+  drop_na(adult_mass)
+
+# Save pupa time data 
+save(pupa_time, file = "../06_development_analysis/data/pupa_time.Rda")
+
+# Save pupa duration data 
+save(pupa_duration, file = "../06_development_analysis/data/pupa_duration.Rda")
+
+# Save pupa mass data 
+save(pupa_mass, file = "../06_development_analysis/data/pupa_mass.Rda")
+
+# Save adult mass data 
+save(adult_mass, file = "../06_development_analysis/data/adult_mass.Rda")
+```
+
+##### 2b.4.2. Summarize time to pupation data; run the Rmd chunk below.
+Here, we summarize data for time to pupation. These data include date of assay start and date of pupation; if a larva died before pupation and/or did not succesfully pupate, they were not included in this dataset. 
+
+##### Summarize time to pupation data:
+```{r}
+# load pupa time data
+load("../06_development_analysis/data/pupa_time.Rda")
+
+# get total pupa date data (number of samples that made it to pupa stage)
+pupa_time %>%
+  count()
+
+# get number of pupa date data points by larval generation
+pupa_time %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of pupa data data points by background and treatment in each larval generation
+pupa_time %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 290 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 109 </b><br>
+<b><i>N</i><sub>F1</sub> = 79 </b><br>
+<b><i>N</i><sub>F2</sub> =  56 </b><br>
+<b><i>N</i><sub>F3</sub> =  46 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 42 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 25 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 13 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 18 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 19 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 15 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 7 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+##### 2b.4.3. Summarize pupation duration data; run the Rmd chunk below.
+Here, we summarize data for duration of pupation. These data include date of pupation AND date of emergence; if pupa died before emerging, they were not included in this dataset.
+
+##### Summarize pupation duration data:
+```{r}
+# load pupa duration data
+load("../06_development_analysis/data/pupa_duration.Rda")
+
+# get total pupa duration metric data points
+pupa_duration %>%
+  count()
+
+# get number of pupa duration data points by larval generation
+pupa_duration %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of pupa duration data points by background and treatment in each larval generation
+pupa_duration %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 261 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 96 </b><br>
+<b><i>N</i><sub>F1</sub> = 72 </b><br>
+<b><i>N</i><sub>F2</sub> =  52 </b><br>
+<b><i>N</i><sub>F3</sub> =  41 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 58 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 38 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 15 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 6 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+##### 2b.4.4. Summarize pupa mass data; run the Rmd chunk below.
+Here, we summarize data for pupa mass. These data include mass of pupae; if larvae died before pupation or did not successfully pupate, they were not included in this dataset.
+
+##### Summarize pupa mass data:
+```{r}
+# load pupa mass data
+load("../06_development_analysis/data/pupa_mass.Rda")
+
+# get total pupa mass metric data points
+pupa_mass %>%
+  count()
+
+# get number of pupa mass data points by larval generation
+pupa_mass %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of pupa mass data points by background and treatment in each larval generation
+pupa_mass %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 289 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 109 </b><br>
+<b><i>N</i><sub>F1</sub> = 78 </b><br>
+<b><i>N</i><sub>F2</sub> =  56 </b><br>
+<b><i>N</i><sub>F3</sub> =  46 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 67 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 42 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 25 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 23 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 18 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 19 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 15 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 7 </b><br>
+
+These data are presented in Table 1 of the final ms.
+
+##### 2b.4.5. Summarize adult mass data; run the Rmd chunk below.
+Here, we summarize data for adult mass. These data include mass of adults upon emergence; if pupae died before emergence, they were not included in this dataset.
+
+##### Summarize adult mass data:
+```{r}
+# load adult mass data
+load("../06_development_analysis/data/adult_mass.Rda")
+
+# get total adult mass metric data points
+adult_mass %>%
+  count()
+
+# get number of adult mass data points by larval generation
+adult_mass %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of adult mass data points by background and treatment in each larval generation
+adult_mass %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 262 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 96 </b><br>
+<b><i>N</i><sub>F1</sub> = 73 </b><br>
+<b><i>N</i><sub>F2</sub> = 52 </b><br>
+<b><i>N</i><sub>F3</sub> = 41 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 58 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 38 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 24 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 12 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 15 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 13 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 11 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 11 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 10 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 14 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 6 </b><br>
+
+These data are presented in Table 1 of the final ms.

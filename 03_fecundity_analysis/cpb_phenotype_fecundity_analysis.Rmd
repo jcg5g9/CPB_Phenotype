@@ -1,0 +1,46 @@
+---
+ttitle: "Analysis 3: Fecundity analysis"
+author: "Joe Gunn"
+date: "2024-09-19"
+output: html_document
+---
+
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two "background" groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). All mated pair beetles across lineages, treatments, and generations were monitored for daily fecundity. A subset of third instar larvae were collected from each treatment within each lineage for each generation and monitored for three  performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited "memory" of phenotypic variation. An additional subset of larvae from each generation were re-exposed to the treatments, both experimental (insecticide-exposed) and control (water), to test for potential inheritance of a phenotypic "response" to insecticide stress.</font>
+
+# <b>Specific Aim:</b> Fecundity analysis
+<font size="+1">In this analysis, we assess differences in fecundity (i.e., average daily number of eggs oviposited) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). We use average daily egg counts over the course of adult lifespan as our metric of fecundity rather than total number of eggs laid, because some mated pairs survived longer than other pairs and therefore had the opportunity to lay a greater number of eggs. </font>
+
+## Phases of Analysis
+### Phase 1: Data summary statistics
+### Phase 2: 
+
+### Libraries needed for analysis
+```{r}
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(writexl)
+library(nlme)
+```
+
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we calculate mean, standard deviation, and variance for average fecundity within experimental groups of interest. 
+
+### STEP 1: Calculate summary statistics for fecundity data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for average fecundity (i.e., average number of eggs per day across lineages) for all experimental groups.
+
+##### Calculate summary statistics for fecundity data:
+```{r}
+# load average fecundity data
+load("data/average_fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+average_fecundity %>%
+  group_by(adult_generation, background) %>% 
+  summarize(n = n(),
+            mean = mean(average_number_eggs),
+            sd = sd(average_number_eggs),
+            se = sd/sqrt(n()))
+```
+

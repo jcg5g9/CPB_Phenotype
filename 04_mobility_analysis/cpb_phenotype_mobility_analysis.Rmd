@@ -1,0 +1,644 @@
+---
+ttitle: "Analysis 4: Mobility analysis"
+author: "Joe Gunn"
+date: "2024-09-19"
+output: html_document
+---
+
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two "background" groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). All mated pair beetles across lineages, treatments, and generations were monitored for daily fecundity. A subset of third instar larvae were collected from each treatment within each lineage for each generation and monitored for three  performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited "memory" of phenotypic variation. An additional subset of larvae from each generation were re-exposed to the treatments, both experimental (insecticide-exposed) and control (water), to test for potential inheritance of a phenotypic "response" to insecticide stress.</font>
+
+# <b>Specific Aim:</b> Mobility analysis
+<font size="+1">In this analysis, we assess differences in larval mobility (i.e., total distance walked, average walking rate, and average walking acceleration) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
+
+## Phases of Analysis
+### Phase 1: Data Summary Statistics
+### Phase 2: Mobility Analysis
+
+### Libraries needed for analysis:
+```{r}
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(writexl)
+library(rstatix)
+library(lme4)
+library(rsq)
+library(scales)
+library(fitdistrplus)
+library(forcats)
+library(patchwork)
+library(glmmTMB)
+```
+
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we first assess pairwise correlations between all three mobility metrics of interest (i.e., total distance walked, average acceleration, and and average speed) to determine whether analysis of all three metrics is needed. We then calculate mean, standard deviation, and variance for all mobility metrics that will be used for analysis within experimental groups of interest.
+
+### STEP 1: Test for pairwise correlations between mobility metrics.
+In this step, we test whether each pair of mobility-related metrics (i.e., total distance walked vs. average walking speed; total distance walked vs. average acceleration; and average speed vs. average acceleration) are tightly correlated. Assessing differences between groups in highly correlated variables is redundant for addressing experimental questions. In the event that multiple variables are highly correlated, they do not all need to be analyzed.
+
+#### 1a: Test for correlations between each pair of variables using a linear mixed effect model framework; run the Rmd chunk below.
+
+##### Test for correlations between variables:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# test for correlation between total distance walked and average speed
+distance_speed <- lmer(total_distance ~ ave_speed + (1|lineage),
+                       data = mobility)
+
+# test for correlation between total distance walked and average acceleration
+distance_accel <- lmer(total_distance ~ ave_accel + (1|lineage),
+                       data = mobility)
+
+# test for correlation between total distance walked and average acceleration
+speed_accel <- lmer(ave_speed ~ ave_accel + (1|lineage),
+                       data = mobility)
+
+# summarize model results for distance and speed
+anova(distance_speed) # get F values
+Anova(distance_speed) # get p-values
+rsq.lmm(distance_speed) # get r-squared values
+
+# summarize model results for distance and acceleration
+anova(distance_accel) # get F values
+Anova(distance_accel) # get p-values
+rsq.lmm(distance_accel) # get r-squared values
+
+# summarize model results for speed and acceleration
+anova(speed_accel) # get F values
+Anova(speed_accel) # get p-values
+rsq.lmm(speed_accel) # get r-squared values
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
+<b>distance and speed: F = 33932; p < 0.0001; r-squared = 0.9887 </b><br>
+<b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
+<b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
+
+#### 1b: Plot correlations; run the Rmd chunk below.
+
+##### Plot correlations: `figures/correlations.jpeg`
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# plot distance and speed correlation
+distance_speed <- ggplot(mobility, aes(x = total_distance, y = ave_speed)) + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  xlim(0,500) +
+  ylim(0,1.6) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
+  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  labs(x = "Total distance walked (mm)", y = "Speed (mm/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot distance and speed correlation
+distance_accel <- ggplot(mobility, aes(x = total_distance, y = ave_accel)) + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  xlim(0,500) +
+  ylim(0,7) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
+  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  labs(x = "Total distance walked (mm)", y = "Acceleration (mm/s/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot distance and speed correlation
+speed_accel <- ggplot(mobility, aes(x = ave_speed, y = ave_accel)) + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  xlim(0,1.6) +
+  ylim(0,7) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
+  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  labs(x = "Speed (mm/s)", y = "Acceleration (mm/s/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all together
+jpeg("figures/correlations.jpeg", width = 25000, height = 8000, res = 1000)
+
+distance_speed + 
+  distance_accel + 
+  speed_accel + 
+  plot_layout(nrow = 1, ncol = 3)
+
+dev.off()
+```
+
+### STEP 2: Calculate summary statistics for larval mobility data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for mobility (i.e., walking speed, walking acceleration, and total distance walked) for all experimental groups.
+
+##### Calculate summary statistics for larval mobility data:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for distance walked by generation, background and treatment
+mobility %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            prop_mobility = sum(mobility)/n,
+            sd_mobility = sd(mobility),
+            se_consumed = sd_mobility/sqrt(n),
+            mean_distance = mean(total_distance),
+            sd_distance = sd(total_distance),
+            se_distance = sd_distance/sqrt(n()))
+```
+
+These data are presented in Table 1 of the final ms.
+
+## PHASE 2: MOBILITY ANALYSIS
+In this phase of the analysis, we assess differences in larval mobility metrics (i.e., total distance walked, average walking rate, and average walking acceleration) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., mobility metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., mobility metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+
+### STEP 1: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether total distance walked among larvae in each group of interest deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(total_distance) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C_N: p < 0.001 </b><br>
+<b>F0_E_N: p < 0.001 </b><br>
+<b>F1_C_N: p = 0.002 </b><br>
+<b>F1_C_R: p = 0.011 </b><br>
+<b>F1_E_N: p < 0.001 </b><br>
+<b>F1_E_R: p < 0.001 </b><br>
+<b>F2_C_N: p = 0.633 </b><br>
+<b>F2_C_R: p = 0.015 </b><br>
+<b>F2_E_N: p = 0.108 </b><br>
+<b>F2_E_R: p = 0.190 </b><br>
+<b>F3_C_N: p = 0.001 </b><br>
+<b>F3_C_R: p = 0.017 </b><br>
+<b>F3_E_N: p = 0.047 </b><br>
+<b>F3_E_R: p < 0.001 </b><br>
+
+Since 7/14 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
+
+### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest. 
+
+##### Test fit of alternative distributions:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# Generate combined "group" factor, which includes larval generation, background, and treatment, to test distributions within each group of interest.
+mobility <- mobility %>%
+  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+# generate list of levels within group factor
+levels <- levels(mobility$group)
+
+# define empty lists to hold statistics for each distribution test
+unif <- list()
+norm <- list()
+gamm <- list()
+expo <- list()
+
+# Write for loop to fit each distribution to data, iterating through group levels (i)
+for(i in levels) {
+  
+  # generate subsets of data for each group level
+  subset <- mobility[mobility$group == i, ]
+  
+  # fit distributions to leaf area for each subset
+  fit_unif <- fitdist(subset$total_distance, "unif")
+  fit_norm <- fitdist(subset$total_distance, "norm")
+  fit_gamm <- fitdist(subset$total_distance, "gamma")
+  fit_expo <- fitdist(subset$total_distance, "exp")
+  
+  # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif 
+  norm[[i]] <- fit_norm
+  gamm[[i]] <- fit_gamm
+  expo[[i]] <- fit_expo
+  
+}
+
+# Get table of distribution stats for F0 C N group
+stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N, 
+                                            norm$F0_C_N, 
+                                            gamm$F0_C_N,
+                                            expo$F0_C_N))$aic)
+
+# Get table of distribution stats for F0 E N group
+stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N, 
+                                            norm$F0_E_N, 
+                                            gamm$F0_E_N,
+                                            expo$F0_E_N))$aic)
+
+# Get table of distribution stats for F1 C N group
+stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N, 
+                                            norm$F1_C_N, 
+                                            gamm$F1_C_N,
+                                            expo$F1_C_N))$aic)
+
+# Get table of distribution stats for F1 C R group
+stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
+                                            norm$F1_C_R, 
+                                            gamm$F1_C_R,
+                                            expo$F1_C_R))$aic)
+
+# Get table of distribution stats for F1 E N group
+stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
+                                            norm$F1_E_N, 
+                                            gamm$F1_E_N,
+                                            expo$F1_E_N))$aic)
+
+# Get table of distribution stats for F1 E R group
+stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
+                                            norm$F1_E_R, 
+                                            gamm$F1_E_R,
+                                            expo$F1_E_R))$aic)
+
+# Get table of distribution stats for F2 C N group
+stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
+                                            norm$F2_C_N, 
+                                            gamm$F2_C_N,
+                                            expo$F2_C_N))$aic)
+
+# Get table of distribution stats for F2 C R group
+stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
+                                            norm$F2_C_R, 
+                                            gamm$F2_C_R,
+                                            expo$F2_C_R))$aic)
+
+# Get table of distribution stats for F2 E N group
+stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
+                                            norm$F2_E_N, 
+                                            gamm$F2_E_N,
+                                            expo$F2_E_N))$aic)
+
+# Get table of distribution stats for F2 E R group
+stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
+                                             norm$F2_E_R, 
+                                             gamm$F2_E_R,
+                                             expo$F2_E_R))$aic)
+
+# Get table of distribution stats for F3 C N group
+stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
+                                             norm$F3_C_N, 
+                                             gamm$F3_C_N,
+                                             expo$F3_C_N))$aic)
+
+# Get table of distribution stats for F3 C R group
+stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
+                                             norm$F3_C_R, 
+                                             gamm$F3_C_R,
+                                             expo$F3_C_R))$aic)
+
+# Get table of distribution stats for F3 E N group
+stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
+                                             norm$F3_E_N, 
+                                             gamm$F3_E_N,
+                                             expo$F3_E_N))$aic)
+
+# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate poisson statistics)
+stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R, 
+                                             norm$F3_E_R, 
+                                             gamm$F3_E_R,
+                                             expo$F3_E_R))$aic)
+
+# combine all stats into a single table and add a first column with the name of the distribution being tested
+stats <- cbind(distribution = c("uniform", "normal", "gamma", "exponential"), 
+               stats_1, 
+               stats_2, 
+               stats_3, 
+               stats_4,
+               stats_5, 
+               stats_6, 
+               stats_7,
+               stats_8, 
+               stats_9, 
+               stats_10, 
+               stats_11, 
+               stats_12, 
+               stats_13, 
+               stats_14)
+```
+
+<b>Analysis results:</b> <br>
+
+| Group     | Uniform          | Normal           | Gamma             | Exponential        |
+|:----------|:-----------------|:-----------------|:----------------- | :----------------- |
+| F0_C_N    | 799.661          | 793.081          | <b>730.569</b>    | 773.899            |
+| F0_E_N    | 786.364          | 772.219          | <b>592.358</b>    | 696.453	           |
+| F1_C_N    | 359.610          | 359.847          | <b>339.233</b>    | 347.899            |
+| F1_C_R    | 307.837          | 311.046          | <b>265.957</b>    | 290.346            |
+| F1_E_N    | 293.941          | 288.267          | <b>275.841</b>    | 276.791            |
+| F1_E_R    | 359.440          | 344.655          | 305.858           | <b>304.793</b>     |
+| F2_C_N    | 238.031          | 238.508          | <b>223.573</b>    | 240.342            |
+| F2_C_R    | 231.372          | 239.144          | <b>200.328</b>    | 222.147            |
+| F2_E_N    | <b>170.610</b>   | 177.302          | 172.336           | 173.402            | 
+| F2_E_R    | 148.714          | 157.031          | <b>144.594</b>    | 158.265            |
+| F3_C_N    | 188.324          | 185.693          | <b>177.693</b>    | 183.262            |
+| F3_C_R    | 203.739          | 208.776          | 199.298           | <b>198.670</b>     |
+| F3_E_N    | <b>204.908</b>   | 209.253          | 205.425           | 214.352            |
+| F3_E_R    | 253.900          | 253.838          | <b>228.467</b>    | 235.938            |
+
+Although the data in the majority of groups were best fit to a poisson distribution, the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_R), some were best fit by a negative binomial distribution (e.g., F0_C_N), and one distribution could not be fit given the available data (i.e., F3_E_R). For this reason, we opted to instead normalize the raw data using a square-root transformation. We assessed the validity of the transformation by re-testing the fit of the data in each group to the normal distribution.
+
+### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
+
+#### 4a: Run two-factor linear mixed effect interaction anova models to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
+
+##### Run linear mixed effect interaction anova models for total distance walked:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# isolate only F0 data
+f0 <- distance %>%
+  filter(larval_generation == "F0")
+
+# isolate only F0 data
+f1 <- distance %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- distance %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- distance %>%
+  filter(larval_generation == "F3")
+
+# f0 linear mixed effect model
+f0_mod <- glmer(total_distance ~ background + (1|lineage),
+                family = Gamma(link = "identity"),
+                data = f0)
+
+# f1 linear mixed effect model
+f1_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
+               data = f1)
+
+# f2 linear mixed effect model
+f2_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
+               data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
+               data = f3)
+
+# summarize f0 model
+summary(f0_mod) 
+anova(f0_mod)
+
+# summarize f1 model
+summary(f1_mod) 
+anova(f1_mod)
+
+# summarize f2 model
+summary(f2_mod) 
+anova(f2_mod)
+
+# summarize f3 model
+summary(f3_mod) 
+anova(f3_mod)
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models by generation:</b><br>
+<b>F0</b>: <br>
+Background: F = 32.258; p < 0.001 <br>
+
+<b>F1</b>: <br>
+Background: F = 0.8294; p = 0.364566 <br>
+Treatment: F = 10.1547; p = 0.001901 <br>
+Background x Treatment: F = 0.2653; p = 0.607587 <br>
+
+<b>F2</b>: <br>
+Background: F = 6.9989; p = 0.010216 <br>
+Treatment: F = 7.1985; p = 0.009302 <br>
+Background x Treatment: F = 4.3120; p = 0.041927 <br>
+
+<b>F3</b>: <br>
+Background: F = 0.2977; p = 0.5870 <br>
+Treatment: F = 19.2496; p < 0.001 <br>
+Background x Treatment: F = 1.4071; p = 0.2394 <br>
+
+#### 4b: Plot transformed data for total distance walked; run the Rmd chunk below.
+
+##### Plot transformed data: `figures/distance.jpeg`
+```{r}
+# load distance mobility data
+load("data/distance.Rda")
+
+# calculate means, standard deviation, and standard error of square-root transformed data and recode background for plotting
+distance <- distance %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(mean = mean(sqrt_distance),
+            sd = sd(sqrt_distance),
+            n = n(),
+            se = sd/sqrt(n)) %>%
+  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
+         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+
+# isolate only F0 data
+f0 <- distance %>%
+  filter(larval_generation == "F0")
+
+# isolate only F0 data
+f1 <- distance %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- distance %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- distance %>%
+  filter(larval_generation == "F3")
+
+# plot f0 data
+f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = background)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = background, y = mean, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Original exposure", y = expression(sqrt("distance (mm)"))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f1 data
+f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.title = element_text(size = 30)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  #theme(legend.text = element_text(size = 30)) +
+  #theme(legend.title = element_text(size = 30, face = "bold")) +
+  #theme(legend.key.size = unit(2, 'cm')) +
+  #theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  #theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  #theme(legend.position = c(0.05,0.2)) + 
+  labs(x = "Treatment", y = expression(sqrt("distance (mm)")), fill = "Parental exposure", color = "Parental exposure") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f2 data
+f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f3 data
+f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = mean, group = background, fill = background),
+              position = position_dodge(width = 0.4), 
+              size = 7,
+              pch = 22,
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
+  ylim(0,15) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all distance figures together
+jpeg("figures/distance.jpeg", width = 17000, height = 15000, res = 1000)
+
+f0_plot + 
+  f1_plot + 
+  f2_plot + 
+  f3_plot + 
+  plot_layout(nrow = 2, ncol = 2)
+
+dev.off()
+```

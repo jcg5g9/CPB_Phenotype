@@ -1,0 +1,515 @@
+---
+ttitle: "Analysis 5: Herbivory analysis"
+author: "Joe Gunn"
+date: "2024-09-19"
+output: html_document
+---
+
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two "background" groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). All mated pair beetles across lineages, treatments, and generations were monitored for daily fecundity. A subset of third instar larvae were collected from each treatment within each lineage for each generation and monitored for three  performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited "memory" of phenotypic variation. An additional subset of larvae from each generation were re-exposed to the treatments, both experimental (insecticide-exposed) and control (water), to test for potential inheritance of a phenotypic "response" to insecticide stress.</font>
+
+# <b>Specific Aim:</b> Herbivory analysis
+<font size="+1">In this analysis, we assess differences in larval herbivory (i.e., total leaf tissue consumed) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
+
+## Phases of Analysis
+### Phase 1: Data Summary Statistics
+### Phase 2: 
+
+### Libraries needed for analysis:
+```{r}
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(writexl)
+library(rstatix)
+library(lme4)
+library(rsq)
+library(scales)
+library(lmerTest)
+library(fitdistrplus)
+library(forcats)
+library(emmeans)
+library(patchwork)
+library(glmmTMB)
+```
+
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we calculate mean, standard deviation, and variance for larval herbivory metrics within experimental groups of interest.
+
+### STEP 1: Calculate summary statistics for larval herbivory data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for larval herbivory (i.e., total leaf area consumed) for all experimental groups.
+
+##### Calculate summary statistics for larval herbivory data:
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# get sample size (n), mean or proportion, standard deviation (sd), and standard error (se) for herbivory by generation, background, and treatment
+herbivory %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(n = n(),
+            prop_consumed = sum(consumed)/n,
+            sd_consumed = sd(consumed),
+            se_consumed = sd_consumed/sqrt(n),
+            mean_leaf = mean(leaf_area_consumed),
+            sd_leaf = sd(leaf_area_consumed),
+            se_leaf = sd_leaf/sqrt(n))
+```
+
+These data are presented in Table 1 of the final ms.
+
+## PHASE 2: HERBIVORY ANALYSIS
+In this phase of the analysis, we assess differences in larval herbivory (i.e., total leaf area consumed) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., herbivory metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. For each of these modes of phenotypic effect, we employ general linear mixed effect zero-inflation models to assess simultaneously the probability of herbivory, i.e., the probability that an individual larva will consume leaf tissue and average herbivory, i.e., total leaf consumed.
+
+### STEP 1: Assess phenotypic effects of insecticide stress in total herbivory (leaf area consumed).
+In this step, we assess average total herbivory dependent on background exposure and treatment across generations. We first test the fit of raw data to different distributions...
+
+#### 1a: Test fit of empirical herbivory data (leaf area consumed) to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether total leaf area consumed among larvae in each group of interest deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+herbivory %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(leaf_area_consumed) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+F0_C_N: <b>p < 0.001</b><br>
+F0_E_N: <b>p < 0.001</b><br>
+F1_C_N: p = 0.015 <br>
+F1_C_R: <b>p < 0.001</b><br>
+F1_E_N: p = 0.005 <br>
+F1_E_R: <b>p < 0.001</b><br>
+F2_C_N: p = 0.209 <br>
+F2_C_R: <b>p < 0.001</b><br>
+F2_E_N: p = 0.007 <br>
+F2_E_R: <b>p < 0.001</b><br>
+F3_C_N: <b>p < 0.001</b><br>
+F3_C_R: <b>p < 0.001</b><br>
+F3_E_N: <b>p < 0.001</b><br>
+F3_E_R: <b>p < 0.001</b><br>
+
+Since 10/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
+
+### STEP 2: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+In this step, we test the fit of three additional distributions (in addition to the normal distribution for comparison), including uniform, negative binomial, and poisson distributions, and determine the best fitting distribution for each group of interest. 
+
+##### Test fit of alternative distributions:
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# Generate combined "group" factor, which includes larval generation, background, and treatment, to test distributions within each group of interest.
+herbivory <- herbivory %>%
+  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+# generate list of levels within group factor
+levels <- levels(herbivory$group)
+
+# define empty lists to hold statistics for each distribution test
+unif <- list() 
+norm <- list()
+gamm <- list() 
+expo <- list()
+beta <- list()
+
+# Write for loop to fit each distribution to data, iterating through group levels (i)
+for(i in levels) {
+  
+  # generate subsets of data for each group level
+  subset <- herbivory[herbivory$group == i, ]
+  
+  # fit distributions to leaf area for each subset
+  fit_unif <- fitdist(subset$leaf_area_consumed, "unif") 
+  fit_norm <- fitdist(subset$leaf_area_consumed, "norm") 
+  fit_gamm <- fitdist(subset$leaf_area_consumed, "gamma") 
+  fit_expo <- fitdist(subset$leaf_area_consumed, "exp")
+  fit_beta <- fitdist(subset$leaf_area_consumed, "beta")
+  
+  # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif 
+  norm[[i]] <- fit_norm 
+  gamm[[i]] <- fit_gamm 
+  expo[[i]] <- fit_expo
+  beta[[i]] <- fit_beta
+  
+}
+
+# Get table of distribution stats for F0 C N group
+stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N, 
+                                            norm$F0_C_N, 
+                                            gamm$F0_C_N,
+                                            expo$F0_C_N,
+                                            beta$F0_C_N))$aic)
+
+# Get table of distribution stats for F0 E N group
+stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N, 
+                                            norm$F0_E_N, 
+                                            gamm$F0_E_N,
+                                            expo$F0_E_N,
+                                            beta$F0_E_N))$aic)
+
+# Get table of distribution stats for F1 C N group
+stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N, 
+                                            norm$F1_C_N, 
+                                            gamm$F1_C_N,
+                                            expo$F1_C_N,
+                                            beta$F1_C_N))$aic)
+
+# Get table of distribution stats for F1 C R group
+stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
+                                            norm$F1_C_R, 
+                                            gamm$F1_C_R,
+                                            expo$F1_C_R,
+                                            beta$F1_C_R))$aic)
+         
+# Get table of distribution stats for F1 E N group
+stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
+                                            norm$F1_E_N, 
+                                            gamm$F1_E_N,
+                                            expo$F1_E_N,
+                                            beta$F1_E_N))$aic)
+
+# Get table of distribution stats for F1 E R group
+stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
+                                            norm$F1_E_R, 
+                                            gamm$F1_E_R,
+                                            expo$F1_E_R,
+                                            beta$F1_E_R))$aic)
+
+# Get table of distribution stats for F2 C N group
+stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
+                                            norm$F2_C_N, 
+                                            gamm$F2_C_N,
+                                            expo$F2_C_N,
+                                            beta$F2_C_N))$aic)
+
+# Get table of distribution stats for F2 C R group
+stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
+                                            norm$F2_C_R, 
+                                            gamm$F2_C_R,
+                                            expo$F2_C_R,
+                                            beta$F2_C_R))$aic)
+
+# Get table of distribution stats for F2 E N group
+stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
+                                            norm$F2_E_N, 
+                                            gamm$F2_E_N,
+                                            expo$F2_E_N,
+                                            beta$F2_E_N))$aic)
+
+# Get table of distribution stats for F2 E R group
+stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
+                                             norm$F2_E_R, 
+                                             gamm$F2_E_R,
+                                             expo$F2_E_R,
+                                             beta$F2_E_R))$aic)
+
+# Get table of distribution stats for F3 C N group
+stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
+                                             norm$F3_C_N, 
+                                             gamm$F3_C_N,
+                                             expo$F3_C_N,
+                                             beta$F3_C_N))$aic)
+
+# Get table of distribution stats for F3 C R group
+stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
+                                             norm$F3_C_R, 
+                                             gamm$F3_C_R,
+                                             expo$F3_C_R,
+                                             beta$F3_C_R))$aic)
+
+# Get table of distribution stats for F3 E N group
+stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
+                                             norm$F3_E_N, 
+                                             gamm$F3_E_N,
+                                             expo$F3_E_N,
+                                             beta$F3_E_N))$aic)
+
+# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate exposon statistics)
+stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
+                                             norm$F3_E_R, 
+                                             gamm$F3_E_R,
+                                             expo$F3_E_R,
+                                             beta$F3_E_R)))
+
+# combine all stats into a single table and add a first column with the name of the distribution being tested
+stats <- cbind(distribution = c("uniform", "normal", "gamma", "expo", "beta"), 
+               stats_1, 
+               stats_2, 
+               stats_3, 
+               stats_4,
+               stats_5, 
+               stats_6, 
+               stats_7,
+               stats_8, 
+               stats_9, 
+               stats_10, 
+               stats_11, 
+               stats_12, 
+               stats_13, 
+               stats_14)
+```
+
+<b>Analysis results:</b> <br>
+
+| Group     | Uniform          | Normal           | Gamma             | Exponential        |
+|:----------|:-----------------|:-----------------|:----------------- | :----------------- |
+| F0_C_N    | 799.661          | 793.081          | <b>730.569</b>    | 773.899            |
+| F0_E_N    | 786.364          | 772.219          | <b>592.358</b>    | 696.453	           |
+| F1_C_N    | 359.610          | 359.847          | <b>339.233</b>    | 347.899            |
+| F1_C_R    | 307.837          | 311.046          | <b>265.957</b>    | 290.346            |
+| F1_E_N    | 293.941          | 288.267          | <b>275.841</b>    | 276.791            |
+| F1_E_R    | 359.440          | 344.655          | 305.858           | <b>304.793</b>     |
+| F2_C_N    | 238.031          | 238.508          | <b>223.573</b>    | 240.342            |
+| F2_C_R    | 231.372          | 239.144          | <b>200.328</b>    | 222.147            |
+| F2_E_N    | <b>170.610</b>   | 177.302          | 172.336           | 173.402            | 
+| F2_E_R    | 148.714          | 157.031          | <b>144.594</b>    | 158.265            |
+| F3_C_N    | 188.324          | 185.693          | <b>177.693</b>    | 183.262            |
+| F3_C_R    | 203.739          | 208.776          | 199.298           | <b>198.670</b>     |
+| F3_E_N    | <b>204.908</b>   | 209.253          | 205.425           | 214.352            |
+| F3_E_R    | 253.900          | 253.838          | <b>228.467</b>    | 235.938            |
+
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# isolate only F0 data
+f0 <- herbivory %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- herbivory %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- herbivory %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- herbivory %>%
+  filter(larval_generation == "F3")
+
+# f0 general linear mixed effect zero-inflation model with conditional beta distribution
+f0_mod <- glmmTMB(leaf_area_consumed ~ background + (1|lineage),
+                  data = f0,
+                  ziformula = ~background,
+                  family = beta_family())
+
+# f1 general linear mixed effect zero-inflation model with conditional beta distribution
+f1_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+                  data = f1,
+                  ziformula = ~background*treatment,
+                  family = Gamma())
+
+# f2 general linear mixed effect zero-inflation model with conditional beta distribution
+f2_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+                  data = f2,
+                  ziformula = ~background*treatment,
+                  family = beta_family())
+
+# f2 general linear mixed effect zero-inflation model with conditional beta distribution
+f3_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+                  data = f3,
+                  ziformula = ~background*treatment,
+                  family = beta_family())
+
+summary(f0_mod)
+```
+
+#### 1b: Plot probability of hervivory data; run the Rmd chunk below.
+
+##### Plot probability data: `figures/herbivory_probability.jpeg`
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# get sample size (n), mean or proportion, standard deviation (sd), and standard error (se) for herbivory by generation, background, and treatment for plotting
+herbivory <- herbivory %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(n = n(),
+            prop_consumed = sum(consumed)/n,
+            sd_consumed = sd(consumed),
+            se_consumed = sd_consumed/sqrt(n),
+            se_leaf = sd_consumed/sqrt(n),
+            mean_leaf = mean(leaf_area_consumed),
+            sd_leaf = sd(leaf_area_consumed),
+            se_leaf = sd_leaf/sqrt(n)) %>%
+  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
+         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+
+# isolate only F0 data
+f0 <- herbivory %>%
+  filter(larval_generation == "F0")
+
+# isolate only F0 data
+f1 <- herbivory %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- herbivory %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- herbivory %>%
+  filter(larval_generation == "F3")
+
+# plot f0 data
+f0_plot <- ggplot(f0, aes(x = background, y = prop_consumed, group = background, color = background)) +
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = background, y = prop_consumed, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Original exposure", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f1 data
+f1_plot <- ggplot(f1, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.title = element_text(size = 30)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  #theme(legend.text = element_text(size = 30)) +
+  #theme(legend.title = element_text(size = 30, face = "bold")) +
+  #theme(legend.key.size = unit(2, 'cm')) +
+  #theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  #theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  #theme(legend.position = c(0.05,0.2)) + 
+  labs(x = "Treatment", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f2 data
+f2_plot <- ggplot(f2, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f3 data
+f3_plot <- ggplot(f3, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background),
+              position = position_dodge(width = 0.4), 
+              size = 7,
+              pch = 22,
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all distance figures together
+jpeg("figures/herbivory_probability.jpeg", width = 17000, height = 15000, res = 1000)
+
+f0_plot + 
+  f1_plot + 
+  f2_plot + 
+  f3_plot + 
+  plot_layout(nrow = 2, ncol = 2)
+
+dev.off()
+```
