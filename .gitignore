@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# Folders
+project_info/
+figures/
+raw_data/
+data/
