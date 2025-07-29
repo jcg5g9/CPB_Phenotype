@@ -399,25 +399,26 @@ Although the data in the majority of groups were best fit to a poisson distribut
 load("data/mobility.Rda")
 
 # isolate only F0 data
-f0 <- distance %>%
+f0 <- mobility %>%
   filter(larval_generation == "F0")
 
 # isolate only F0 data
-f1 <- distance %>%
+f1 <- mobility %>%
   filter(larval_generation == "F1")
 
 # isolate only F0 data
-f2 <- distance %>%
+f2 <- mobility %>%
   filter(larval_generation == "F2")
 
 # isolate only F0 data
-f3 <- distance %>%
+f3 <- mobility %>%
   filter(larval_generation == "F3")
 
 # f0 linear mixed effect model
-f0_mod <- glmer(total_distance ~ background + (1|lineage),
-                family = Gamma(link = "identity"),
-                data = f0)
+f0_mod <- glmmTMB(total_distance ~ background + (1|lineage),
+                  data = f0,
+                  ziformula = ~background,
+                  family = ziGamma(link = "log"))
 
 # f1 linear mixed effect model
 f1_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
