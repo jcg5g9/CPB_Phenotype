@@ -169,9 +169,9 @@ load("data/mobility.Rda")
 mobility %>%
   group_by(larval_generation, background, treatment) %>% 
   summarize(n = n(),
-            prop_mobility = sum(mobility)/n,
-            sd_mobility = sd(mobility),
-            se_mobility = sd_mobility/sqrt(n),
+            prop_moved = sum(moved)/n,
+            sd_moved = sd(moved),
+            se_moved = sd_moved/sqrt(n),
             mean_distance = mean(total_distance),
             sd_distance = sd(total_distance),
             se_distance = sd_distance/sqrt(n()))
@@ -428,7 +428,6 @@ jpeg("figures/distribution.jpeg", width = 5000, height = 4000, res = 500)
 
 ggplot(mobility, aes(x = total_distance)) +
   geom_histogram(binwidth = 10, color = "black", fill = "grey", linewidth = 1) +
-  geom_line(aes(x = total_distance, y = dgamma(mobility$total_distance, gamm$estimate["shape"], gamm$estimate["rate"])), color = "black", linetype = "longdash", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
@@ -585,13 +584,13 @@ f3 <- mobility %>%
   filter(larval_generation == "F3")
 
 # plot f0 data
-f0_plot <- ggplot(f0, aes(x = background, y = prop_mobility, group = background, color = background)) +
-  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
+f0_plot <- ggplot(f0, aes(x = background, y = prop_moved, group = background, color = background)) +
+  geom_errorbar(aes(ymin = prop_moved - se_moved, ymax = prop_moved + se_moved, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = background, y = prop_mobility, group = background, fill = background), 
+   geom_point(aes(x = background, y = prop_moved, group = background, fill = background), 
               position = position_dodge(width = 0.4), 
               size = 7, 
               pch = 22, 
@@ -614,17 +613,17 @@ f0_plot <- ggplot(f0, aes(x = background, y = prop_mobility, group = background,
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f1 data
-f1_plot <- ggplot(f1, aes(x = treatment, y = prop_mobility, group = background, color = background)) +
+f1_plot <- ggplot(f1, aes(x = treatment, y = prop_moved, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) + 
-  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
+  geom_errorbar(aes(ymin = prop_moved - se_moved, ymax = prop_moved + se_moved, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_mobility, group = background, fill = background), 
+   geom_point(aes(x = treatment, y = prop_moved, group = background, fill = background), 
               position = position_dodge(width = 0.4), 
               size = 7, 
               pch = 22, 
@@ -652,17 +651,17 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = prop_mobility, group = background, 
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f2 data
-f2_plot <- ggplot(f2, aes(x = treatment, y = prop_mobility, group = background, color = background)) +
+f2_plot <- ggplot(f2, aes(x = treatment, y = prop_moved, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) + 
-  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
+  geom_errorbar(aes(ymin = prop_moved - se_moved, ymax = prop_moved + se_moved, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_mobility, group = background, fill = background), 
+   geom_point(aes(x = treatment, y = prop_moved, group = background, fill = background), 
               position = position_dodge(width = 0.4), 
               size = 7, 
               pch = 22, 
@@ -683,17 +682,17 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = prop_mobility, group = background, 
   theme(plot.margin = margin(20,20,20,20))
 
 # plot f3 data
-f3_plot <- ggplot(f3, aes(x = treatment, y = prop_mobility, group = background, color = background)) +
+f3_plot <- ggplot(f3, aes(x = treatment, y = prop_moved, group = background, color = background)) +
   geom_line(aes(color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) + 
-  geom_errorbar(aes(ymin = prop_mobility - se_mobility, ymax = prop_mobility + se_mobility, color = background), 
+  geom_errorbar(aes(ymin = prop_moved - se_moved, ymax = prop_moved + se_moved, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_mobility, group = background, fill = background),
+   geom_point(aes(x = treatment, y = prop_moved, group = background, fill = background),
               position = position_dodge(width = 0.4), 
               size = 7,
               pch = 22,

@@ -330,7 +330,6 @@ jpeg("figures/distribution.jpeg", width = 5000, height = 4000, res = 500)
 
 ggplot(herbivory, aes(x = leaf_area_consumed)) +
   geom_histogram(binwidth = 0.005, color = "black", fill = "grey", linewidth = 1) +
-  geom_line(aes(x = leaf_area_consumed, y = dgamma(herbivory$leaf_area_consumed, gamm$estimate["shape"], gamm$estimate["rate"])), color = "black", linetype = "longdash", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 

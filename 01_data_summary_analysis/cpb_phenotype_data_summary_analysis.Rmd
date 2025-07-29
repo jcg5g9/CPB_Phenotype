@@ -216,17 +216,17 @@ save(performance, file = "data/performance.Rda")
 ```
 
 ##### 1c.2. Isolate, filter, and clean larval mobility metrics from performance data; run the Rmd chunk below.
-In this step, we get only larval mobility metrics of interest (i.e., total distance walked, average walking rate, and average walking acceleration) and filter and clean the mobility dataset. The dataset is then saved to the corresponding analysis directory (`04_mobility_analysis`).
+In this step, we get only larval mobility metrics of interest (i.e., total distance walked, average walking rate, and average walking acceleration) and filter and clean the mobility dataset. Additionally, we generate a new variable (additional column) in the dataset (i.e., "moved") to represent whether a larva moved at all (i.e., if total distance was non-zero and therefore the larva moved, the individual was assigned a value of "1"; if total distance was zero and therefore the larva did not move, the individual was assigned a value "0"). The dataset is then saved to the corresponding analysis directory (`04_mobility_analysis`).
 
 ##### Isolate, filter and clean mobility metrics: 
 ```{r}
 # load performance data
 load("data/performance.Rda")
 
-# get only mobility data from performance data and drop na data in the metrics columns (average speed through total distance)
+# get only mobility data from performance data, add new column indicating whether an individual moved or not (had zero or non-zero value for total distance), and drop na data in the metrics columns (average speed through total distance)
 mobility <- performance %>%
   dplyr::select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
-  mutate(mobility = as.numeric(ifelse(total_distance != 0, "1", "0"))) %>%
+  mutate(moved = as.numeric(ifelse(total_distance != 0, "1", "0"))) %>%
   drop_na(ave_speed:total_distance)
 
 # save mobility data
@@ -241,7 +241,7 @@ In this step, we get only the larval herbivory metric of interest (i.e., total l
 # load performance data
 load("data/performance.Rda")
 
-# get only herbivory data from performance data and add binary value indicating whether there was consumption 
+# get only herbivory data from performance data and add binary value indicating whether there was consumption (had zero or non-zero value for leaf_area_consumed)
 herbivory <- performance %>% 
   dplyr::select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) %>%
   mutate(consumed = as.numeric(ifelse(leaf_area_consumed != 0, "1", "0"))) %>%
