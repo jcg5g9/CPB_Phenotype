@@ -346,8 +346,6 @@ ggplot(herbivory, aes(x = leaf_area_consumed)) +
   theme(plot.margin = margin(20,20,20,20))
 
 dev.off()
-
-str(herbivory)
 ```
 
 ### STEP 3: Assess phenotypic effects of insecticide stress in total herbivory walked.
