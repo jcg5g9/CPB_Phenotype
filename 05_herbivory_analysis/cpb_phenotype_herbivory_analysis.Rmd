@@ -346,21 +346,21 @@ f0_mod <- glmmTMB(leaf_area_consumed ~ background + (1|lineage),
                   family = ziGamma(link = "log"))
 
 # f1 general linear mixed effect zero-inflation model with conditional beta distribution
-f1_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+f1_mod <- glmmTMB(leaf_area_consumed ~ treatment*background + (1|lineage),
                   data = f1,
-                  ziformula = ~background*treatment,
+                  ziformula = ~treatment*background,
                   family = ziGamma(link = "log"))
 
 # f2 general linear mixed effect zero-inflation model with conditional beta distribution
-f2_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+f2_mod <- glmmTMB(leaf_area_consumed ~ treatment*background + (1|lineage),
                   data = f2,
-                  ziformula = ~background*treatment,
+                  ziformula = ~treatment*background,
                   family = ziGamma(link = "log"))
 
 # f2 general linear mixed effect zero-inflation model with conditional beta distribution
-f3_mod <- glmmTMB(leaf_area_consumed ~ background*treatment + (1|lineage),
+f3_mod <- glmmTMB(leaf_area_consumed ~ treatment*background + (1|lineage),
                   data = f3,
-                  ziformula = ~background*treatment,
+                  ziformula = ~treatment*background,
                   family = ziGamma(link = "log"))
 
 # summarize f0 model
@@ -375,6 +375,48 @@ summary(f2_mod)
 # summarize f3 model
 summary(f3_mod) 
 ```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of zero-inflated logistic regressions by generation:</b><br>
+<b>F0</b>: <br>
+Background: z = 0.679; p = 0.497 <br>
+
+<b>F1</b>: <br>
+Treatment: z = 4.171; p < 0.001 <br>
+Background: z = -0.468; p = 0.6401 <br>
+Treatment x Background : z = 0.266; p = 0.7901 <br>
+
+<b>F2</b>: <br>
+Treatment: z = 3.493; p = 0.000477 <br>
+Background: z = 1.197; p = 0.231469 <br>
+Treatment x Background: z = -1.303; p = 0.192407 <br>
+
+<b>F3</b>: <br>
+Treatment: z = 2.083; p = 0.0373 <br>
+Background: z = 1.316; p = 0.1881 <br>
+Treatment x Background: z = -0.229; p = 0.8186 <br>
+
+b>Coefficients of conditional general linear regressions by generation:</b><br>
+<b>F0</b>: <br>
+Background: z = 0.35; p = 0.726 <br>
+
+<b>F1</b>: <br>
+Treatment: z = -1.645; p = 0.0999 <br>
+Background: z = 0.335; p = 0.7376 <br>
+Treatment x Background : z = 0.357; p = 0.7214 <br>
+
+<b>F2</b>: <br>
+Treatment: z = -1.993; p = 0.0463 <br>
+Background: z = -0.923; p = 0.3562 <br>
+Treatment x Background: z = -0.002; p = 0.9985 <br>
+
+<b>F3</b>: <br>
+Treatment: z = -0.336; p = 0.737 <br>
+Background: z = -1.536; p = 0.125 <br>
+Treatment x Background: z = 0.385; p = 0.700 <br>
+
+### STEP 3: Plot mobility data analyses
 
 #### 1b: Plot probability of hervivory data; run the Rmd chunk below.
 
