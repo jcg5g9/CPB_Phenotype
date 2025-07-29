@@ -349,11 +349,7 @@ herbivory <- herbivory %>%
   summarize(n = n(),
             prop_consumed = sum(consumed)/n,
             sd_consumed = sd(consumed),
-            se_consumed = sd_consumed/sqrt(n),
-            se_leaf = sd_consumed/sqrt(n),
-            mean_leaf = mean(leaf_area_consumed),
-            sd_leaf = sd(leaf_area_consumed),
-            se_leaf = sd_leaf/sqrt(n)) %>%
+            se_consumed = sd_consumed/sqrt(n)) %>%
   mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
          treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
 
@@ -361,15 +357,15 @@ herbivory <- herbivory %>%
 f0 <- herbivory %>%
   filter(larval_generation == "F0")
 
-# isolate only F0 data
+# isolate only F1 data
 f1 <- herbivory %>%
   filter(larval_generation == "F1")
 
-# isolate only F0 data
+# isolate only F2 data
 f2 <- herbivory %>%
   filter(larval_generation == "F2")
 
-# isolate only F0 data
+# isolate only F3 data
 f3 <- herbivory %>%
   filter(larval_generation == "F3")
 

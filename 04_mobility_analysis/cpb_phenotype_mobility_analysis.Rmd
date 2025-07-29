@@ -171,7 +171,7 @@ mobility %>%
   summarize(n = n(),
             prop_mobility = sum(mobility)/n,
             sd_mobility = sd(mobility),
-            se_consumed = sd_mobility/sqrt(n),
+            se_mobility = sd_mobility/sqrt(n),
             mean_distance = mean(total_distance),
             sd_distance = sd(total_distance),
             se_distance = sd_distance/sqrt(n()))
@@ -387,13 +387,14 @@ stats <- cbind(distribution = c("uniform", "normal", "gamma", "exponential"),
 | F3_E_N    | <b>204.908</b>   | 209.253          | 205.425           | 214.352            |
 | F3_E_R    | 253.900          | 253.838          | <b>228.467</b>    | 235.938            |
 
-Although the data in the majority of groups were best fit to a poisson distribution, the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_R), some were best fit by a negative binomial distribution (e.g., F0_C_N), and one distribution could not be fit given the available data (i.e., F3_E_R). For this reason, we opted to instead normalize the raw data using a square-root transformation. We assessed the validity of the transformation by re-testing the fit of the data in each group to the normal distribution.
+The data in the majority of groups were best fit to a Gamma distribution, but the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_N and F3_E_N), and others were best fit by a an exponential distribution (e.g., F1_E_R and F3_C_R). We opted to assume a Gamma distribution in all general linear model analyses given that the majority and since we would not expect a uniform or exponential distribution for these data.
 
 ### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
-#### 4a: Run two-factor linear mixed effect interaction anova models to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
+#### 4a: Run two-factor general linear mixed effect interaction models assuming a zero-inflated gamma distribution to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
+In this step, we run general linear mixed effect interaction models with raw total distance as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying Gamma distribution for the data (see Step 3 above). We also assume zero-inflation of the data, given that there may be distinct processes driving the ability of an individual larva to move at all (zero or non-zero) and how much they are able to move if they can (non-zero). We therefore run a zero-inflation gamma model, estimating coefficients of both the zero/non-zero model (i.e., zero-inflation; logistic regression) and the conditional model (non-zero; general linear regression).
 
-##### Run linear mixed effect interaction anova models for total distance walked:
+##### Run general linear mixed effect interaction models for total distance walked:
 ```{r}
 # load mobility data
 load("data/mobility.Rda")
@@ -402,105 +403,302 @@ load("data/mobility.Rda")
 f0 <- mobility %>%
   filter(larval_generation == "F0")
 
-# isolate only F0 data
+# isolate only F1 data
 f1 <- mobility %>%
   filter(larval_generation == "F1")
 
-# isolate only F0 data
+# isolate only F2 data
 f2 <- mobility %>%
   filter(larval_generation == "F2")
 
-# isolate only F0 data
+# isolate only F3 data
 f3 <- mobility %>%
   filter(larval_generation == "F3")
 
-# f0 linear mixed effect model
+# f0 general linear mixed effect model with zero-inflated gamma distribution
 f0_mod <- glmmTMB(total_distance ~ background + (1|lineage),
                   data = f0,
                   ziformula = ~background,
                   family = ziGamma(link = "log"))
 
-# f1 linear mixed effect model
-f1_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
-               data = f1)
+# f1 general linear mixed effect model with zero-inflated gamma distribution
+f1_mod <- glmmTMB(total_distance ~ treatment*background + (1|lineage),
+                  data = f1,
+                  ziformula = ~treatment*background,
+                  family = ziGamma(link = "log"))
 
-# f2 linear mixed effect model
-f2_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
-               data = f2)
+# f2 general linear mixed effect model with zero-inflated gamma distribution
+f2_mod <- glmmTMB(total_distance ~ treatment*background + (1|lineage),
+                  data = f2,
+                  ziformula = ~treatment*background,
+                  family = ziGamma(link = "log"))
 
-# f2 linear mixed effect model
-f3_mod <- lmer(sqrt_distance ~ treatment*background + (1|lineage),
-               data = f3)
+# f2 general linear mixed effect model with zero-inflated gamma distribution
+f3_mod <- glmmTMB(total_distance ~ treatment*background + (1|lineage),
+                  data = f3,
+                  ziformula = ~treatment*background,
+                  family = ziGamma(link = "log"))
 
 # summarize f0 model
 summary(f0_mod) 
-anova(f0_mod)
 
 # summarize f1 model
 summary(f1_mod) 
-anova(f1_mod)
 
 # summarize f2 model
 summary(f2_mod) 
-anova(f2_mod)
 
 # summarize f3 model
 summary(f3_mod) 
-anova(f3_mod)
 ```
 
 <b>Analysis results:</b> <br>
 
-<b>Coefficients of linear mixed effect models by generation:</b><br>
+<b>Coefficients of zero-inflated logistic regressions by generation:</b><br>
 <b>F0</b>: <br>
-Background: F = 32.258; p < 0.001 <br>
+Background: z = 2.376; p = 0.0175 <br>
 
 <b>F1</b>: <br>
-Background: F = 0.8294; p = 0.364566 <br>
-Treatment: F = 10.1547; p = 0.001901 <br>
-Background x Treatment: F = 0.2653; p = 0.607587 <br>
+Treatment: z = 1.085; p = 0.278026 <br>
+Background: z = -0.004; p = 0.996962 <br>
+Treatment x Background : z = 0.000; p = 0.999941 <br>
 
 <b>F2</b>: <br>
-Background: F = 6.9989; p = 0.010216 <br>
-Treatment: F = 7.1985; p = 0.009302 <br>
-Background x Treatment: F = 4.3120; p = 0.041927 <br>
+Treatment: z = 0.918; p = 0.35881 <br>
+Background: z = -0.003; p = 0.99761 <br>
+Treatment x Background: z = 0.003; p = 0.99771 <br>
 
 <b>F3</b>: <br>
-Background: F = 0.2977; p = 0.5870 <br>
-Treatment: F = 19.2496; p < 0.001 <br>
-Background x Treatment: F = 1.4071; p = 0.2394 <br>
+Treatment: z = 0.000; p = 1.000 <br>
+Background: z = 0.000; p = 1.000 <br>
+Treatment x Background: z = 0.001; p = 1.000 <br>
 
-#### 4b: Plot transformed data for total distance walked; run the Rmd chunk below.
+b>Coefficients of conditional general linear regressions by generation:</b><br>
+<b>F0</b>: <br>
+Background: z = 4.34; p < 0.001 <br>
 
-##### Plot transformed data: `figures/distance.jpeg`
+<b>F1</b>: <br>
+Treatment: z = -1.292; p = 0.196 <br>
+Background: z = 0.654; p = 0.513 <br>
+Treatment x Background : z = -0.597; p = 0.550 <br>
+
+<b>F2</b>: <br>
+Treatment: z = -3.752; p < 0.001 <br>
+Background: z = 0.280; p = 0.779361 <br>
+Treatment x Background: z = 2.330; p = 0.019791 <br>
+
+<b>F3</b>: <br>
+Treatment: z = -1.964; p = 0.0495 <br>
+Background: z = 0.929; p = 0.3528 <br>
+Treatment x Background: z = -0.820; p = 0.4122 <br>
+
+### STEP 5: Plot mobility data analyses
+
+#### 5a: Plot means and standard errors for proportion of larvae exhibiting mobility; run the Rmd chunk below.
+
+##### Plot probability data: `figures/mobility_probability.jpeg`
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# get sample size (n), mean or proportion, standard deviation (sd), and standard error (se) for herbivory by generation, background, and treatment for plotting
+mobility <- mobility %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(n = n(),
+            prop_mobility = sum(mobility)/n,
+            sd_mobility = sd(mobility),
+            se_mobility = sd_mobility/sqrt(n)) %>%
+  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
+         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+
+# isolate only F0 data
+f0 <- herbivory %>%
+  filter(larval_generation == "F0")
+
+# isolate only F0 data
+f1 <- herbivory %>%
+  filter(larval_generation == "F1")
+
+# isolate only F0 data
+f2 <- herbivory %>%
+  filter(larval_generation == "F2")
+
+# isolate only F0 data
+f3 <- herbivory %>%
+  filter(larval_generation == "F3")
+
+# plot f0 data
+f0_plot <- ggplot(f0, aes(x = background, y = prop_consumed, group = background, color = background)) +
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = background, y = prop_consumed, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Original exposure", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f1 data
+f1_plot <- ggplot(f1, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.title = element_text(size = 30)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  #theme(legend.text = element_text(size = 30)) +
+  #theme(legend.title = element_text(size = 30, face = "bold")) +
+  #theme(legend.key.size = unit(2, 'cm')) +
+  #theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  #theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  #theme(legend.position = c(0.05,0.2)) + 
+  labs(x = "Treatment", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f2 data
+f2_plot <- ggplot(f2, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f3 data
+f3_plot <- ggplot(f3, aes(x = treatment, y = prop_consumed, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_consumed - se_consumed, ymax = prop_consumed + se_consumed, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background),
+              position = position_dodge(width = 0.4), 
+              size = 7,
+              pch = 22,
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = "P(Herbivory)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all distance figures together
+jpeg("figures/herbivory_probability.jpeg", width = 17000, height = 15000, res = 1000)
+
+f0_plot + 
+  f1_plot + 
+  f2_plot + 
+  f3_plot + 
+  plot_layout(nrow = 2, ncol = 2)
+
+dev.off()
+```
+
+#### 5b: Plot means and standard errors for total distance walked; run the Rmd chunk below.
+
+##### Plot transformed data: `figures/mobility_means.jpeg`
 ```{r}
 # load distance mobility data
-load("data/distance.Rda")
+load("data/mobility.Rda")
 
 # calculate means, standard deviation, and standard error of square-root transformed data and recode background for plotting
-distance <- distance %>%
+mobility <- mobility %>%
   group_by(larval_generation, background, treatment) %>%
-  summarize(mean = mean(sqrt_distance),
-            sd = sd(sqrt_distance),
+  summarize(mean = mean(total_distance),
+            sd = sd(total_distance),
             n = n(),
             se = sd/sqrt(n)) %>%
   mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
          treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
 
 # isolate only F0 data
-f0 <- distance %>%
+f0 <- mobility %>%
   filter(larval_generation == "F0")
 
-# isolate only F0 data
-f1 <- distance %>%
+# isolate only F1 data
+f1 <- mobility %>%
   filter(larval_generation == "F1")
 
-# isolate only F0 data
-f2 <- distance %>%
+# isolate only F2 data
+f2 <- mobility %>%
   filter(larval_generation == "F2")
 
-# isolate only F0 data
-f3 <- distance %>%
+# isolate only F3 data
+f3 <- mobility %>%
   filter(larval_generation == "F3")
 
 # plot f0 data
@@ -520,15 +718,15 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
+  scale_y_continuous(breaks = seq(from = 0, to = 180, by = 20)) +
+  ylim(0,180) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  labs(x = "Original exposure", y = expression(sqrt("distance (mm)"))) +
+  labs(x = "Original exposure", "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
@@ -553,8 +751,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
+  scale_y_continuous(breaks = seq(from = 0, to = 180, by = 20)) +
+  ylim(0,180) +
   theme(axis.title = element_text(size = 30)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.x = element_blank()) +
@@ -566,7 +764,7 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
   #theme(legend.box.margin = margin(5, 10, 1, 10)) +
   #theme(legend.position = c(0.05,0.2)) + 
-  labs(x = "Treatment", y = expression(sqrt("distance (mm)")), fill = "Parental exposure", color = "Parental exposure") +
+  labs(x = "Treatment", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
@@ -591,13 +789,13 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
+  scale_y_continuous(breaks = seq(from = 0, to = 180, by = 20)) +
+  ylim(0,180) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
-  labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
+  labs(x = "Treatment", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
@@ -622,18 +820,18 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3)) +
-  ylim(0,15) +
+  scale_y_continuous(breaks = seq(from = 0, to = 180, by = 20)) +
+  ylim(0,180) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.title.y = element_blank()) +
-  labs(x = "Treatment", y = expression(sqrt("distance (mm)"))) +
+  labs(x = "Treatment", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all distance figures together
-jpeg("figures/distance.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/mobility_means.jpeg", width = 17000, height = 15000, res = 1000)
 
 f0_plot + 
   f1_plot + 
