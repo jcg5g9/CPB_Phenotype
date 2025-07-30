@@ -402,17 +402,19 @@ f3_mod <- glmmTMB(leaf_area_consumed ~ treatment*background + (1|lineage),
 
 # summarize f0 model
 summary(f0_mod) 
+df.residual(f0_mod)
 
 # summarize f1 model
 summary(f1_mod) 
+df.residual(f1_mod)
 
 # summarize f2 model
 summary(f2_mod) 
+df.residual(f2_mod)
 
 # summarize f3 model
 summary(f3_mod) 
-
-Anova(f3_mod)
+df.residual(f3_mod)
 ```
 
 <b>Analysis results:</b> <br>

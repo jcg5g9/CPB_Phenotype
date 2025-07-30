@@ -497,15 +497,20 @@ f3_mod <- glmmTMB(total_distance ~ treatment*background + (1|lineage),
 
 # summarize f0 model
 summary(f0_mod) 
+df.residual(f0_mod)
 
 # summarize f1 model
 summary(f1_mod) 
+df.residual(f1_mod)
 
 # summarize f2 model
 summary(f2_mod) 
+df.residual(f2_mod)
 
 # summarize f3 model
 summary(f3_mod) 
+df.residual(f3_mod)
+
 ```
 
 <b>Analysis results:</b> <br>
@@ -548,7 +553,7 @@ Treatment: z = -1.964; p = 0.0495 <br>
 Background: z = 0.929; p = 0.3528 <br>
 Treatment x Background: z = -0.820; p = 0.4122 <br>
 
-### STEP 5: Plot mobility data analyses
+### STEP 5: Plot mobility data analyses.
 
 #### 5a: Plot means and standard errors for proportion of larvae exhibiting mobility; run the Rmd chunk below.
 
