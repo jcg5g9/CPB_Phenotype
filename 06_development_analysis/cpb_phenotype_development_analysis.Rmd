@@ -143,14 +143,22 @@ In this step, we calculate mean, standard deviation, and variance for larval dev
 
 ##### Calculate summary statistics for larval development data:
 ```{r}
+# load pupa mass data
+load("data/pupa_mass.Rda")
+
 # load pupa time data
 load("data/pupa_time.Rda")
 
 # load pupa duration data
 load("data/pupa_duration.Rda")
 
-# load pupa mass data
-load("data/pupa_mass.Rda")
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
+pupa_mass %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(pupa_mass),
+            sd = sd(pupa_mass),
+            se = sd/sqrt(n()))
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for time to pupation by generation and treatment
 pupa_time %>%
@@ -167,14 +175,297 @@ pupa_duration %>%
             mean = mean(pupa_duration),
             sd = sd(pupa_duration),
             se = sd/sqrt(n()))
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
-pupa_mass %>%
-  group_by(larval_generation, background, treatment) %>% 
-  summarize(n = n(),
-            mean = mean(pupa_mass),
-            sd = sd(pupa_mass),
-            se = sd/sqrt(n()))
 ```
 
 These data are presented in Table 1 of the final ms.
+
+## PHASE 2: DEVELOPMENT ANALYSIS
+In this phase of the analysis, we assess differences in larval development metrics (i.e., pupal mass, time to pupation, and duration of pupation) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., development metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., development metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+
+### STEP 1: Analyze pupa mass data.
+
+#### 1a: Test fit of empirical pupa mass data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether pupa mass in each group of interest deviate from a normal distribution.
+
+##### Test fit of normality for pupa mass data:
+```{r}
+# load pupa mass data
+load("data/pupa_mass.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+pupa_mass %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(pupa_mass) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+F0_C_N: p = 0.57285112 <br>
+F0_E_N: p = 0.57285112 <br>
+F1_C_N: p = 0.24765605 <br>
+F1_C_R: p = 0.95436038 <br>
+F1_E_N: p = 0.34897630 <br>
+F1_E_R: p = 0.68958051 <br>
+F2_C_N: p = 0.14922714 <br>
+F2_C_R: p = 0.23095331 <br>
+F2_E_N: p = 0.52693347 <br>
+F2_E_R: p = 0.75231724 <br>
+F3_C_N: p = 0.15918717 <br>
+F3_C_R: p = 0.15079756 <br>
+F3_E_N: p = 0.19817161 <br>
+F3_E_R: p = 0.04852424 <br>
+
+Since no tests indicate a deviation from a normal distribution (p < 0.003), we assume these data are best fit by a normal distribtution for the data across groups of interest.
+
+### STEP 2: Analyze pupa time data.
+
+#### 2a: Test fit of normal distribution for pupa time data; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether pupa time in each group of interest deviate from a normal distribution.
+
+##### Test fit of normality for pupa time data:
+```{r}
+# load pupa time data
+load("data/pupa_time.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+pupa_time %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(pupa_time) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+
+pupa_time %>%
+  shapiro_test(pupa_time)
+
+ggplot(pupa_time, aes(pupa_time)) + geom_histogram(binwidth = 1)
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+F0_C_N: <b>p < 0.001</b><br>
+F0_E_N: <b>p < 0.001</b><br>
+F1_C_N: <b>p = 0.002</b><br>
+F1_C_R: p = 0.28535583147003<br>
+F1_E_N: p = 0.33676670438883<br>
+F1_E_R: <b>p < 0.001</b><br>
+F2_C_N: <b>p < 0.001</b><br>
+F2_C_R: <b>p < 0.001</b><br>
+F2_E_N: <b>p < 0.001</b><br>
+F2_E_R: p = 0.55785036394542<br>
+F3_C_N: <b>p < 0.001</b><br>
+F3_C_R: <b>p < 0.001</b><br>
+F3_E_N: p = 0.15940225860021<br>
+F3_E_R: p = 0.43241127674505<br>
+
+Since 9/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
+
+#### 2b: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+In this step, we plot the raw data distribution and test the fit of three potential distributions that commonly underlie count data (i.e., poisson, negative binomial, and binomial distributions), and determine the best fitting distribution for each group of interest.
+
+##### Test fit of alternative distributions:
+```{r}
+# load pupa time data
+load("data/pupa_time.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# Generate combined "group" factor, which includes larval generation, background, and treatment, to test distributions within each group of interest.
+pupa_time <- pupa_time %>%
+  unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+# generate list of levels within group factor
+levels <- levels(pupa_time$group)
+
+# define empty lists to hold statistics for each distribution test
+norm <- list()
+pois <- list() 
+nbin <- list()
+lnor <- list()
+weib <- list()
+geom <- list()
+
+# Write for loop to fit each distribution to data, iterating through group levels (i)
+for(i in levels) {
+  
+  # generate subsets of data for each group level
+  subset <- pupa_time[pupa_time$group == i, ]
+  
+  # fit distributions to leaf area for each subset
+  fit_norm <- fitdist(subset$pupa_time, "norm") 
+  fit_lnor <- fitdist(subset$pupa_time, "lnorm")
+  fit_weib <- fitdist(subset$pupa_time, "weibull")
+  fit_pois <- fitdist(subset$pupa_time, "pois") 
+  fit_nbin <- fitdist(subset$pupa_time, "nbinom") 
+  
+  # fill list with fit results for each distribution
+  norm[[i]] <- fit_norm
+  lnor[[i]] <- fit_lnor
+  weib[[i]] <- fit_weib
+  pois[[i]] <- fit_pois 
+  nbin[[i]] <- fit_nbin
+  
+}
+
+# Get table of distribution stats for F0 C N group
+stats_1 <- data_frame(F0_C_N = gofstat(list(norm$F0_C_N,
+                                            lnor$F0_C_N,
+                                            weib$F0_C_N,
+                                            pois$F0_C_N, 
+                                            nbin$F0_C_N))$aic)
+
+# Get table of distribution stats for F0 E N group
+stats_2 <- data_frame(F0_E_N = gofstat(list(norm$F0_E_N,
+                                            lnor$F0_E_N,
+                                            weib$F0_E_N,
+                                            geom$F0_E_N,
+                                            pois$F0_E_N, 
+                                            nbin$F0_E_N))$aic)
+
+# Get table of distribution stats for F1 C N group
+stats_3 <- data_frame(F1_C_N = gofstat(list(norm$F1_C_N, 
+                                            pois$F1_C_N, 
+                                            nbin$F1_C_N))$aic)
+
+# Get table of distribution stats for F1 C R group
+stats_4 <- data_frame(F1_C_R = gofstat(list(norm$F1_C_R, 
+                                            pois$F1_C_R, 
+                                            nbin$F1_C_R))$aic)
+         
+# Get table of distribution stats for F1 E N group
+stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N, 
+                                            pois$F1_E_N, 
+                                            nbin$F1_E_N))$aic)
+
+# Get table of distribution stats for F1 E R group
+stats_6 <- data_frame(F1_E_R = gofstat(list(norm$F1_E_R, 
+                                            pois$F1_E_R, 
+                                            nbin$F1_E_R))$aic)
+
+# Get table of distribution stats for F2 C N group
+stats_7 <- data_frame(F2_C_N = gofstat(list(norm$F2_C_N, 
+                                            pois$F2_C_N, 
+                                            nbin$F2_C_N))$aic)
+
+# Get table of distribution stats for F2 C R group
+stats_8 <- data_frame(F2_C_R = gofstat(list(norm$F2_C_R, 
+                                            pois$F2_C_R, 
+                                            nbin$F2_C_R))$aic)
+
+# Get table of distribution stats for F2 E N group
+stats_9 <- data_frame(F2_E_N = gofstat(list(norm$F2_E_N, 
+                                            pois$F2_E_N, 
+                                            nbin$F2_E_N))$aic)
+
+# Get table of distribution stats for F2 E R group
+stats_10 <- data_frame(F2_E_R = gofstat(list(norm$F2_E_R, 
+                                             pois$F2_E_R, 
+                                             nbin$F2_E_R))$aic)
+
+# Get table of distribution stats for F3 C N group
+stats_11 <- data_frame(F3_C_N = gofstat(list(norm$F3_C_N, 
+                                             pois$F3_C_N, 
+                                             nbin$F3_C_N))$aic)
+
+# Get table of distribution stats for F3 C R group
+stats_12 <- data_frame(F3_C_R = gofstat(list(norm$F3_C_R, 
+                                             pois$F3_C_R, 
+                                             nbin$F3_C_R))$aic)
+
+# Get table of distribution stats for F3 E N group
+stats_13 <- data_frame(F3_E_N = gofstat(list(norm$F3_E_N, 
+                                             pois$F3_E_N, 
+                                             nbin$F3_E_N))$aic)
+
+# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate exposon statistics)
+stats_14 <- data_frame(F3_E_R = gofstat(list(norm$F3_E_R,
+                                             pois$F3_E_R, 
+                                             nbin$F3_E_R)))
+
+# combine all stats into a single table and add a first column with the name of the distribution being tested
+stats <- cbind(distribution = c("uniform", "normal", "gamma", "expo", "beta"), 
+               stats_1, 
+               stats_2, 
+               stats_3, 
+               stats_4,
+               stats_5, 
+               stats_6, 
+               stats_7,
+               stats_8, 
+               stats_9, 
+               stats_10, 
+               stats_11, 
+               stats_12, 
+               stats_13, 
+               stats_14)
+
+# Run global distribution to test if gamma is best fitting
+
+# Run individual global distributions 
+norm <- fitdist(pupa_time$pupa_time, "norm")
+pois <- fitdist(pupa_time$pupa_time, "pois")
+nbin <- fitdist(pupa_time$pupa_time, "nbinom")
+
+# compare AIC values 
+gofstat(list(norm, 
+             pois,
+             nbin),
+        fitnames = c("normal",
+                     "poisson",
+                     "negative binomial"))$aic
+
+# save gamma distribution object for plotting
+save(gamm, file = "data/gamma.Rda")
+```
+
+### STEP 3: Analyze pupa duration data.
+
+#### 2a: Test fit of normal distribution for pupa duration data; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether pupa duration in each group of interest deviate from a normal distribution.
+
+##### Test fit of normality for pupa duration data:
+```{r}
+# load pupa duration data
+load("data/pupa_duration.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
+pupa_duration %>%
+  group_by(larval_generation, background, treatment) %>%
+  shapiro_test(pupa_duration) %>%
+  mutate(alpha = 0.003) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+F0_C_N: <b>p < 0.001</b><br>
+F0_E_N: <b>p < 0.001</b><br>
+F1_C_N: <b>p = 0.002</b><br>
+F1_C_R: p = 0.28535583147003<br>
+F1_E_N: p = 0.33676670438883<br>
+F1_E_R: <b>p < 0.001</b><br>
+F2_C_N: <b>p < 0.001</b><br>
+F2_C_R: <b>p < 0.001</b><br>
+F2_E_N: <b>p < 0.001</b><br>
+F2_E_R: p = 0.55785036394542<br>
+F3_C_N: <b>p < 0.001</b><br>
+F3_C_R: <b>p < 0.001</b><br>
+F3_E_N: p = 0.15940225860021<br>
+F3_E_R: p = 0.43241127674505<br>
+
+Since 9/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
