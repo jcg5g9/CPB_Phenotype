@@ -12,8 +12,8 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in larval herbivory (i.e., total leaf tissue consumed) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: Data Summary Statistics
-### Phase 2: 
+### Phase 1: Data summary statistics
+### Phase 2: Herbivory analysis
 
 ### Libraries needed for analysis:
 ```{r}
@@ -28,7 +28,6 @@ library(scales)
 library(lmerTest)
 library(fitdistrplus)
 library(forcats)
-library(emmeans)
 library(patchwork)
 library(glmmTMB)
 ```

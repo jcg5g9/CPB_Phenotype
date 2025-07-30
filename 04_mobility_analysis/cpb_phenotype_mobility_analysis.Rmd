@@ -12,8 +12,8 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in larval mobility (i.e., total distance walked, average walking rate, and average walking acceleration) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: Data Summary Statistics
-### Phase 2: Mobility Analysis
+### Phase 1: Data summary statistics
+### Phase 2: Mobility analysis
 
 ### Libraries needed for analysis:
 ```{r}
@@ -78,6 +78,8 @@ rsq.lmm(speed_accel) # get r-squared values
 <b>distance and speed: F = 33932; p < 0.0001; r-squared = 0.9887 </b><br>
 <b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
 <b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
+
+Given that all pairwise metrics are highly correlated, we opted to use only a single metric as a proxy for larval mobility, i.e., total distance walked. All downstream analyses were conducted for only these data.
 
 #### 1b: Plot correlations; run the Rmd chunk below.
 
@@ -149,10 +151,7 @@ speed_accel <- ggplot(mobility, aes(x = ave_speed, y = ave_accel)) +
 # plot all together
 jpeg("figures/correlations.jpeg", width = 25000, height = 8000, res = 1000)
 
-distance_speed + 
-  distance_accel + 
-  speed_accel + 
-  plot_layout(nrow = 1, ncol = 3)
+distance_speed + distance_accel + speed_accel + plot_layout(nrow = 1, ncol = 3)
 
 dev.off()
 ```
@@ -720,11 +719,7 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = prop_moved, group = background, col
 # plot all mobility figures together
 jpeg("figures/mobility_probability.jpeg", width = 17000, height = 15000, res = 1000)
 
-f0_plot + 
-  f1_plot + 
-  f2_plot + 
-  f3_plot + 
-  plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```
@@ -894,11 +889,7 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
 # plot all distance figures together
 jpeg("figures/mobility_means.jpeg", width = 17000, height = 15000, res = 1000)
 
-f0_plot + 
-  f1_plot + 
-  f2_plot + 
-  f3_plot + 
-  plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```

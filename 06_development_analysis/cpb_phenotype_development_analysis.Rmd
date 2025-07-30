@@ -12,8 +12,8 @@ output: html_document
 <font size="+1">In this analysis, we assess differences in larval development (i.e., time to pupation, time from pupae to adult emergence, pupal mass, and adult mass) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
 
 ## Phases of Analysis
-### Phase 1: Data Summary Statistics
-### Phase 2: 
+### Phase 1: Data summary statistics
+### Phase 2: Development analysis
 
 ### Libraries needed for analysis
 ```{r}
@@ -21,65 +21,23 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
+library(rstatix)
+library(lme4)
+library(rsq)
+library(scales)
+library(fitdistrplus)
+library(forcats)
+library(patchwork)
+library(glmmTMB)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
 In this phase of the analysis, we calculate mean, standard deviation, and variance for all metrics (including also pupal mass and adult mass) within experimental groups of interest.
 
-### STEP 1: Calculate summary statistics for larval development data; run the Rmd chunk below.
-In this step, we calculate mean, standard deviation, and variance for larval development metrics (i.e., time to pupation, pupation duration, pupal mass, and adult mass) for all experimental groups.
-
-##### Calculate summary statistics for larval development data:
-```{r}
-# load pupa time data
-load("data/pupa_time.Rda")
-
-# load pupa duration data
-load("data/pupa_duration.Rda")
-
-# load pupa mass data
-load("data/pupa_mass.Rda")
-
-# load adult mass data
-load("data/adult_mass.Rda")
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for time to pupation by generation and treatment
-pupa_time %>%
-  group_by(larval_generation, background, treatment) %>% 
-  summarize(n = n(),
-            mean = mean(pupa_time),
-            sd = sd(pupa_time),
-            se = sd/sqrt(n()))
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
-pupa_duration %>%
-  group_by(larval_generation, background, treatment) %>% 
-  summarize(n = n(),
-            mean = mean(pupa_duration),
-            sd = sd(pupa_duration),
-            se = sd/sqrt(n()))
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
-pupa_mass %>%
-  group_by(larval_generation, background, treatment) %>% 
-  summarize(n = n(),
-            mean = mean(pupa_mass),
-            sd = sd(pupa_mass),
-            se = sd/sqrt(n()))
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
-adult_mass %>%
-  group_by(larval_generation, background, treatment) %>% 
-  summarize(n = n(),
-            mean = mean(adult_mass),
-            sd = sd(adult_mass),
-            se = sd/sqrt(n()))
-```
-
-### STEP 2: Test for pairwise correlations between mobility metrics.
+### STEP 1: Test for pairwise correlations between development metrics.
 In this step, we test whether development metrics with similar units and measured in the same individuals (i.e., pupal mass vs. adult mass; time to pupation vs. pupation duration) are tightly correlated. Assessing differences between groups in highly correlated variables is redundant for addressing experimental questions. In the event that multiple variables are highly correlated, they do not all need to be analyzed.
 
-#### 2a: Test for correlations between each pair of variables using a linear mixed effect model framework; run the Rmd chunk below.
+#### 1a: Test for correlations between each pair of variables using a linear mixed effect model framework; run the Rmd chunk below.
 
 ##### Test for correlations between variables:
 ```{r}
@@ -98,7 +56,7 @@ mass <- lmer(pupa_mass ~ adult_mass + (1|lineage),
 
 # test for correlation between total distance walked and average acceleration
 time <- lmer(pupa_time ~ pupa_duration + (1|lineage),
-                       data = development)
+             data = development)
 
 # summarize model results for mass metrics
 anova(mass) # get F values
@@ -114,11 +72,12 @@ rsq.lmm(time) # get r-squared values
 <b>Analysis results:</b> <br>
 
 <b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
-<b>distance and speed: F = 33932; p < 0.0001; r-squared = 0.9887 </b><br>
-<b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
-<b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
+<b>pupa mass and adult mass: F = 696.17; p < 0.0001; r-squared = 0.7527678 </b><br>
+<b>pupation time and pupa duration: F = 3.0383; p = 0.08132; r-squared = 0.06688807 </b><br>
 
-#### 2b: Plot correlations; run the Rmd chunk below.
+Given that pupal and adult mass are are significantly correlated, we opted to use only a single metric as a proxy for individual mass, i.e., pupa mass (we chose pupa mass since many individuals that pupated did not make it to adult emergence and we therefore had a larger dataset). Time to pupation and duration of pupation were not significantly correlated, so we analyzed both of these metrics. Downstream analyses were therefore conducted for pupa mass, pupa time, and pupa duration.
+
+#### 1b: Plot correlations; run the Rmd chunk below.
 
 ##### Plot correlations: `figures/correlations.jpeg`
 ```{r}
@@ -153,7 +112,7 @@ mass <- ggplot(development, aes(x = pupa_mass, y = adult_mass)) +
 
 # plot time correlation
 time <- ggplot(development, aes(x = pupa_time, y = pupa_duration)) + 
-  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black", position = position_jitter()) + 
   geom_smooth(method = "lm", color = "black", fullrange = T) +
   theme_set(theme_cowplot(12)) +
   scale_fill_manual(values = c("grey")) +
@@ -174,12 +133,48 @@ time <- ggplot(development, aes(x = pupa_time, y = pupa_duration)) +
 # plot all together
 jpeg("figures/correlations.jpeg", width = 18000, height = 8000, res = 1000)
 
-plot_grid(mass,
-          time, 
-          nrow = 1,
-          ncol = 2,
-          labels = c("a","b"),
-          label_size = 40)
+mass + time + plot_layout(nrow = 1, ncol = 2)
 
 dev.off()
 ```
+
+### STEP 2: Calculate summary statistics for larval development data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for larval development metrics (i.e., time to pupation, pupation duration, pupal mass, and adult mass) for all experimental groups.
+
+##### Calculate summary statistics for larval development data:
+```{r}
+# load pupa time data
+load("data/pupa_time.Rda")
+
+# load pupa duration data
+load("data/pupa_duration.Rda")
+
+# load pupa mass data
+load("data/pupa_mass.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for time to pupation by generation and treatment
+pupa_time %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(pupa_time),
+            sd = sd(pupa_time),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
+pupa_duration %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(pupa_duration),
+            sd = sd(pupa_duration),
+            se = sd/sqrt(n()))
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for pupation duration by generation and treatment
+pupa_mass %>%
+  group_by(larval_generation, background, treatment) %>% 
+  summarize(n = n(),
+            mean = mean(pupa_mass),
+            sd = sd(pupa_mass),
+            se = sd/sqrt(n()))
+```
+
+These data are presented in Table 1 of the final ms.
