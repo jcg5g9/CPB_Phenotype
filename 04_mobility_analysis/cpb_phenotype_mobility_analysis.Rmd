@@ -416,9 +416,6 @@ The data in the majority of groups were best fit to a Gamma distribution, but th
 # load mobility data
 load("data/mobility.Rda")
 
-# load gamma distribution
-load("data/gamma.Rda")
-
 # plot distribution
 jpeg("figures/distribution.jpeg", width = 5000, height = 4000, res = 500)
 

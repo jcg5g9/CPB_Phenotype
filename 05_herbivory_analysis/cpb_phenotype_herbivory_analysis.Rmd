@@ -246,37 +246,6 @@ stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
                                              gamm$F3_E_R,
                                              expo$F3_E_R,
                                              beta$F3_E_R)))
-f3er <- herbivory %>%
-  filter(group == "F3_E_R")
-
-fit_unif <- fitdist(f3er$leaf_area_consumed, "unif")
-fit_norm <- fitdist(f3er$leaf_area_consumed, "norm")
-fit_gamm <- fitdist(f3er$leaf_area_consumed, "gamma")
-fit_expo <- fitdist(f3er$leaf_area_consumed, "exp")
-fit_beta <- fitdist(f3er$leaf_area_consumed, "beta")
-
-fit_unif$aic
-fit_norm$aic
-fit_gamm$aic
-fit_expo$aic
-fit_beta$aic
-
-# combine all stats into a single table and add a first column with the name of the distribution being tested
-stats <- cbind(distribution = c("uniform", "normal", "gamma", "expo", "beta"), 
-               stats_1, 
-               stats_2, 
-               stats_3, 
-               stats_4,
-               stats_5, 
-               stats_6, 
-               stats_7,
-               stats_8, 
-               stats_9, 
-               stats_10, 
-               stats_11, 
-               stats_12, 
-               stats_13, 
-               stats_14)
 
 # Run global distribution to test if gamma is best fitting
 

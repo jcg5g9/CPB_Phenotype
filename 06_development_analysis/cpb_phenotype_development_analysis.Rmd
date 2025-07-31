@@ -28,7 +28,6 @@ library(scales)
 library(fitdistrplus)
 library(forcats)
 library(patchwork)
-library(glmmTMB)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -223,7 +222,34 @@ F3_E_R: p = 0.04852424 <br>
 
 Since no tests indicate a deviation from a normal distribution (p < 0.003), we assume these data are best fit by a normal distribution for the data across groups of interest.
 
-#### 1b: 
+#### 1b: Plot empirical data distribution; run the Rmd chunk below.
+
+##### Plot empirical data distribution for pupa mass: `figures/mass_distribution.jpeg`
+```{r}
+# load pupa mass data
+load("data/pupa_mass.Rda")
+
+# plot distribution
+jpeg("figures/mass_distribution.jpeg", width = 5000, height = 4000, res = 500)
+
+ggplot(pupa_mass, aes(x = pupa_mass)) +
+  geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 240, by = 20)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 25, by = 5)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  xlab("Pupa mass (mg)") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
 
 ### STEP 2: Analyze pupa time data.
 
@@ -338,7 +364,7 @@ stats_4 <- data_frame(F1_C_R = gofstat(list(norm$F1_C_R,
                                             weib$F1_C_R,
                                             pois$F1_C_R, 
                                             nbin$F1_C_R))$aic)
-         
+
 # Get table of distribution stats for F1 E N group
 stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N, 
                                             lnor$F1_E_N, 
@@ -468,7 +494,36 @@ gofstat(list(norm,
 | F3_E_R    | 28.573           | <b>28.230</b>    | 29.415            | 33.712             | 35.712            |
 | Global    | 1355.923         | <b>1235.982</b>  | 1461.471          | 1392.147           | 1394.148          |
 
-The data in all but one group were best fit to a log-normal distribution. The best fitting distribution to the global dataset across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given the majority.
+The data in all but one group were best fit to a log-normal distribution. The best fitting distribution to the global data set across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given the majority.
+
+#### 2c: Plot empirical data distribution; run the Rmd chunk below.
+
+##### Plot empirical data distribution for pupa time: `figures/pupa_time_distribution.jpeg`
+```{r}
+# load pupa time data
+load("data/pupa_time.Rda")
+
+# plot distribution
+jpeg("figures/pupa_time_distribution.jpeg", width = 5000, height = 4000, res = 500)
+
+ggplot(pupa_time, aes(x = pupa_time)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 35, by = 5)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 10)) +
+  xlab("Time to pupation (days)") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
 
 ### STEP 3: Analyze pupa duration data.
 
@@ -490,7 +545,6 @@ pupa_duration %>%
   shapiro_test(pupa_duration) %>%
   mutate(alpha = 0.003) %>%
   mutate(deviates = ifelse(p < alpha, "yes", "no"))
-
 ```
 
 <b>Analysis results:</b> <br>
@@ -532,6 +586,7 @@ levels <- levels(pupa_duration$group)
 # define empty lists to hold statistics for each distribution test
 norm <- list()
 lnor <- list()
+weib <- list()
 pois <- list() 
 nbin <- list()
 
@@ -544,12 +599,14 @@ for(i in levels) {
   # fit distributions to leaf area for each subset
   fit_norm <- fitdist(subset$pupa_duration, "norm") 
   fit_lnor <- fitdist(subset$pupa_duration, "lnorm")
+  fit_weib <- fitdist(subset$pupa_duration, "weibull")
   fit_pois <- fitdist(subset$pupa_duration, "pois") 
   fit_nbin <- fitdist(subset$pupa_duration, "nbinom") 
   
   # fill list with fit results for each distribution
   norm[[i]] <- fit_norm
   lnor[[i]] <- fit_lnor
+  weib[[i]] <- fit_weib
   pois[[i]] <- fit_pois 
   nbin[[i]] <- fit_nbin
   
@@ -558,23 +615,9 @@ for(i in levels) {
 # Get table of distribution stats for F0 C N group
 stats_1 <- data_frame(F0_C_N = gofstat(list(norm$F0_C_N,
                                             lnor$F0_C_N,
+                                            weib$F0_C_N,
                                             pois$F0_C_N, 
                                             nbin$F0_C_N))$aic)
-
-focn <- pupa_duration %>%
-  filter(group == "F0_C_N")
-
-fit_norm <- fitdist(focn$pupa_duration, "norm")
-fit_lnor <- fitdist(focn$pupa_duration, "lnorm")
-fit_weib <- fitdist(focn$pupa_duration, "weibull")
-fit_pois <- fitdist(focn$pupa_duration, "pois")
-fit_nbin <- fitdist(focn$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
 
 # Get table of distribution stats for F0 E N group
 stats_2 <- data_frame(F0_E_N = gofstat(list(norm$F0_E_N,
@@ -582,62 +625,17 @@ stats_2 <- data_frame(F0_E_N = gofstat(list(norm$F0_E_N,
                                             pois$F0_E_N, 
                                             nbin$F0_E_N))$aic)
 
-foen <- pupa_duration %>%
-  filter(group == "F0_E_N")
-
-fit_norm <- fitdist(foen$pupa_duration, "norm")
-fit_lnor <- fitdist(foen$pupa_duration, "lnorm")
-fit_weib <- fitdist(foen$pupa_duration, "weibull")
-fit_pois <- fitdist(foen$pupa_duration, "pois")
-fit_nbin <- fitdist(foen$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
 # Get table of distribution stats for F1 C N group
 stats_3 <- data_frame(F1_C_N = gofstat(list(norm$F1_C_N,
                                             lnor$F1_C_N,
                                             pois$F1_C_N, 
                                             nbin$F1_C_N))$aic)
 
-f1cn <- pupa_duration %>%
-  filter(group == "F1_C_N")
-
-fit_norm <- fitdist(f1cn$pupa_duration, "norm")
-fit_lnor <- fitdist(f1cn$pupa_duration, "lnorm")
-fit_weib <- fitdist(f1cn$pupa_duration, "weibull")
-fit_pois <- fitdist(f1cn$pupa_duration, "pois")
-fit_nbin <- fitdist(f1cn$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
 # Get table of distribution stats for F1 C R group
 stats_4 <- data_frame(F1_C_R = gofstat(list(norm$F1_C_R, 
                                             lnor$F1_C_R,
                                             pois$F1_C_R, 
                                             nbin$F1_C_R))$aic)
-
-f1cr <- pupa_duration %>%
-  filter(group == "F1_C_R")
-
-fit_norm <- fitdist(f1cr$pupa_duration, "norm")
-fit_lnor <- fitdist(f1cr$pupa_duration, "lnorm")
-fit_weib <- fitdist(f1cr$pupa_duration, "weibull")
-fit_pois <- fitdist(f1cr$pupa_duration, "pois")
-fit_nbin <- fitdist(f1cr$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
          
 # Get table of distribution stats for F1 E N group
 stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N, 
@@ -645,41 +643,11 @@ stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N,
                                             pois$F1_E_N,
                                             nbin$F1_E_N))$aic)
 
-f1en <- pupa_duration %>%
-  filter(group == "F1_E_N")
-
-fit_norm <- fitdist(f1en$pupa_duration, "norm")
-fit_lnor <- fitdist(f1en$pupa_duration, "lnorm")
-fit_weib <- fitdist(f1en$pupa_duration, "weibull")
-fit_pois <- fitdist(f1en$pupa_duration, "pois")
-fit_nbin <- fitdist(f1en$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
 # Get table of distribution stats for F1 E R group
 stats_6 <- data_frame(F1_E_R = gofstat(list(norm$F1_E_R, 
                                             lnor$F1_E_R,
                                             pois$F1_E_R,
                                             nbin$F1_E_R))$aic)
-
-f1er <- pupa_duration %>%
-  filter(group == "F1_E_R")
-
-fit_norm <- fitdist(f1er$pupa_duration, "norm")
-fit_lnor <- fitdist(f1er$pupa_duration, "lnorm")
-fit_weib <- fitdist(f1er$pupa_duration, "weibull")
-fit_pois <- fitdist(f1er$pupa_duration, "pois")
-fit_nbin <- fitdist(f1er$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
 
 # Get table of distribution stats for F2 C N group
 stats_7 <- data_frame(F2_C_N = gofstat(list(norm$F2_C_N, 
@@ -687,41 +655,11 @@ stats_7 <- data_frame(F2_C_N = gofstat(list(norm$F2_C_N,
                                             pois$F2_C_N,
                                             nbin$F2_C_N))$aic)
 
-f2cn <- pupa_duration %>%
-  filter(group == "F2_C_N")
-
-fit_norm <- fitdist(f2cn$pupa_duration, "norm")
-fit_lnor <- fitdist(f2cn$pupa_duration, "lnorm")
-fit_weib <- fitdist(f2cn$pupa_duration, "weibull")
-fit_pois <- fitdist(f2cn$pupa_duration, "pois")
-fit_nbin <- fitdist(f2cn$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
 # Get table of distribution stats for F2 C R group
 stats_8 <- data_frame(F2_C_R = gofstat(list(norm$F2_C_R, 
                                             lnor$F2_C_R,
                                             pois$F2_C_R,
                                             nbin$F2_C_R))$aic)
-
-f2cr <- pupa_duration %>%
-  filter(group == "F2_C_R")
-
-fit_norm <- fitdist(f2cr$pupa_duration, "norm")
-fit_lnor <- fitdist(f2cr$pupa_duration, "lnorm")
-fit_weib <- fitdist(f2cr$pupa_duration, "weibull")
-fit_pois <- fitdist(f2cr$pupa_duration, "pois")
-fit_nbin <- fitdist(f2cr$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
 
 # Get table of distribution stats for F2 E N group
 stats_9 <- data_frame(F2_E_N = gofstat(list(norm$F2_E_N, 
@@ -729,42 +667,11 @@ stats_9 <- data_frame(F2_E_N = gofstat(list(norm$F2_E_N,
                                             pois$F2_E_N,
                                             nbin$F2_E_N))$aic)
 
-f2en <- pupa_duration %>%
-  filter(group == "F2_E_N")
-
-fit_norm <- fitdist(f2en$pupa_duration, "norm")
-fit_lnor <- fitdist(f2en$pupa_duration, "lnorm")
-fit_weib <- fitdist(f2en$pupa_duration, "weibull")
-fit_pois <- fitdist(f2en$pupa_duration, "pois")
-fit_nbin <- fitdist(f2en$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
-
 # Get table of distribution stats for F2 E R group
 stats_10 <- data_frame(F2_E_R = gofstat(list(norm$F2_E_R, 
                                              lnor$F2_E_R,
                                              pois$F2_E_R,
                                              nbin$F2_E_R))$aic)
-
-f2er <- pupa_duration %>%
-  filter(group == "F2_E_R")
-
-fit_norm <- fitdist(f2er$pupa_duration, "norm")
-fit_lnor <- fitdist(f2er$pupa_duration, "lnorm")
-fit_weib <- fitdist(f2er$pupa_duration, "weibull")
-fit_pois <- fitdist(f2er$pupa_duration, "pois")
-fit_nbin <- fitdist(f2er$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
 
 # Get table of distribution stats for F3 C N group
 stats_11 <- data_frame(F3_C_N = gofstat(list(norm$F3_C_N, 
@@ -772,41 +679,11 @@ stats_11 <- data_frame(F3_C_N = gofstat(list(norm$F3_C_N,
                                              pois$F3_C_N,
                                              nbin$F3_C_N))$aic)
 
-f3cn <- pupa_duration %>%
-  filter(group == "F3_C_N")
-
-fit_norm <- fitdist(f3cn$pupa_duration, "norm")
-fit_lnor <- fitdist(f3cn$pupa_duration, "lnorm")
-fit_weib <- fitdist(f3cn$pupa_duration, "weibull")
-fit_pois <- fitdist(f3cn$pupa_duration, "pois")
-fit_nbin <- fitdist(f3cn$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
 # Get table of distribution stats for F3 C R group
 stats_12 <- data_frame(F3_C_R = gofstat(list(norm$F3_C_R, 
                                              lnor$F3_C_R,
                                              pois$F3_C_R,
                                              nbin$F3_C_R))$aic)
-
-f3cr <- pupa_duration %>%
-  filter(group == "F3_C_R")
-
-fit_norm <- fitdist(f3cr$pupa_duration, "norm")
-fit_lnor <- fitdist(f3cr$pupa_duration, "lnorm")
-fit_weib <- fitdist(f3cr$pupa_duration, "weibull")
-fit_pois <- fitdist(f3cr$pupa_duration, "pois")
-fit_nbin <- fitdist(f3cr$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
 
 # Get table of distribution stats for F3 E N group
 stats_13 <- data_frame(F3_E_N = gofstat(list(norm$F3_E_N, 
@@ -814,42 +691,11 @@ stats_13 <- data_frame(F3_E_N = gofstat(list(norm$F3_E_N,
                                              pois$F3_E_N,
                                              nbin$F3_E_N))$aic)
 
-f3en <- pupa_duration %>%
-  filter(group == "F3_E_N")
-
-fit_norm <- fitdist(f3en$pupa_duration, "norm")
-fit_lnor <- fitdist(f3en$pupa_duration, "lnorm")
-fit_weib <- fitdist(f3en$pupa_duration, "weibull")
-fit_pois <- fitdist(f3en$pupa_duration, "pois")
-fit_nbin <- fitdist(f3en$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
-# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate exposon statistics)
+# Get table of distribution stats for F3 E R group 
 stats_14 <- data_frame(F3_E_R = gofstat(list(norm$F3_E_R,
                                              lnor$F3_E_R,
                                              pois$F3_E_R,
                                              nbin$F3_E_R)))
-
-f3er <- pupa_duration %>%
-  filter(group == "F3_E_R")
-
-fit_norm <- fitdist(f3er$pupa_duration, "norm")
-fit_lnor <- fitdist(f3er$pupa_duration, "lnorm")
-fit_weib <- fitdist(f3er$pupa_duration, "weibull")
-fit_pois <- fitdist(f3er$pupa_duration, "pois")
-fit_nbin <- fitdist(f3er$pupa_duration, "nbinom")
-
-fit_norm$aic
-fit_lnor$aic
-fit_weib$aic
-fit_pois$aic
-fit_nbin$aic
-
 
 # combine all stats into a single table and add a first column with the name of the distribution being tested
 stats <- cbind(distribution = c("normal", "lognormal", "poisson", "negative binomial"), 
@@ -878,10 +724,12 @@ nbin <- fitdist(pupa_duration$pupa_duration, "nbinom")
 # compare AIC values 
 gofstat(list(norm, 
              lnor,
+             weib,
              pois,
              nbin),
         fitnames = c("normal",
                      "log-normal",
+                     "weibull",
                      "poisson",
                      "negative binomial"))$aic
 ```
@@ -890,20 +738,49 @@ gofstat(list(norm,
 
 | Group     | Normal           | Log-normal       | Weibull           | Poisson            | Negative binomial |
 |:----------|:-----------------|:-----------------|:----------------- | :----------------- |:----------------- |
-| F0_C_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F0_E_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F1_C_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F1_C_R    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F1_E_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F1_E_R    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F2_C_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F2_C_R    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F2_E_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F2_E_R    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F3_C_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F3_C_R    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F3_E_N    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| F3_E_R    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
-| Global    | 0000000          | 0000000          | 0000000           | 0000000            | 0000000           |
+| F0_C_N    | <b>88.123</b>    | 88.316           | 85.960            | 220.863            | 222.863           |
+| F0_E_N    | 65.629           | 66.391           | <b>64.817</b>     | 145.125            | 147.125           |
+| F1_C_N    | 51.473           | <b>49.788</b>    | 58.411            | 90.555             | 92.555            |
+| F1_C_R    | 43.516           | <b>39.450</b>    | 47.112            | 50.066             | 52.066            |
+| F1_E_N    | <b>39.916</b>    | 40.246           | 41.892            | 86.242             | 88.242            |
+| F1_E_R    | 44.345           | 45.537           | <b>43.378</b>     | 60.377             | 62.377            |
+| F2_C_N    | <b>34.627</b>    | 34.889           | 36.104            | 68.412             | 70.412            |
+| F2_C_R    | 18.108           | 18.445           | <b>16.722</b>     | 38.301             | 40.301            |
+| F2_E_N    | 37.876           | 43.613           | <b>33.130</b>     | 50.913             | 52.913            |
+| F2_E_R    | <b>12.979</b>    | 25.809           | NA                | 42.231             | 44.231            |
+| F3_C_N    | <b>26.342</b>    | 26.581           | 26.501            | 43.141             | 45.141            |
+| F3_C_R    | 32.771           | <b>30.745</b>    | 35.041            | 40.880             | 42.880            |
+| F3_E_N    | 33.736           | 34.573           | <b>32.478</b>     | 54.866             | 56.866            |
+| F3_E_R    | 27.450           | 30.566           | 27.083            | <b>26.866</b>      | 28.866            |
+| Global    | <b>640.818</b>   | 688.246          | 700.272           | 999.525            | 1001.525          |
 
-The data in all but one group were best fit to a log-normal distribution. The best fitting distribution to the global dataset across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given the majority.
+The data were best fit to different underlying distributions, dependent on group. Some groups were best fit with normal, log-normal, weibull, or poisson distributions. The majority of groups were fit to either a normal or weibull distribution. However, the best fitting distribution to the global dataset across groups was normal. We therefore opted to assume a normal distribution in all linear model analyses.
+
+#### 3c: Plot empirical data distribution; run the Rmd chunk below.
+
+##### Plot empirical data distribution for pupa duration: `figures/pupa_duration_distribution.jpeg`
+```{r}
+# load pupa time data
+load("data/pupa_duration.Rda")
+
+# plot distribution
+jpeg("figures/pupa_duration_distribution.jpeg", width = 5000, height = 4000, res = 500)
+
+ggplot(pupa_duration, aes(x = pupa_duration)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 15, by = 5)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20)) +
+  xlab("Duration of pupation (days)") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
