@@ -230,9 +230,6 @@ In this step, we plot the raw data distribution and test the fit of four potenti
 # load mobility data
 load("data/mobility.Rda")
 
-# set to show decimals rather than scientific notation for p-value assessments
-options(scipen = 999)
-
 # Generate combined "group" factor, which includes larval generation, background, and treatment, to test distributions within each group of interest.
 mobility <- mobility %>%
   unite(group, larval_generation, c(background, treatment), sep = "_", remove = F) %>%
