@@ -221,7 +221,9 @@ F3_C_R: p = 0.15079756 <br>
 F3_E_N: p = 0.19817161 <br>
 F3_E_R: p = 0.04852424 <br>
 
-Since no tests indicate a deviation from a normal distribution (p < 0.003), we assume these data are best fit by a normal distribtution for the data across groups of interest.
+Since no tests indicate a deviation from a normal distribution (p < 0.003), we assume these data are best fit by a normal distribution for the data across groups of interest.
+
+#### 1b: 
 
 ### STEP 2: Analyze pupa time data.
 
@@ -294,7 +296,6 @@ pois <- list()
 nbin <- list()
 lnor <- list()
 weib <- list()
-geom <- list()
 
 # Write for loop to fit each distribution to data, iterating through group levels (i)
 for(i in levels) {
@@ -329,72 +330,95 @@ stats_1 <- data_frame(F0_C_N = gofstat(list(norm$F0_C_N,
 stats_2 <- data_frame(F0_E_N = gofstat(list(norm$F0_E_N,
                                             lnor$F0_E_N,
                                             weib$F0_E_N,
-                                            geom$F0_E_N,
                                             pois$F0_E_N, 
                                             nbin$F0_E_N))$aic)
 
 # Get table of distribution stats for F1 C N group
-stats_3 <- data_frame(F1_C_N = gofstat(list(norm$F1_C_N, 
+stats_3 <- data_frame(F1_C_N = gofstat(list(norm$F1_C_N,
+                                            lnor$F1_C_N,
+                                            weib$F1_C_N,
                                             pois$F1_C_N, 
                                             nbin$F1_C_N))$aic)
 
 # Get table of distribution stats for F1 C R group
 stats_4 <- data_frame(F1_C_R = gofstat(list(norm$F1_C_R, 
+                                            lnor$F1_C_R,
+                                            weib$F1_C_R,
                                             pois$F1_C_R, 
                                             nbin$F1_C_R))$aic)
          
 # Get table of distribution stats for F1 E N group
 stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N, 
-                                            pois$F1_E_N, 
+                                            lnor$F1_E_N, 
+                                            weib$F1_E_N,
+                                            pois$F1_E_N,
                                             nbin$F1_E_N))$aic)
 
 # Get table of distribution stats for F1 E R group
 stats_6 <- data_frame(F1_E_R = gofstat(list(norm$F1_E_R, 
-                                            pois$F1_E_R, 
+                                            lnor$F1_E_R, 
+                                            weib$F1_E_R,
+                                            pois$F1_E_R,
                                             nbin$F1_E_R))$aic)
 
 # Get table of distribution stats for F2 C N group
 stats_7 <- data_frame(F2_C_N = gofstat(list(norm$F2_C_N, 
-                                            pois$F2_C_N, 
+                                            lnor$F2_C_N, 
+                                            weib$F2_C_N,
+                                            pois$F2_C_N,
                                             nbin$F2_C_N))$aic)
 
 # Get table of distribution stats for F2 C R group
 stats_8 <- data_frame(F2_C_R = gofstat(list(norm$F2_C_R, 
-                                            pois$F2_C_R, 
+                                            lnor$F2_C_R, 
+                                            weib$F2_C_R,
+                                            pois$F2_C_R,
                                             nbin$F2_C_R))$aic)
 
 # Get table of distribution stats for F2 E N group
 stats_9 <- data_frame(F2_E_N = gofstat(list(norm$F2_E_N, 
-                                            pois$F2_E_N, 
+                                            lnor$F2_E_N, 
+                                            weib$F2_E_N,
+                                            pois$F2_E_N,
                                             nbin$F2_E_N))$aic)
 
 # Get table of distribution stats for F2 E R group
 stats_10 <- data_frame(F2_E_R = gofstat(list(norm$F2_E_R, 
-                                             pois$F2_E_R, 
+                                             lnor$F2_E_R, 
+                                             weib$F2_E_R,
+                                             pois$F2_E_R,
                                              nbin$F2_E_R))$aic)
 
 # Get table of distribution stats for F3 C N group
 stats_11 <- data_frame(F3_C_N = gofstat(list(norm$F3_C_N, 
-                                             pois$F3_C_N, 
+                                             lnor$F3_C_N, 
+                                             weib$F3_C_N,
+                                             pois$F3_C_N,
                                              nbin$F3_C_N))$aic)
 
 # Get table of distribution stats for F3 C R group
 stats_12 <- data_frame(F3_C_R = gofstat(list(norm$F3_C_R, 
-                                             pois$F3_C_R, 
+                                             lnor$F3_C_R,
+                                             weib$F3_C_R,
+                                             pois$F3_C_R,
                                              nbin$F3_C_R))$aic)
 
 # Get table of distribution stats for F3 E N group
 stats_13 <- data_frame(F3_E_N = gofstat(list(norm$F3_E_N, 
-                                             pois$F3_E_N, 
+                                             lnor$F3_E_N, 
+                                             weib$F3_E_N,
+                                             pois$F3_E_N,
                                              nbin$F3_E_N))$aic)
 
 # Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate exposon statistics)
 stats_14 <- data_frame(F3_E_R = gofstat(list(norm$F3_E_R,
-                                             pois$F3_E_R, 
+                                             lnor$F3_E_R, 
+                                             weib$F3_E_R,
+                                             pois$F3_E_R,
                                              nbin$F3_E_R)))
 
 # combine all stats into a single table and add a first column with the name of the distribution being tested
-stats <- cbind(distribution = c("uniform", "normal", "gamma", "expo", "beta"), 
+stats <- cbind(distribution = c("normal", "lognormal", "weibull", "poisson", "negative binomial"), 
                stats_1, 
                stats_2, 
                stats_3, 
@@ -414,20 +438,45 @@ stats <- cbind(distribution = c("uniform", "normal", "gamma", "expo", "beta"),
 
 # Run individual global distributions 
 norm <- fitdist(pupa_time$pupa_time, "norm")
+lnor <- fitdist(pupa_time$pupa_time, "lnorm")
+weib <- fitdist(pupa_time$pupa_time, "weibull")
 pois <- fitdist(pupa_time$pupa_time, "pois")
 nbin <- fitdist(pupa_time$pupa_time, "nbinom")
 
 # compare AIC values 
 gofstat(list(norm, 
+             lnor,
+             weib,
              pois,
              nbin),
         fitnames = c("normal",
+                     "log-normal",
+                     "weibull",
                      "poisson",
                      "negative binomial"))$aic
-
-# save gamma distribution object for plotting
-save(gamm, file = "data/gamma.Rda")
 ```
+
+<b>Analysis results:</b> <br>
+
+| Group     | Normal           | Log-normal       | Weibull           | Poisson            | Negative binomial |
+|:----------|:-----------------|:-----------------|:----------------- | :----------------- |:----------------- |
+| F0_C_N    | 234.457          | <b>229.903</b>   | 249.160           | 300.109            | 302.109           |
+| F0_E_N    | 181.659          | <b>165.241</b>   | 200.363           | 196.672	           | 198.672           |
+| F1_C_N    | 115.4138         | <b>111.138</b>   | 120.654           | 121.927            | 123.927           |
+| F1_C_R    | 57.536           | <b>56.858</b>    | 58.785            | 63.043             | 65.043            |
+| F1_E_N    | 87.528           | <b>87.341</b>    | 89.789            | 106.866            | 108.866           |	
+| F1_E_R    | 108.894          | <b>97.768</b>    | 110.079           | 102.799            | 103.999           |
+| F2_C_N    | 113.515          | <b>101.458</b>   | 114.687           | 107.113            | 108.412           |
+| F2_C_R    | 26.721           | 27.762           | <b>19.819</b>     | 55.044             | 57.044            |
+| F2_E_N    | 79.306           | <b>73.796</b>    | 81.301            | 75.6689            | 77.6689           |
+| F2_E_R    | 43.631           | <b>43.504</b>    | 44.615            | 52.445             | 54.445            |
+| F3_C_N    | 59.662           | <b>57.093</b>    | 62.135            | 62.809             | 64.810            |
+| F3_C_R    | 53.436           | <b>50.846</b>    | 55.594            | 54.448             | 56.448            |
+| F3_E_N    | 55.048           | <b>54.374</b>    | 57.598            | 68.917             | 70.917            |
+| F3_E_R    | 28.573           | <b>28.230</b>    | 29.415            | 33.712             | 35.712            |
+| Global    | 1355.923         | <b>1235.982</b>  | 1461.471          | 1392.147           | 1394.148          |
+
+The data in all but one group were best fit to a log-normal distribution. The best fitting distribution to the global dataset across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given the majority.
 
 ### STEP 3: Analyze pupa duration data.
 
