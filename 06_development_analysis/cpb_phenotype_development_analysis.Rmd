@@ -493,10 +493,12 @@ options(scipen = 999)
 
 # test for fit of normality with treatments and generations and compare to alpha of 0.05/14 = 0.003 (to account for multiple comparisons)
 pupa_duration %>%
+  filter(!(larval_generation == "F2" & background == "E" & treatment == "R")) %>% # F2_E_R individuals all have the same value, so they are removed from the dataset for analysis, and an NA is included for those data
   group_by(larval_generation, background, treatment) %>%
   shapiro_test(pupa_duration) %>%
   mutate(alpha = 0.003) %>%
   mutate(deviates = ifelse(p < alpha, "yes", "no"))
+
 ```
 
 <b>Analysis results:</b> <br>
@@ -504,17 +506,18 @@ pupa_duration %>%
 <b>Shapiro-wilk p-values for each treatment and generation:</b><br>
 F0_C_N: <b>p < 0.001</b><br>
 F0_E_N: <b>p < 0.001</b><br>
-F1_C_N: <b>p = 0.002</b><br>
-F1_C_R: p = 0.28535583147003<br>
-F1_E_N: p = 0.33676670438883<br>
-F1_E_R: <b>p < 0.001</b><br>
+F1_C_N: <b>p < 0.001</b><br>
+F1_C_R: <b>p < 0.001</b><br>
+F1_E_N: <b>p < 0.001</b><br>
+F1_E_R: p = 0.03656839160038597<br>
 F2_C_N: <b>p < 0.001</b><br>
 F2_C_R: <b>p < 0.001</b><br>
 F2_E_N: <b>p < 0.001</b><br>
-F2_E_R: p = 0.55785036394542<br>
-F3_C_N: <b>p < 0.001</b><br>
+F2_E_R: NA<br>
+F3_C_N: p < 0.01844302647991799<br>
 F3_C_R: <b>p < 0.001</b><br>
-F3_E_N: p = 0.15940225860021<br>
-F3_E_R: p = 0.43241127674505<br>
+F3_E_N: p = 0.00451869795566720<br>
+F3_E_R: p = 0.07964145292327768<br>
 
 Since 9/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
+
