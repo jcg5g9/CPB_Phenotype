@@ -225,7 +225,7 @@ load("data/performance.Rda")
 
 # get only mobility data from performance data, add new column indicating whether an individual moved or not (had zero or non-zero value for total distance), and drop na data in the metrics columns (average speed through total distance)
 mobility <- performance %>%
-  dplyr::select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance), -c(pair_id:adult_generation)) %>%
+  dplyr::select(c(ind_id:type, larval_generation:molt, ave_speed:total_distance)) %>%
   mutate(moved = as.numeric(ifelse(total_distance != 0, "1", "0"))) %>%
   drop_na(ave_speed:total_distance)
 
@@ -243,7 +243,7 @@ load("data/performance.Rda")
 
 # get only herbivory data from performance data and add binary value indicating whether there was consumption (had zero or non-zero value for leaf_area_consumed)
 herbivory <- performance %>% 
-  dplyr::select(c(ind_id:percent_leaf_consumed), -c(pair_id:adult_generation)) %>%
+  dplyr::select(c(ind_id:percent_leaf_consumed)) %>%
   mutate(consumed = as.numeric(ifelse(leaf_area_consumed != 0, "1", "0"))) %>%
   drop_na(total_leaf_area)
 
@@ -261,10 +261,26 @@ load("data/performance.Rda")
 
 # get only development data from performance data
 development <- performance %>%
-  dplyr::select(c(ind_id:type, larval_generation:molt, `24hr_status`:stored_date), -c(pair_id:adult_generation))
+  dplyr::select(c(ind_id:type, larval_generation:molt, pupa_date:stored_date))
 
 # save development data
 save(development, file = "../06_development_analysis/data/development.Rda")
+```
+
+##### 1c.4. Isolate, filter, and clean survival data from performance data; run the Rmd chunk below.
+In this step, we get only survival-related data from the development dataset and filter and clean the surival dataset. The dataset is then saved to the corresponding analysis directory (`06_development_analysis`).
+
+##### Isolate, filter and clean development metrics: 
+```{r}
+# load performance data
+load("data/performance.Rda")
+
+# get only survival data from performance data
+survival <- performance %>%
+  dplyr::select(c(ind_id:type, larval_generation:molt, emerge_date))
+
+# save survival data
+save(survival, file = "../06_development_analysis/data/survival.Rda")
 ```
 
 ### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)
@@ -323,7 +339,7 @@ save(average_fecundity, file = "../03_fecundity_analysis/data/average_fecundity.
 <b><i>N</i><sub>F3_C</sub> = 9 </b><br>
 <b><i>N</i><sub>F3_e</sub> = 6 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1a of the final ms.
 
 #### 2b: Summarize performance data
 Here, we summarize all performance trait data (i.e., mobility, herbivory, and development) from the experiment.
@@ -381,7 +397,7 @@ performance %>%
 <b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1b of the final ms.
 
 ##### 2b.2. Summarize mobility data; run the Rmd chunk below.
 Here, we summarize all mobility-related performance metrics as obtained from the software ToxTrac.
@@ -436,7 +452,7 @@ mobility %>%
 <b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1b of the final ms.
 
 ##### 2b.3. Summarize herbivory data; run the Rmd chunk below.
 Here, we summarize all herbivory-related performance metrics, including total leaf area consumed and percent leaf area consumed, as obtained from the software LeafByte
@@ -491,7 +507,7 @@ herbivory %>%
 <b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1c of the final ms.
 
 ##### 2b.4. Summarize development data.
 Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and enumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
@@ -592,7 +608,7 @@ pupa_time %>%
 <b><i>N</i><sub>F3_E_N</sub> = 15 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 7 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1d of the final ms.
 
 ##### 2b.4.3. Summarize pupation duration data; run the Rmd chunk below.
 Here, we summarize data for duration of pupation. These data include date of pupation AND date of emergence; if pupa died before emerging, they were not included in this dataset.
@@ -646,7 +662,7 @@ pupa_duration %>%
 <b><i>N</i><sub>F3_E_N</sub> = 14 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 6 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1d of the final ms.
 
 ##### 2b.4.4. Summarize pupa mass data; run the Rmd chunk below.
 Here, we summarize data for pupa mass. These data include mass of pupae; if larvae died before pupation or did not successfully pupate, they were not included in this dataset.
@@ -701,7 +717,7 @@ b>Data summary:</b> <br>
 <b><i>N</i><sub>F3_E_N</sub> = 15 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 7 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1d of the final ms.
 
 ##### 2b.4.5. Summarize adult mass data; run the Rmd chunk below.
 Here, we summarize data for adult mass. These data include mass of adults upon emergence; if pupae died before emergence, they were not included in this dataset.
@@ -756,4 +772,60 @@ adult_mass %>%
 <b><i>N</i><sub>F3_E_N</sub> = 14 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 6 </b><br>
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1d of the final ms.
+
+##### 2b.5. Summarize survival data; run the Rmd chunk below.
+Here, we summarize survival, including the number of individuals across the entire dataset. 
+
+##### Summarize survival data:
+```{r}
+# load survival data
+load("../07_survival_analysis/data/survival.Rda")
+
+# get total survival metric data points
+survival %>%
+  count()
+
+# get number of survival data points by larval generation
+survival %>%
+  group_by(larval_generation) %>%
+  count()
+
+# get number of survival data points by background and treatment in each larval generation
+survival %>%
+  group_by(larval_generation, background, treatment) %>%
+  count()
+
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 419 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 144 </b><br>
+<b><i>N</i><sub>F1</sub> = 120 </b><br>
+<b><i>N</i><sub>F2</sub> = 79 </b><br>
+<b><i>N</i><sub>F3</sub> = 76 </b><br>
+
+<b>Sample size per background (F0 treatment) and treatment (assay treatment) per generation:</b><br>
+<b><i>N</i><sub>F0_C_N</sub> = 72 </b><br>
+<b><i>N</i><sub>F0_E_N</sub> = 72 </b><br>
+
+<b><i>N</i><sub>F1_C_N</sub> = 31 </b><br>
+<b><i>N</i><sub>F1_C_R</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_N</sub> = 30 </b><br>
+<b><i>N</i><sub>F1_E_R</sub> = 29 </b><br>
+
+<b><i>N</i><sub>F2_C_N</sub> = 22 </b><br>
+<b><i>N</i><sub>F2_C_R</sub> = 23 </b><br>
+<b><i>N</i><sub>F2_E_N</sub> = 17 </b><br>
+<b><i>N</i><sub>F2_E_R</sub> = 17 </b><br>
+
+<b><i>N</i><sub>F3_C_N</sub> = 16 </b><br>
+<b><i>N</i><sub>F3_C_R</sub> = 19 </b><br>
+<b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
+<b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
+
+These data are presented in Table 1e of the final ms.

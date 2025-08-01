@@ -409,6 +409,8 @@ save(gamm, file = "data/gamma.Rda")
 
 The data in the majority of groups were best fit to a Gamma distribution, but the results were inconsistent across all groups, where some were best fit by a uniform distribution (e.g., F2_E_N and F3_E_N), and others were best fit by a an exponential distribution (e.g., F1_E_R and F3_C_R). The best fitting distribution to the global dataset across groups is the Gamma distribution. We opted to assume a Gamma distribution in all general linear model analyses given the majority and since we would not expect a uniform or exponential distribution for these data.
 
+These data are presented as Table XXX in the final ms.
+
 #### 2b: Plot empirical data distribution; run the Rmd chunk below.
 
 ##### Plot empirical data distribution for total distance walked: `figures/distribution.jpeg`
@@ -437,6 +439,8 @@ ggplot(mobility, aes(x = total_distance)) +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
 
 ### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
@@ -545,6 +549,8 @@ Treatment x Background: z = 2.330; p = 0.019791 <br>
 Treatment: z = -1.964; p = 0.0495 <br>
 Background: z = 0.929; p = 0.3528 <br>
 Treatment x Background: z = -0.820; p = 0.4122 <br>
+
+These data are presented in Table 2a of the final ms.
 
 ### STEP 5: Plot mobility data analyses.
 
@@ -718,6 +724,8 @@ f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 dev.off()
 ```
 
+This figure is presented as Figure XXX in the final ms.
+
 #### 5b: Plot means and standard errors for total distance walked; run the Rmd chunk below.
 
 ##### Plot transformed data: `figures/mobility_means.jpeg`
@@ -887,3 +895,5 @@ f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.

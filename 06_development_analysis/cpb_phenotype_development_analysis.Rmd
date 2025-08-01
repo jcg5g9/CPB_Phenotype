@@ -137,6 +137,8 @@ mass + time + plot_layout(nrow = 1, ncol = 2)
 dev.off()
 ```
 
+These figures were used for prelminary and exploratory analysis only and are not presented in the final ms.
+
 ### STEP 2: Calculate summary statistics for larval development data; run the Rmd chunk below.
 In this step, we calculate mean, standard deviation, and variance for larval development metrics (i.e., time to pupation, pupation duration, pupal mass, and adult mass) for all experimental groups.
 
@@ -250,6 +252,96 @@ ggplot(pupa_mass, aes(x = pupa_mass)) +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
+
+#### 1c: Run two-factor linear mixed effect interaction models assuming a normal distribution to test the relative effects of background and treatment of insecticide stress on pupa mass; run the Rmd chunk below.
+In this step, we run linear mixed effect interaction models with raw pupa mass as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying normal distribution for the data (see Step 1b above).
+
+##### Run linear mixed effect interaction models for pupa mass:
+```{r}
+# load pupa mass data
+load("data/pupa_mass.Rda")
+
+# isolate only F0 data
+f0 <- pupa_mass %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- pupa_mass %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- pupa_mass %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- pupa_mass %>%
+  filter(larval_generation == "F3")
+
+# f0 linear mixed effect model
+f0_mod <- lmer(pupa_mass ~ background + (1|lineage),
+               data = f0)
+
+# f1 linear mixed effect model
+f1_mod <- lmer(pupa_mass ~ treatment*background + (1|lineage),
+               data = f1)
+
+# f2 linear mixed effect model
+f2_mod <- lmer(pupa_mass ~ treatment*background + (1|lineage),
+               data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- lmer(pupa_mass ~ treatment*background + (1|lineage),
+               data = f3)
+
+# summarize f0 model
+anova(f0_mod)
+Anova(f0_mod)
+df.residual(f0_mod)
+
+# summarize f1 model
+anova(f1_mod)
+Anova(f1_mod)
+df.residual(f1_mod)
+
+# summarize f2 model
+anova(f2_mod)
+Anova(f2_mod)
+df.residual(f2_mod)
+
+# summarize f3 model
+anova(f3_mod)
+Anova(f3_mod)
+df.residual(f3_mod)
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of zero-inflated logistic regressions by generation:</b><br>
+<b>F0</b>: <br>
+Background: F = 0.7394; p = 0.3899 <br>
+d.f. = 105 <br>
+
+<b>F1</b>: <br>
+Treatment: F = 0.1494; p = 0.6762 <br>
+Background: F = 0.0866; p = 0.7685 <br>
+Treatment x Background : F = 0.0899; p = 0.7643 <br>
+d.f. = 72 <br>
+
+<b>F2</b>: <br>
+Treatment: F = 0.7263; p = 0.3707 <br>
+Background: F = 2.3075; p = 0.1288 <br>
+Treatment x Background: F = 0.0365; p = 0.8484 <br>
+d.f. = 50 <br>
+
+<b>F3</b>: <br>
+Treatment: F = 1.4471; p = 0.2138 <br>
+Background: F = 0.1892; p = 0.6635 <br>
+Treatment x Background: F = 0.0357; p = 0.8502 <br>
+d.f. = 40 <br>
+
+These data are presented in Table XXX of the final ms.
 
 ### STEP 2: Analyze pupa time data.
 
@@ -496,6 +588,8 @@ gofstat(list(norm,
 
 The data in all but one group were best fit to a log-normal distribution. The best fitting distribution to the global data set across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given the majority.
 
+These data are presented as Table XXX in the final ms.
+
 #### 2c: Plot empirical data distribution; run the Rmd chunk below.
 
 ##### Plot empirical data distribution for pupa time: `figures/pupa_time_distribution.jpeg`
@@ -524,6 +618,100 @@ ggplot(pupa_time, aes(x = pupa_time)) +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
+
+#### 2d: Run two-factor general linear mixed effect interaction models assuming a log-normal distribution to test the relative effects of background and treatment of insecticide stress on pupa time; run the Rmd chunk below.
+In this step, we run general linear mixed effect interaction models with raw time to pupation as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying log-normal distribution for the data (see Step 2b above).
+
+##### Run linear mixed effect interaction models for pupa mass:
+```{r}
+# load pupa time data
+load("data/pupa_time.Rda")
+
+# isolate only F0 data
+f0 <- pupa_time %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- pupa_time %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- pupa_time %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- pupa_time %>%
+  filter(larval_generation == "F3")
+
+# f0 general linear mixed effect model with log-normal distribution
+f0_mod <- glmer(pupa_time ~ background + (1|lineage),
+                family = gaussian(link = "log"),
+                data = f0)
+
+# f1 general linear mixed effect model with log-normal distribution
+f1_mod <- glmer(pupa_time ~ treatment*background + (1|lineage),
+                family = gaussian(link = "log"),
+                data = f1)
+
+# f2 general linear mixed effect model with log-normal distribution
+f2_mod <- glmer(pupa_time ~ treatment*background + (1|lineage),
+                family = gaussian(link = "log"),
+                data = f2)
+
+# f2 general linear mixed effect model with log-normal distribution
+f3_mod <- glmer(pupa_time ~ treatment*background + (1|lineage),
+                family = gaussian(link = "log"),
+                data = f3)
+
+# summarize f0 model
+anova(f0_mod)
+Anova(f0_mod)
+df.residual(f0_mod)
+
+# summarize f1 model
+anova(f1_mod)
+Anova(f1_mod)
+df.residual(f1_mod)
+
+# summarize f2 model
+anova(f2_mod)
+Anova(f2_mod)
+df.residual(f2_mod)
+
+# summarize f3 model
+anova(f3_mod)
+Anova(f3_mod)
+df.residual(f3_mod)
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of general linear mixed effect models by generation:</b><br>
+<b>F0</b>: <br>
+Background: F = 5.1734; p = 0.02294 <br>
+d.f. = 105 <br>
+
+<b>F1</b>: <br>
+Treatment: F = 1.0037; p = 0.2973 <br>
+Background: F = 0.1104; p = 0.7397 <br>
+Treatment x Background : F = 1.7532; p = 0.1855 <br>
+d.f. = 73 <br>
+
+<b>F2</b>: <br>
+Treatment: F = 1.1644; p = 0.2669 <br>
+Background: F = 0.3633; p = 0.5467 <br>
+Treatment x Background: F = 0.0006; p = 0.9813 <br>
+d.f. = 50 <br>
+
+<b>F3</b>: <br>
+Treatment: F = 1.3714; p = 0.2926 <br>
+Background: F = 0.6927; p = 0.4052 <br>
+Treatment x Background: F = 0.1033; p = 0.7480 <br>
+d.f. = 40 <br>
+
+These data are presented in Table 3a in the final ms
 
 ### STEP 3: Analyze pupa duration data.
 
@@ -756,6 +944,8 @@ gofstat(list(norm,
 
 The data were best fit to different underlying distributions, dependent on group. Some groups were best fit with normal, log-normal, weibull, or poisson distributions. The majority of groups were fit to either a normal or weibull distribution. However, the best fitting distribution to the global dataset across groups was normal. We therefore opted to assume a normal distribution in all linear model analyses.
 
+These data are presented in Table XXX in the final ms.
+
 #### 3c: Plot empirical data distribution; run the Rmd chunk below.
 
 ##### Plot empirical data distribution for pupa duration: `figures/pupa_duration_distribution.jpeg`
@@ -784,3 +974,93 @@ ggplot(pupa_duration, aes(x = pupa_duration)) +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
+
+#### 3d: Run two-factor linear mixed effect interaction models assuming a normal distribution to test the relative effects of background and treatment of insecticide stress on pupa duration; run the Rmd chunk below.
+In this step, we run general linear mixed effect interaction models with raw duration of pupation as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying normal distribution for the data (see Step 3b above).
+
+##### Run linear mixed effect interaction models for pupa mass:
+```{r}
+# load pupa duration data
+load("data/pupa_duration.Rda")
+
+# isolate only F0 data
+f0 <- pupa_duration %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- pupa_duration %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- pupa_duration %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- pupa_duration %>%
+  filter(larval_generation == "F3")
+
+# f0 linear mixed effect model
+f0_mod <- lmer(pupa_duration ~ background + (1|lineage),
+               data = f0)
+
+# f1 linear mixed effect model
+f1_mod <- lmer(pupa_duration ~ treatment*background + (1|lineage),
+               data = f1)
+
+# f2 linear mixed effect model
+f2_mod <- lmer(pupa_duration ~ treatment*background + (1|lineage),
+               data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- lmer(pupa_duration ~ treatment*background + (1|lineage),
+               data = f3)
+
+# summarize f0 model
+anova(f0_mod)
+Anova(f0_mod)
+df.residual(f0_mod)
+
+# summarize f1 model
+anova(f1_mod)
+Anova(f1_mod)
+df.residual(f1_mod)
+
+# summarize f2 model
+anova(f2_mod)
+Anova(f2_mod)
+df.residual(f2_mod)
+
+# summarize f3 model
+anova(f3_mod)
+Anova(f3_mod)
+df.residual(f3_mod)
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models by generation:</b><br>
+<b>F0</b>: <br>
+Background: F = 0.8957; p = 0.3439 <br>
+d.f. = 92 <br>
+
+<b>F1</b>: <br>
+Treatment: F = 0.0116; p = 0.2973 <br>
+Background: F = 0.4458; p = 0.7397 <br>
+Treatment x Background : F = 0.6869; p = 0.1855 <br>
+d.f. = 66 <br>
+
+<b>F2</b>: <br>
+Treatment: F = 0.0277; p = 0.8253 <br>
+Background: F = 0.2886; p = 0.5912 <br>
+Treatment x Background: F = 2.1683; p = 0.1409 <br>
+d.f. = 46 <br>
+
+<b>F3</b>: <br>
+Treatment: F = 1.3714; p = 0.92344 <br>
+Background: F = 0.6927; p = 0.41006 <br>
+Treatment x Background: F = 3.4878; p = 0.06182 <br>
+d.f. = 35 <br>
+
+These data are presented in Table 3a in the final ms

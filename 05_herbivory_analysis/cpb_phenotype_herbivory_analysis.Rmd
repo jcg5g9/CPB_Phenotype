@@ -277,7 +277,7 @@ gofstat(list(unif,
 | F0_E_N    | -203.925         | -197.072         | <b>-69.398</b>    | -332.413	         | -70.716           |
 | F1_C_N    | -85.261          | -80.147          | <b>-66.657</b>    | -100.362           | -67.11998         |
 | F1_C_R    | -107.474         | -120.673         | <b>-16.505</b>    | -223.128           | -16.573           |
-| F1_E_N    | -75.030          | -63.358          | <b>-59.169</b>    | -85.599            | -59.426           |	
+| F1_E_N    | -75.030          | -63.358          | <b>-59.169</b>    | -85.599            | -59.426           |
 | F1_E_R    | -128.401         | -121.989         | <b>-17.686</b>    | -198.561           | -17.770	         |
 | F2_C_N    | -55.271          | -48.551          | <b>-46.886</b>    | -54.286            | -47.167           |
 | F2_C_R    | -80.299          | -83.199          | <b>-19.301</b>    | -147.651           | -19.397           |
@@ -290,6 +290,8 @@ gofstat(list(unif,
 | Global    | -1122.154        | -1159.560        | <b>-487.994</b>   | -1909.659          | -494.259          |
 
 The data in all groups were best fit to a Gamma distribution, including the global dataset (all groups aggregated). We therefore opted to assume a Gamma distribution in all general linear model analyses.
+
+These data are presented as Table XXX in the final ms.
 
 #### 2b: Plot empirical data distribution; run the Rmd chunk below.
 
@@ -319,6 +321,8 @@ ggplot(herbivory, aes(x = leaf_area_consumed)) +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
 
 ### STEP 3: Assess phenotypic effects of insecticide stress in total herbivory walked.
 
@@ -430,6 +434,8 @@ Treatment: z = -0.336; p = 0.737 <br>
 Background: z = -1.536; p = 0.125 <br>
 Treatment x Background: z = 0.385; p = 0.700 <br>
 
+These data are presented in Table 2b in the final ms.
+
 ### STEP 3: Plot mobility data analyses
 
 #### 3a: Plot probability of hervivory data; run the Rmd chunk below.
@@ -472,13 +478,13 @@ f0_plot <- ggplot(f0, aes(x = background, y = prop_consumed, group = background,
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = background, y = prop_consumed, group = background, fill = background), 
-              position = position_dodge(width = 0.4), 
-              size = 7, 
-              pch = 22, 
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = background, y = prop_consumed, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 7, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -505,13 +511,13 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = prop_consumed, group = background, 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
-              position = position_dodge(width = 0.4), 
-              size = 7, 
-              pch = 22, 
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 7, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -543,13 +549,13 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = prop_consumed, group = background, 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
-              position = position_dodge(width = 0.4), 
-              size = 7, 
-              pch = 22, 
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 7, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -574,13 +580,13 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = prop_consumed, group = background, 
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background),
-              position = position_dodge(width = 0.4), 
-              size = 7,
-              pch = 22,
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = treatment, y = prop_consumed, group = background, fill = background),
+             position = position_dodge(width = 0.4), 
+             size = 7,
+             pch = 22,
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -605,6 +611,8 @@ f0_plot +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
 
 #### 3b: Plot probability of hervivory data; run the Rmd chunk below.
 
@@ -680,13 +688,13 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
-              position = position_dodge(width = 0.4), 
-              size = 7, 
-              pch = 22, 
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 7, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -719,13 +727,13 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
-              position = position_dodge(width = 0.4), 
-              size = 7, 
-              pch = 22, 
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = treatment, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 7, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -751,13 +759,13 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
                 width = 0.2, 
                 linewidth = 2, 
                 show.legend = F) +
-   geom_point(aes(x = treatment, y = mean, group = background, fill = background),
-              position = position_dodge(width = 0.4), 
-              size = 7,
-              pch = 22,
-              stroke = 2, 
-              color = "black", 
-              show.legend = F) +
+  geom_point(aes(x = treatment, y = mean, group = background, fill = background),
+             position = position_dodge(width = 0.4), 
+             size = 7,
+             pch = 22,
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
@@ -783,3 +791,5 @@ f0_plot +
 
 dev.off()
 ```
+
+This figure is presented as Figure XXX in the final ms.
