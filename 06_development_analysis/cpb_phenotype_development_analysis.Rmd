@@ -178,7 +178,7 @@ pupa_duration %>%
             se = sd/sqrt(n()))
 ```
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Table 1d of the final ms.
 
 ## PHASE 2: DEVELOPMENT ANALYSIS
 In this phase of the analysis, we assess differences in larval development metrics (i.e., pupal mass, time to pupation, and duration of pupation) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., development metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., development metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 

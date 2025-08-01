@@ -1,0 +1,151 @@
+---
+ttitle: "Analysis 7: Survival analysis"
+author: "Joe Gunn"
+date: "2024-09-19"
+output: html_document
+---
+
+# <b>Project:</b> Assessing phenotypic response and transgenerational inheritance following insecticide exposure in Colorado Potato Beetles (<i>Leptinotarsa decemlineata</i>; CPB) 
+<font size="+1"> We assessed inter- and trans-generational effects of sublethal insecticide exposure on four larval performance phenotypes (fecundity, herbivory, mobility, and development) in Colorado potato beetles (<i>Leptinotarsa decemlineata</i>; CPB). We implemented a replicated inbred full-sibling pedigree design, beginning with 12 "founder" mated pair lineages and continuing for four successive generations (full siblings within lineages were inbred in each generation). For the transgenerational experiment, F<sub>0</sub> larvae (offspring of founder pairs) were divided into two "background" groups (exposed, i.e., exposed to a sub-lethal [10-ppm] dose of the neonicotinoid insecticide imidacloprid; and control, i.e., exposed to an equivalent dose of molecular-grade water). All mated pair beetles across lineages, treatments, and generations were monitored for daily fecundity. A subset of third instar larvae were collected from each treatment within each lineage for each generation and monitored for three  performance traits, including larval movement (mobility), feeding rate (herbivory), and time to discrete life stages (development). Performance traits were monitored in three successive generations (F<sub>1</sub>-F<sub>3</sub>) without treatment exposure and compared to the F<sub>0</sub> generation to test for inter- and transgenerationally-inherited "memory" of phenotypic variation. An additional subset of larvae from each generation were re-exposed to the treatments, both experimental (insecticide-exposed) and control (water), to test for potential inheritance of a phenotypic "response" to insecticide stress.</font>
+
+# <b>Specific Aim:</b> Development analysis
+<font size="+1">In this analysis, we assess differences in larval survival (i.e., whether an individual larva survived from the date of the assay to emergence) among mated pairs in the transgenerational experiment by generation (i.e., F0, F1, F2, F3), lineage (i.e., L1, L2, ... L10), and treatment (i.e., control and exposed). </font>
+
+## Phases of Analysis
+### Phase 1: Data summary statistics
+### Phase 2: Survival analysis
+
+### Libraries needed for analysis
+```{r}
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(writexl)
+library(rstatix)
+library(lme4)
+library(rsq)
+library(scales)
+library(fitdistrplus)
+library(forcats)
+library(patchwork)
+```
+
+## PHASE 1: DATA SUMMARY STATISTICS
+In this phase of the analysis, we calculate mean, standard deviation, and variance for all metrics (including also pupal mass and adult mass) within experimental groups of interest.
+
+### STEP 1: Calculate summary statistics for survival data; run the Rmd chunk below.
+In this step, we calculate mean, standard deviation, and variance for survival (i.e., probability of survival) for all experimental groups.
+
+##### Calculate summary statistics for survival data:
+```{r}
+# load survival data
+load("data/survival.Rda")
+
+# get sample size (n), mean or proportion, standard deviation (sd), and standard error (se) for herbivory by generation, background, and treatment
+survival %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(n = n(),
+            prop_survived = sum(survived)/n,
+            sd_survived = sd(survived),
+            se_survived = sd_survived/sqrt(n))
+```
+
+These data are presented in Table 1e of the final ms.
+
+## PHASE 2: SURVIVAL ANALYSIS
+In this phase of the analysis, we assess differences in survival (i.e., whether an individual larva survived from the assay date to emergence) between treatments and background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. We assess two distinct modes of potential phenotypic effects: 1) assessing inheritance of phenotypic "memory" of stress by comparing phenotypic variation (i.e., development metrics) in beetles with a background (F0 exposure) of insecticide vs. those with a background of the water control and without subsequent exposure in successive generations; and 2) assessing inheritance of a phenotypic "response" to stress by comparing phenotypic variation (i.e., development metrics) in beetles treated in each generation with insecticide or a water control and which had a background (F0 exposure) of either insecticide or the water control. 
+
+### STEP 1: Analyze survival data.
+
+#### 1a: Run two-factor general linear mixed effect interaction models assuming a binomial distribution to test the relative effects of background and treatment of insecticide stress on survival; run the Rmd chunk below.
+In this step, we run general linear mixed effect interaction regression with survival as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying binomial distribution for the data given the binary response.
+
+##### Run linear mixed effect interaction models for pupa mass:
+```{r}
+# load survival data
+load("data/survival.Rda")
+
+# isolate only F0 data
+f0 <- survival %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- survival %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- survival %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- survival %>%
+  filter(larval_generation == "F3")
+
+# f0 linear mixed effect model
+f0_mod <- glmer(survived ~ background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f0)
+
+# f1 linear mixed effect model
+f1_mod <- glmer(survived ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f1)
+
+# f2 linear mixed effect model
+f2_mod <- glmer(survived ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- glmer(survived ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f3)
+
+# summarize f0 model
+anova(f0_mod)
+Anova(f0_mod)
+df.residual(f0_mod)
+
+# summarize f1 model
+anova(f1_mod)
+Anova(f1_mod)
+df.residual(f1_mod)
+
+# summarize f2 model
+anova(f2_mod)
+Anova(f2_mod)
+df.residual(f2_mod)
+
+# summarize f3 model
+anova(f3_mod)
+Anova(f3_mod)
+df.residual(f3_mod)
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of zero-inflated logistic regressions by generation:</b><br>
+<b>F0</b>: <br>
+Background: F = 12.66; p = 0.0004956 <br>
+d.f. = 141 <br>
+
+<b>F1</b>: <br>
+Treatment: F = 10.46; p = 0.001255 <br>
+Background: F = 0.1854; p = 0.666763 <br>
+Treatment x Background : F = 0.7643; p = 0.381976 <br>
+d.f. = 115 <br>
+
+<b>F2</b>: <br>
+Treatment: F = 6.1063; p = 0.01813 <br>
+Background: F = 0.3340; p = 0.57817 <br>
+Treatment x Background: F = 1.3836; p = 0.24303 <br>
+d.f. = 74 <br>
+
+<b>F3</b>: <br>
+Treatment: F = 8.1240; p = 0.004479 <br>
+Background: F = 0.8898; p = 0.345537 <br>
+Treatment x Background: F = 2.4746; p = 0.115700 <br>
+d.f. = 71 <br>
+
+These data are presented in Table XXX of the final ms.
+

@@ -277,10 +277,11 @@ load("data/performance.Rda")
 
 # get only survival data from performance data
 survival <- performance %>%
-  dplyr::select(c(ind_id:type, larval_generation:molt, emerge_date))
+  dplyr::select(c(ind_id:type, larval_generation:molt, emerge_date)) %>%
+  mutate(survived = as.numeric(ifelse(is.na(emerge_date), "0", "1")))
 
 # save survival data
-save(survival, file = "../06_development_analysis/data/survival.Rda")
+save(survival, file = "../07_survival_analysis/data/survival.Rda")
 ```
 
 ### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)
