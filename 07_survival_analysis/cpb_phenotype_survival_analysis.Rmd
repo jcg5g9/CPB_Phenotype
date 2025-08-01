@@ -149,3 +149,174 @@ d.f. = 71 <br>
 
 These data are presented in Table XXX of the final ms.
 
+### STEP 2: Plot survival probability data.
+
+#### 5a: Plot means and standard errors for proportion of larvae surviving; run the Rmd chunk below.
+
+##### Plot probability data: `figures/survival_probability.jpeg`
+```{r}
+# load survival data
+load("data/survival.Rda")
+
+# get sample size (n), mean or proportion, standard deviation (sd), and standard error (se) for herbivory by generation, background, and treatment for plotting
+survival <- survival %>%
+  group_by(larval_generation, background, treatment) %>%
+  summarize(n = n(),
+            prop_survived = sum(survived)/n,
+            sd_survived = sd(survived),
+            se_survived = sd_survived/sqrt(n)) %>%
+  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
+         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+
+# isolate only F0 data
+f0 <- survival %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- survival %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- survival %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- survival %>%
+  filter(larval_generation == "F3")
+
+# plot f0 data
+f0_plot <- ggplot(f0, aes(x = background, y = prop_survived, group = background, color = background)) +
+  geom_errorbar(aes(ymin = prop_survived - se_survived, ymax = prop_survived + se_survived, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = background, y = prop_survived, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Original exposure", y = "P(Survival)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f1 data
+f1_plot <- ggplot(f1, aes(x = treatment, y = prop_survived, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_survived - se_survived, ymax = prop_survived + se_survived, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_survived, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.title = element_text(size = 30)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  #theme(legend.text = element_text(size = 30)) +
+  #theme(legend.title = element_text(size = 30, face = "bold")) +
+  #theme(legend.key.size = unit(2, 'cm')) +
+  #theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  #theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  #theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  #theme(legend.position = c(0.05,0.2)) + 
+  labs(x = "Treatment", y = "P(Survival)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f2 data
+f2_plot <- ggplot(f2, aes(x = treatment, y = prop_survived, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_survived - se_survived, ymax = prop_survived + se_survived, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_survived, group = background, fill = background), 
+              position = position_dodge(width = 0.4), 
+              size = 7, 
+              pch = 22, 
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = "P(Survival)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f3 data
+f3_plot <- ggplot(f3, aes(x = treatment, y = prop_survived, group = background, color = background)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) + 
+  geom_errorbar(aes(ymin = prop_survived - se_survived, ymax = prop_survived + se_survived, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+   geom_point(aes(x = treatment, y = prop_survived, group = background, fill = background),
+              position = position_dodge(width = 0.4), 
+              size = 7,
+              pch = 22,
+              stroke = 2, 
+              color = "black", 
+              show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  ylim(0,1) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Treatment", y = "P(Survival)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all survival figures together
+jpeg("figures/survival_probability.jpeg", width = 17000, height = 15000, res = 1000)
+
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+
+dev.off()
+```
