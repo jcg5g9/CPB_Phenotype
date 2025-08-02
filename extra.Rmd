@@ -1127,3 +1127,283 @@ save(distance, file = "data/distance.Rda")
 <b>F3_E_R: p < 0.271 </b><br>
 
 All 14 tests indicate fit of the normal distribution, so we continue with analysis using these transformed data.
+
+
+### STEP 1: Test for pairwise correlations between mobility metrics.
+In this step, we test whether each pair of mobility-related metrics (i.e., total distance walked vs. average walking speed; total distance walked vs. average acceleration; and average speed vs. average acceleration) are tightly correlated. Assessing differences between groups in highly correlated variables is redundant for addressing experimental questions. In the event that multiple variables are highly correlated, they do not all need to be analyzed.
+
+##### 1a. Test fit of distance, speed, and acceleration data to a normal distribution; run the Rmd chunk below.
+
+##### Test fit of distance, speed, and acceleration data to normal distribution:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# get control data only
+c <- fecundity %>%
+  filter(background == "C")
+
+# get exposed data only
+e <- fecundity %>%
+  filter(background == "E")
+
+# Test fit of mass data to normal distribution
+shapiro.test(c$`F`)
+shapiro.test(c$M)
+shapiro.test(e$`F`)
+shapiro.test(e$M)
+
+# Test fit of egg data to normal distribution
+shapiro.test(c$mean)
+shapiro.test(e$mean)
+```
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-Wilk p-values for male and female mass in each background:</b><br>
+F_C: p = 0.1063 <br>
+F_E: p = 0.4594 <br>
+M_C: p = 0.8849 <br>
+M_E: p = 0.4455 <br>
+
+<b>Shapiro-Wilk p-values for average daily fecundity in each background:</b><br>
+Mean_C: p = 0.2947 <br>
+Mean_E: p = 0.05107 <br>
+
+For both female and male mass and mean number of eggs, neither background group significantly deviated from a normal distribution, so we assumed a normal distribution for linear mixed effect models to test for correlations.  
+
+#### 1a: Test for correlations between each pair of variables using a linear mixed effect model framework; run the Rmd chunk below.
+
+##### Test for correlations between variables:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# test for correlation between total distance walked and average speed
+distance_speed <- lmer(total_distance ~ ave_speed + (1|lineage),
+                       data = mobility)
+
+# test for correlation between total distance walked and average acceleration
+distance_accel <- lmer(total_distance ~ ave_accel + (1|lineage),
+                       data = mobility)
+
+# test for correlation between total distance walked and average acceleration
+speed_accel <- lmer(ave_speed ~ ave_accel + (1|lineage),
+                       data = mobility)
+
+# summarize model results for distance and speed
+anova(distance_speed) # get F values
+Anova(distance_speed) # get p-values
+rsq.lmm(distance_speed) # get r-squared values
+
+# summarize model results for distance and acceleration
+anova(distance_accel) # get F values
+Anova(distance_accel) # get p-values
+rsq.lmm(distance_accel) # get r-squared values
+
+# summarize model results for speed and acceleration
+anova(speed_accel) # get F values
+Anova(speed_accel) # get p-values
+rsq.lmm(speed_accel) # get r-squared values
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
+<b>distance and speed: F = 33932; p < 0.0001; r-squared = 0.9887 </b><br>
+<b>distance and acceleration: F = 5570.1; p < 0.0001; r-squared = 0.9348 </b><br>
+<b>speed and acceleration: F = 4390.2; p < 0.0001; r-squared = 0.9188 </b><br>
+
+Given that all pairwise metrics are highly correlated, we opted to use only a single metric as a proxy for larval mobility, i.e., total distance walked. All downstream analyses were conducted for only these data.
+
+#### 1b: Plot correlations; run the Rmd chunk below.
+
+##### Plot correlations: `figures/correlations.jpeg`
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# plot distance and speed correlation
+distance_speed <- ggplot(mobility, aes(x = total_distance, y = ave_speed)) + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 600, by = 100),
+                     limits = c(0,600),
+                     expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 2, by = 1),
+                     limits = c(0,2),
+                     expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Total distance walked (mm)", y = "Speed (mm/s)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot distance and speed correlation
+distance_accel <- ggplot(mobility, aes(x = total_distance, y = ave_accel)) + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 600, by = 100),
+                     limits = c(0,600),
+                     expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 7, by = 1),
+                     limits = c(0,7),
+                     expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Total distance walked (mm)") +
+  ylab(expression("Acceleration"~(m/s^{"2"}))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot distance and speed correlation
+speed_accel <- ggplot(mobility, aes(x = ave_speed, y = ave_accel)) + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 2, by = 1),
+                     limits = c(0,2),
+                     expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 7, by = 1),
+                     limits = c(0,7),
+                     expand = c(0,0)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Speed (mm/s)") +
+  ylab(expression("Acceleration"~(m/s^{"2"}))) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all together
+jpeg("figures/correlations.jpeg", width = 25000, height = 8000, res = 1000)
+
+distance_speed + distance_accel + speed_accel + plot_layout(nrow = 1, ncol = 3)
+
+dev.off()
+```
+
+
+### STEP 1: Test for pairwise correlations between development metrics.
+In this step, we test whether development metrics with similar units and measured in the same individuals (i.e., pupal mass vs. adult mass; time to pupation vs. pupation duration) are tightly correlated. Assessing differences between groups in highly correlated variables is redundant for addressing experimental questions. In the event that multiple variables are highly correlated, they do not all need to be analyzed.
+
+#### 1a: Test for correlations between each pair of variables using a linear mixed effect model framework; run the Rmd chunk below.
+
+##### Test for correlations between variables:
+```{r}
+# load development data
+load("data/development.Rda")
+
+# drop NAs and recalculate metrics for development time (time to pupation and pupa duration)
+development <- development %>%
+  drop_na(pupa_date:adult_mass) %>%
+  mutate(pupa_time = as.integer(difftime(pupa_date, assay_date, "days")),
+         pupa_duration = as.integer(difftime(emerge_date, pupa_date, "days")))
+
+# test for correlation between total distance walked and average speed
+mass <- lmer(pupa_mass ~ adult_mass + (1|lineage),
+             data = development)
+
+# test for correlation between total distance walked and average acceleration
+time <- lmer(pupa_time ~ pupa_duration + (1|lineage),
+             data = development)
+
+# summarize model results for mass metrics
+anova(mass) # get F values
+Anova(mass) # get p-values
+rsq.lmm(mass) # get r-squared values
+
+# summarize model results for time metrics
+anova(time) # get F values
+Anova(time) # get p-values
+rsq.lmm(time) # get r-squared values
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
+<b>pupa mass and adult mass: F = 696.17; p < 0.0001; r-squared = 0.7527678 </b><br>
+<b>pupation time and pupa duration: F = 3.0383; p = 0.08132; r-squared = 0.06688807 </b><br>
+
+Given that pupal and adult mass are are significantly correlated, we opted to use only a single metric as a proxy for individual mass, i.e., pupa mass (we chose pupa mass since many individuals that pupated did not make it to adult emergence and we therefore had a larger dataset). Time to pupation and duration of pupation were not significantly correlated, so we analyzed both of these metrics. Downstream analyses were therefore conducted for pupa mass, pupa time, and pupa duration.
+
+#### 1b: Plot correlations; run the Rmd chunk below.
+
+##### Plot correlations: `figures/correlations.jpeg`
+```{r}
+# load development data
+load("data/development.Rda")
+
+# drop NAs and recalculate metrics for development time (time to pupation and pupa duration)
+development <- development %>%
+  drop_na(pupa_date:adult_mass) %>%
+  mutate(pupa_time = as.integer(difftime(pupa_date, assay_date, "days")),
+         pupa_duration = as.integer(difftime(emerge_date, pupa_date, "days")))
+
+# plot mass correlation
+mass <- ggplot(development, aes(x = pupa_mass, y = adult_mass)) + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  scale_y_continuous() +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 200, by = 40), 
+                     limits = c(0,200), 
+                     expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 200, by = 40), 
+                     limits = c(0,200), 
+                     expand = c(0,0)) +
+  labs(x = "Pupa mass (mg)", y = "Adult mass (mg)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot time correlation
+time <- ggplot(development, aes(x = pupa_time, y = pupa_duration)) + 
+  geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black", position = position_jitter()) + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("grey")) +
+  scale_color_manual(values = c("black")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 35, by = 5), 
+                     limits = c(0,35),
+                     expand = c(0,0)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 12, by = 3), 
+                     limits = c(0,12),
+                     expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Time to pupation (days)", y = "Pupa duration (days)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all together
+jpeg("figures/correlations.jpeg", width = 18000, height = 8000, res = 1000)
+
+mass + time + plot_layout(nrow = 1, ncol = 2)
+
+dev.off()
+```

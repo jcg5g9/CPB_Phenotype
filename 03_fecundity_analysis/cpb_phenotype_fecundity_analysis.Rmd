@@ -146,9 +146,7 @@ m_plot <- ggplot(fecundity, aes(x = M)) +
 # plot mass distributions together
 jpeg("figures/mass_distributions.jpeg", width = 10000, height = 4000, res = 700)
 
-f_plot +
-  m_plot +
-  plot_layout(nrow = 1, ncol = 2)
+f_plot + m_plot + plot_layout(nrow = 1, ncol = 2)
 
 dev.off()
 
@@ -174,10 +172,49 @@ ggplot(fecundity, aes(x = mean)) +
 dev.off()
 ```
 
+#### 2b: Test correlation of mass and fecundity.
+
+##### 2b.1. Test correlations between male and female mass and average daily fecundity; run the Rmd chunk below.
+
+##### Assess correlations between male and female mass and fecundity: 
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
+fecundity <- fecundity %>%
+  group_by(pair_id, background, `F`, M) %>%
+  summarize(mean = mean(number_eggs))
+
+#test for correlation between mean fecundity and male mass
+f_mean <- lmer(mean ~ `F` + (1|background),
+               data = fecundity)
+
+# test for correlation between mean fecundity and male mass
+m_mean <- lmer(mean ~ M + (1|background),
+               data = fecundity)
+
+# summarize model results for fecundity and female mass
+anova(f_mean) # get F values
+Anova(f_mean) # get p-values
+rsq.lmm(f_mean) # get r-squared values
+
+# summarize model results for fecundity and male mass
+anova(m_mean) # get F values
+Anova(m_mean) # get p-values
+rsq.lmm(m_mean) # get r-squared values
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
+<b>fecundity and female mass: F = 2.027; p = 0.1545; r-squared = 0.03069904 </b><br>
+<b>fecundity and male mass: F = 0.1944; p = 0.6593; r-squared = 0.003027575 </b><br>
+
+Given that these metrics are not correlated, we opted to omit mass from all downstream model analyses.
 
 ## PHASE 2: FECUNDITY ANALYSIS
 In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. 
-
 
 ##### Plot daily fecundity: `figures/daily_fecundity.pdf` 
 ```{r}
