@@ -13,7 +13,7 @@ output: html_document
 
 ## Phases of Analysis
 ### Phase 1: Data summary statistics
-### Phase 2: 
+### Phase 2: Fecundity analysis
 
 ### Libraries needed for analysis
 ```{r}
@@ -44,3 +44,64 @@ average_fecundity %>%
             se = sd/sqrt(n()))
 ```
 
+## PHASE 2: FECUNDITY ANALYSIS
+In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework.
+
+##### Plot daily fecundity: `figures/daily_fecundity.pdf` 
+```{r}
+load("data/fecundity.Rda")
+
+daily_fecundity <- fecundity %>%
+  select(lineage:background, number_eggs, days_since_oviposition) %>%
+  group_by(adult_generation, background, days_since_oviposition) %>%
+  summarize(n = n(),
+            mean = mean(number_eggs),
+            sd = sd(number_eggs),
+            se = sd/sqrt(n)) %>%
+  group_by(adult_generation) %>%
+  mutate(global_means = mean(mean)) %>%
+  group_by(adult_generation, background) %>%
+  mutate(background_means = mean(mean))
+
+jpeg("figures/daily_fecundity.jpeg", width = 30000, height = 20000, res = 1600)
+
+ggplot(daily_fecundity, aes(x = days_since_oviposition, y = mean)) +
+  geom_line(aes(color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = T) + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.8, 
+                linewidth = 2, 
+                show.legend = T) +
+  geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = T) + 
+  theme_set(theme_cowplot(12)) +
+  facet_wrap(~adult_generation) +
+  theme(strip.background = element_rect(fill = "grey", color = "black", size = 2)) +
+  theme(strip.text = element_text(size = 30, face = "bold")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(legend.position = c(0.02,0.9)) +
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(2, 'cm')) +
+  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  labs(x = "Time since first oviposition (days)", y = "Mean fecundity (number of eggs laid)", color = "Background", fill = "Background") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```

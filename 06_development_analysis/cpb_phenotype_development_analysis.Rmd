@@ -232,7 +232,7 @@ Since no tests indicate a deviation from a normal distribution (p < 0.003), we a
 load("data/pupa_mass.Rda")
 
 # plot distribution
-jpeg("figures/mass_distribution.jpeg", width = 5000, height = 4000, res = 500)
+jpeg("figures/pupa_mass_distribution.jpeg", width = 5000, height = 4000, res = 500)
 
 ggplot(pupa_mass, aes(x = pupa_mass)) +
   geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
