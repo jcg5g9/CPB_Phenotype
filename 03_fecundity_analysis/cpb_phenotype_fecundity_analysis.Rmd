@@ -21,7 +21,12 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
-library(nlme)
+library(rstatix)
+library(lme4)
+library(rsq)
+library(patchwork)
+library(forcats)
+library(car)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -44,14 +49,143 @@ average_fecundity %>%
             se = sd/sqrt(n()))
 ```
 
+### STEP 2: Test for correlation between adult mass and fecundity.
+In this step, we determine whether they is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
+
+#### 2a: Test fit of mass and fecundity data to a normal distribution.
+
+##### 2a.1. Test fit of mass and fecundity data to a normal distribution; run the Rmd chunk below.
+
+##### Test fit of mass and egg data to normal distribution:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
+fecundity <- fecundity %>%
+  group_by(pair_id, background, `F`, M) %>%
+  summarize(mean = mean(number_eggs))
+
+# get control data only
+c <- fecundity %>%
+  filter(background == "C")
+
+# get exposed data only
+e <- fecundity %>%
+  filter(background == "E")
+
+# Test fit of mass data to normal distribution
+shapiro.test(c$`F`)
+shapiro.test(c$M)
+shapiro.test(e$`F`)
+shapiro.test(e$M)
+
+# Test fit of egg data to normal distribution
+shapiro.test(c$mean)
+shapiro.test(e$mean)
+```
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-Wilk p-values for male and female mass in each background:</b><br>
+F_C: p = 0.1063 <br>
+F_E: p = 0.4594 <br>
+M_C: p = 0.8849 <br>
+M_E: p = 0.4455 <br>
+
+<b>Shapiro-Wilk p-values for average daily fecundity in each background:</b><br>
+Mean_C: p = 0.2947 <br>
+Mean_E: p = 0.05107 <br>
+
+For both female and male mass and mean number of eggs, neither background group significantly deviated from a normal distribution, so we assumed a normal distribution for linear mixed effect models to test for correlations.  
+
+##### 2a.2. Plot empirical distributions for mass and fecundity data; run the Rmd chunk below.
+
+##### Plot empirical data distribution for mass and fecundity: 1) `figures/mass_distributions.jpeg`; 2) `figures/fecundity_distribution.jpeg`
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
+fecundity <- fecundity %>%
+  group_by(pair_id, background, `F`, M) %>%
+  summarize(mean = mean(number_eggs))
+
+# plot female mass distribution
+f_plot <- ggplot(fecundity, aes(x = `F`)) +
+  geom_histogram(binwidth = 10, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 30), limits = c(0,180)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3), limits = c(0,15)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  xlab("Mass (mg)") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot female mass distribution
+m_plot <- ggplot(fecundity, aes(x = M)) +
+  geom_histogram(binwidth = 10, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 30), limits = c(0,180)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3), limits = c(0,15)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_blank()) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  xlab("Mass (mg)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot mass distributions together
+jpeg("figures/mass_distributions.jpeg", width = 10000, height = 4000, res = 700)
+
+f_plot +
+  m_plot +
+  plot_layout(nrow = 1, ncol = 2)
+
+dev.off()
+
+# plot mean fecundity distribution
+jpeg("figures/fecundity_distribution.jpeg", width = 5000, height = 4000, res = 500)
+
+ggplot(fecundity, aes(x = mean)) +
+  geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 60, by = 10), limits = c(0,60)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 15, by = 3), limits = c(0,15)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_blank()) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  xlab("Mean fecundity") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+
 ## PHASE 2: FECUNDITY ANALYSIS
-In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework.
+In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. 
+
 
 ##### Plot daily fecundity: `figures/daily_fecundity.pdf` 
 ```{r}
+# load fecundity data
 load("data/fecundity.Rda")
 
-daily_fecundity <- fecundity %>%
+# group data by generation, background, and days since oviposition and summarize mean and se of egg number (fecundity) across lineages. Calculate global and background-specific means for plotting.
+fecundity <- fecundity %>%
   select(lineage:background, number_eggs, days_since_oviposition) %>%
   group_by(adult_generation, background, days_since_oviposition) %>%
   summarize(n = n(),
@@ -59,17 +193,32 @@ daily_fecundity <- fecundity %>%
             sd = sd(number_eggs),
             se = sd/sqrt(n)) %>%
   group_by(adult_generation) %>%
-  mutate(global_means = mean(mean)) %>%
+  mutate(global_mean = mean(mean)) %>%
   group_by(adult_generation, background) %>%
-  mutate(background_means = mean(mean))
+  mutate(background_mean = mean(mean))
 
-jpeg("figures/daily_fecundity.jpeg", width = 30000, height = 20000, res = 1600)
+# isolate only F0 data
+f0 <- fecundity %>%
+  filter(adult_generation == "F0")
 
-ggplot(daily_fecundity, aes(x = days_since_oviposition, y = mean)) +
-  geom_line(aes(color = background), 
+# isolate only F1 data
+f1 <- fecundity %>%
+  filter(adult_generation == "F1")
+
+# isolate only F2 data
+f2 <- fecundity %>%
+  filter(adult_generation == "F2")
+
+# isolate only F3 data
+f3 <- fecundity %>%
+  filter(adult_generation == "F3")
+
+# plot f0 data
+f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
+  geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
-            show.legend = T) + 
+            show.legend = T) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 
@@ -83,25 +232,127 @@ ggplot(daily_fecundity, aes(x = days_since_oviposition, y = mean)) +
              color = "black", 
              show.legend = T) + 
   theme_set(theme_cowplot(12)) +
-  facet_wrap(~adult_generation) +
-  theme(strip.background = element_rect(fill = "grey", color = "black", size = 2)) +
-  theme(strip.text = element_text(size = 30, face = "bold")) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  theme(legend.position = c(0.04,0.8)) +
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.title = element_text(size = 30, face = "bold")) +
+  theme(legend.key.size = unit(1, 'cm')) +
+  theme(legend.key.spacing.y = unit(-1, 'cm')) +
+  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
+  theme(legend.box.margin = margin(5, 10, 1, 10)) +
+  guides(color = guide_legend(nrow = 1, byrow = T)) +
+  labs(y = "Mean fecundity", color = "Background", fill = "Background") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f0 data
+f1_plot <- ggplot(f1, aes(x = days_since_oviposition, y = mean)) +
+  geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
+            position = position_dodge(width = 0.4),
+            linewidth = 2,
+            show.legend = F) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4),
+                width = 0.8, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  labs(y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f0 data
+f2_plot <- ggplot(f2, aes(x = days_since_oviposition, y = mean)) +
+  geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.8, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  labs(y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f0 data
+f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
+  geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
+            position = position_dodge(width = 0.4), 
+            linewidth = 2, 
+            show.legend = F) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.8, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(legend.position = c(0.02,0.9)) +
-  theme(legend.text = element_text(size = 30)) +
-  theme(legend.title = element_text(size = 30, face = "bold")) +
-  theme(legend.key.size = unit(2, 'cm')) +
-  theme(legend.key.spacing.y = unit(-0.5, 'cm')) +
-  theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
-  theme(legend.box.margin = margin(5, 10, 1, 10)) +
-  labs(x = "Time since first oviposition (days)", y = "Mean fecundity (number of eggs laid)", color = "Background", fill = "Background") +
+  labs(x = "Time since first oviposition (days)", y = "Mean fecundity") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
+
+# plot average daily fecundity
+jpeg("figures/daily_fecundity.jpeg", width = 20000, height = 30000, res = 1700)
+
+f0_plot + 
+  f1_plot + 
+  f2_plot + 
+  f3_plot + 
+  plot_layout(nrow = 4, ncol = 1)
 
 dev.off()
 ```
