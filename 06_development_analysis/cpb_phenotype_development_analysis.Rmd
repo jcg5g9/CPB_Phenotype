@@ -92,40 +92,45 @@ development <- development %>%
 
 # plot mass correlation
 mass <- ggplot(development, aes(x = pupa_mass, y = adult_mass)) + 
-  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
   geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black") + 
   theme_set(theme_cowplot(12)) +
   scale_fill_manual(values = c("grey")) +
   scale_color_manual(values = c("black")) + 
-  xlim(0,200) +
-  ylim(0,200) +
+  scale_y_continuous() +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  scale_x_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) + 
-  scale_y_continuous(labels = number_format(accuracy = 0.1), expand = c(0,0)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 200, by = 40), 
+                     limits = c(0,200), 
+                     expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 200, by = 40), 
+                     limits = c(0,200), 
+                     expand = c(0,0)) +
   labs(x = "Pupa mass (mg)", y = "Adult mass (mg)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot time correlation
 time <- ggplot(development, aes(x = pupa_time, y = pupa_duration)) + 
-  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black", position = position_jitter()) + 
   geom_smooth(method = "lm", color = "black", fullrange = T) +
+  geom_point(fill = "grey", show.legend = F, size = 3, pch = 21, color = "black", position = position_jitter()) + 
   theme_set(theme_cowplot(12)) +
   scale_fill_manual(values = c("grey")) +
   scale_color_manual(values = c("black")) + 
-  xlim(0,35) +
-  ylim(0,12) +
+  scale_x_continuous(breaks = seq(from = 0, to = 35, by = 5), 
+                     limits = c(0,35),
+                     expand = c(0,0)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 12, by = 3), 
+                     limits = c(0,12),
+                     expand = c(0,0)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  scale_x_continuous(expand = c(0,0)) + 
-  scale_y_continuous(expand = c(0,0)) +
   labs(x = "Time to pupation (days)", y = "Pupa duration (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -238,8 +243,10 @@ jpeg("figures/pupa_mass_distribution.jpeg", width = 5000, height = 4000, res = 5
 ggplot(pupa_mass, aes(x = pupa_mass)) +
   geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(breaks = seq(from = 0, to = 240, by = 20)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 25, by = 5)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 20), 
+                     limits = c(0,180)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 25, by = 5), 
+                     limits = c(0,25)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
@@ -774,14 +781,16 @@ jpeg("figures/pupa_time_distribution.jpeg", width = 5000, height = 4000, res = 5
 ggplot(pupa_time, aes(x = pupa_time)) +
   geom_histogram(binwidth = 1, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 35, by = 5), 
+                     limits = c(0,35)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 80, by = 10),
+                     limits = c(0,80)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  scale_x_continuous(breaks = seq(from = 0, to = 35, by = 5)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 10)) +
   xlab("Time to pupation (days)") +
   ylab("Frequency") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
@@ -1300,14 +1309,16 @@ jpeg("figures/pupa_duration_distribution.jpeg", width = 5000, height = 4000, res
 ggplot(pupa_duration, aes(x = pupa_duration)) +
   geom_histogram(binwidth = 1, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 15, by = 5),
+                     limits = c(0,15)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
+                     limits = c(0,140)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  scale_x_continuous(breaks = seq(from = 0, to = 15, by = 5)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20)) +
   xlab("Duration of pupation (days)") +
   ylab("Frequency") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
