@@ -260,9 +260,6 @@ gofstat(list(unif,
                      "normal",
                      "gamma",
                      "exponential"))$aic
-
-# save gamma distribution object for plotting
-save(gamm, file = "data/gamma.Rda")
 ```
 
 <b>Analysis results:</b> <br>

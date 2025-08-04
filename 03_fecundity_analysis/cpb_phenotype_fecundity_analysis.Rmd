@@ -21,12 +21,13 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
-library(rstatix)
 library(lme4)
 library(rsq)
+library(fitdistrplus)
 library(patchwork)
 library(forcats)
 library(car)
+library(MASS)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -75,15 +76,16 @@ e <- fecundity %>%
   filter(background == "E")
 
 # Test fit of mass data to normal distribution
-shapiro.test(c$`F`)
-shapiro.test(c$M)
-shapiro.test(e$`F`)
-shapiro.test(e$M)
+shapiro.test(c$`F`) # test fit for female mass in control group
+shapiro.test(c$M) # test fit for male mass in control group
+shapiro.test(e$`F`) # test fit for female mass in exposed group
+shapiro.test(e$M) # test fit for male mass in exposed group
 
 # Test fit of egg data to normal distribution
-shapiro.test(c$mean)
-shapiro.test(e$mean)
+shapiro.test(c$mean) # test fit for control group
+shapiro.test(e$mean) # test fit for control group
 ```
+
 <b>Analysis results:</b> <br>
 
 <b>Shapiro-Wilk p-values for male and female mass in each background:</b><br>
@@ -151,7 +153,7 @@ f_plot + m_plot + plot_layout(nrow = 1, ncol = 2)
 dev.off()
 
 # plot mean fecundity distribution
-jpeg("figures/fecundity_distribution.jpeg", width = 5000, height = 4000, res = 500)
+jpeg("figures/mean_fecundity_distribution.jpeg", width = 5000, height = 4000, res = 500)
 
 ggplot(fecundity, aes(x = mean)) +
   geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
@@ -175,6 +177,7 @@ dev.off()
 #### 2b: Test correlation of mass and fecundity.
 
 ##### 2b.1. Test correlations between male and female mass and average daily fecundity; run the Rmd chunk below.
+In this step, we test for correlations between both male and female mass and average daily fecundity (i.e., mean of number of eggs laid per day for each lineage pair), accounting for potential differences in mean by background (i.e., control or exposed) and by generation by including these variables as random effects.
 
 ##### Assess correlations between male and female mass and fecundity: 
 ```{r}
@@ -183,15 +186,16 @@ load("data/fecundity.Rda")
 
 # get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
 fecundity <- fecundity %>%
-  group_by(pair_id, background, `F`, M) %>%
-  summarize(mean = mean(number_eggs))
+  group_by(adult_generation, background, `F`, M) %>%
+  summarize(mean = mean(number_eggs)) %>%
+  drop_na()
 
 #test for correlation between mean fecundity and male mass
-f_mean <- lmer(mean ~ `F` + (1|background),
+f_mean <- lmer(mean ~ `F` + (1|background) + (1|adult_generation),
                data = fecundity)
 
 # test for correlation between mean fecundity and male mass
-m_mean <- lmer(mean ~ M + (1|background),
+m_mean <- lmer(mean ~ M + (1|background) + (1|adult_generation),
                data = fecundity)
 
 # summarize model results for fecundity and female mass
@@ -208,31 +212,525 @@ rsq.lmm(m_mean) # get r-squared values
 <b>Analysis results:</b> <br>
 
 <b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
-<b>fecundity and female mass: F = 2.027; p = 0.1545; r-squared = 0.03069904 </b><br>
-<b>fecundity and male mass: F = 0.1944; p = 0.6593; r-squared = 0.003027575 </b><br>
+<b>fecundity and female mass: F = 1.5237; p = 0.2171; r-squared = 0.2075726 </b><br>
+<b>fecundity and male mass: F = 0.6674; p = 0.414; r-squared = 0.2045911 </b><br>
 
-Given that these metrics are not correlated, we opted to omit mass from all downstream model analyses.
+Given that these metrics are not correlated, we opted to omit mass from all downstream model analyses. Correlation plots of male and female mass, delineated by generation (grid rows) and background treatment (different colored regression lines in the plot) are generated in Step 2b.2 below.
+
+##### 2b.2. Plot correlationsfor mass and average fecundity; run the Rmd chunk below.
+
+##### Plot correlations for mass and fecundity: `figures/mass_fecundity_correlation.jpeg`
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
+fecundity <- fecundity %>%
+  group_by(adult_generation, background, `F`, M) %>%
+  summarize(mean = mean(number_eggs)) %>%
+  drop_na()
+
+# isolate only F0 data
+f0 <- fecundity %>%
+  filter(adult_generation == "F0")
+
+# isolate only F1 data
+f1 <- fecundity %>%
+  filter(adult_generation == "F1")
+
+# isolate only F2 data
+f2 <- fecundity %>%
+  filter(adult_generation == "F2")
+
+# isolate only F3 data
+f3 <- fecundity %>%
+  filter(adult_generation == "F3")
+
+# plot female mass and fecundity plot for f0 generation
+f0_f_plot <- ggplot(f0, aes(x = `F`, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  labs(x = "Female mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot male mass and fecundity plot for f0 generation
+f0_m_plot <- ggplot(f0, aes(x = M, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_blank()) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
+  labs(x = "Male mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot female mass and fecundity plot for f1 generation
+f1_f_plot <- ggplot(f1, aes(x = `F`, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  labs(x = "Female mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot male mass and fecundity plot for f1 generation
+f1_m_plot <- ggplot(f1, aes(x = M, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.title.y = element_blank()) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
+  labs(x = "Male mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot female mass and fecundity plot for f2 generation
+f2_f_plot <- ggplot(f2, aes(x = `F`, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  labs(x = "Female mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot male mass and fecundity plot for f2 generation
+f2_m_plot <- ggplot(f2, aes(x = M, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title.y = element_blank()) + 
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
+  labs(x = "Male mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot female mass and fecundity plot for f3 generation
+f3_f_plot <- ggplot(f3, aes(x = `F`, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Female mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot male mass and fecundity plot for f3 generation
+f3_m_plot <- ggplot(f3, aes(x = M, y = mean)) + 
+  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
+  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
+                    limits = c(0,160),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_blank()) + 
+  theme(axis.text.y = element_blank()) +
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  labs(x = "Male mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all mass and fecundity correlations all together
+jpeg("figures/mass_fecundity_correlation.jpeg", width = 20000, height = 30000, res = 1800)
+
+f0_f_plot + f0_m_plot + f1_f_plot + f1_m_plot + f2_f_plot + f2_m_plot + f3_f_plot + f3_m_plot + plot_layout(nrow = 4, ncol = 2)
+
+dev.off()
+```
 
 ## PHASE 2: FECUNDITY ANALYSIS
 In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. 
+
+### STEP 1: Analyze differences in fecundity trends across days since oviposition between control and exposed beetles in each generation.
+In this step of the analyze, we assess holistic differences in daily fecundity (i.e., differences in trends in number of eggs laid since first oviposition) between control and exposed beetles in each generation. We use a general linear mixed effect model assuming an underlying Poisson distribution (given that fecundity per day is count data), including lineage as a random effect and explicitly accounting for autocorrelation across days. We use the glmmPQL function in the R package MASS to run an autocorrelation model.
+
+#### 1a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether daily fecundity data in each group of interest (generation and background treatment) deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/8 = 0.006 (to account for multiple comparisons)
+fecundity %>%
+  group_by(adult_generation, background) %>%
+  shapiro_test(number_eggs) %>%
+  mutate(alpha = 0.006) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C: p < 0.001 </b><br>
+<b>F0_E: p < 0.001 </b><br>
+<b>F1_C: p < 0.001 </b><br>
+<b>F1_E: p < 0.001 </b><br>
+<b>F2_C: p < 0.001 </b><br>
+<b>F2_E: p < 0.001 </b><br>
+<b>F3_C: p < 0.001 </b><br>
+<b>F3_E: p < 0.001 </b><br>
+
+Since 7/14 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
+
+#### 1b: Test fit of empirical data to alternative distributions.
+In this step, we plot the raw data distribution and test the fit of four potential distributions that commonly underlie count data (i.e., poisson, binomial, and negative binomial distributions, and determine the best fitting distribution for each group of interest.
+
+##### 1b.1. Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+
+##### Test fit of alternative distributions:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# Generate combined "group" factor, which includes adult generation and background to test distributions within each group of interest.
+fecundity <- fecundity %>%
+  unite(group, adult_generation, background, sep = "_", remove = F) %>%
+  mutate(group = factor(group))
+
+# generate list of levels within group factor
+levels <- levels(fecundity$group)
+
+# define empty lists to hold statistics for each distribution test
+unif <- list()
+norm <- list()
+pois <- list()
+nbin <- list()
+
+# Write for loop to fit each distribution to data, iterating through group levels (i)
+for(i in levels) {
+  
+  # generate subsets of data for each group level
+  subset <- fecundity[fecundity$group == i, ]
+  
+  # fit distributions to leaf area for each subset
+  fit_unif <- fitdist(subset$number_eggs, "unif")
+  fit_norm <- fitdist(subset$number_eggs, "norm")
+  fit_pois <- fitdist(subset$number_eggs, "pois")
+  fit_nbin <- fitdist(subset$number_eggs, "nbinom")
+  
+  # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif
+  norm[[i]] <- fit_norm
+  pois[[i]] <- fit_pois 
+  nbin[[i]] <- fit_nbin
+  
+}
+
+# Get table of distribution stats for F0 C group
+stats_1 <- data_frame(F0_C = gofstat(list(unif$F0_C,
+                                          norm$F0_C, 
+                                          pois$F0_C, 
+                                          nbin$F0_C))$aic)
+
+# Get table of distribution stats for F0 E group
+stats_2 <- data_frame(F0_E = gofstat(list(unif$F0_E,
+                                          norm$F0_E, 
+                                          pois$F0_E, 
+                                          nbin$F0_E))$aic)
+
+# Get table of distribution stats for F1 C group
+stats_3 <- data_frame(F1_C = gofstat(list(unif$F1_C,
+                                          norm$F1_C, 
+                                          pois$F1_C, 
+                                          nbin$F1_C))$aic)
+
+# Get table of distribution stats for F1 E group
+stats_4 <- data_frame(F1_E = gofstat(list(unif$F1_E,
+                                          norm$F1_E, 
+                                          pois$F1_E, 
+                                          nbin$F1_E))$aic)
+
+# Get table of distribution stats for F2 C group
+stats_5 <- data_frame(F2_C = gofstat(list(unif$F2_C,
+                                          norm$F2_C, 
+                                          pois$F2_C, 
+                                          nbin$F2_C))$aic)
+
+# Get table of distribution stats for F2 E group
+stats_6 <- data_frame(F2_E = gofstat(list(unif$F2_E,
+                                          norm$F2_E, 
+                                          pois$F2_E, 
+                                          nbin$F2_E))$aic)
+
+# Get table of distribution stats for F3 C group
+stats_7 <- data_frame(F3_C = gofstat(list(unif$F3_C,
+                                          norm$F3_C, 
+                                          pois$F3_C, 
+                                          nbin$F3_C))$aic)
+
+# Get table of distribution stats for F3 E group
+stats_8 <- data_frame(F3_E = gofstat(list(unif$F3_E,
+                                          norm$F3_E, 
+                                          pois$F3_E, 
+                                          nbin$F3_E))$aic)
+
+
+# combine all stats into a single table and add a first column with the name of the distribution being tested
+stats <- cbind(distribution = c("uniform", "normal", "poisson", "negative binomial"), 
+               stats_1, 
+               stats_2, 
+               stats_3, 
+               stats_4,
+               stats_5, 
+               stats_6, 
+               stats_7,
+               stats_8)
+
+# Run global distribution to test if gamma is best fitting
+
+# Run individual global distributions 
+unif <- fitdist(fecundity$number_eggs, "unif")
+norm <- fitdist(fecundity$number_eggs, "norm")
+pois <- fitdist(fecundity$number_eggs, "pois")
+nbin <- fitdist(fecundity$number_eggs, "nbinom")
+
+# compare AIC values 
+gofstat(list(unif, 
+             norm, 
+             pois, 
+             nbin),
+        fitnames = c("uniform",
+                     "normal",
+                     "poisson",
+                     "negative_binomial"))$aic
+```
+
+<b>Analysis results:</b> <br>
+
+| Group     | Uniform          | Normal           | Poisson           | Negative binomial  |
+|:----------|:-----------------|:-----------------|:----------------- | :----------------- |
+| F0_C      | 2354.240         | 2339.424         | 7426.750          | <b>2192.227</b>    |
+| F0_E      | 1968.402         | 1941.370         | 6276.880          | <b>1827.304</b> 	 |
+| F1_C      | 2174.196         | 2080.998         | 6242.072          | <b>1992.755</b>    |
+| F1_E      | 1005.1015        | 1007.4514        | 3127.4039         | <b>954.7589</b>    |
+| F2_C      | 2218.848         | 2115.120         | 5153.670          | <b>2092.494</b>    |
+| F2_E      | 1304.265         | 1243.175         | 3955.629          | <b>1180.157</b>    |
+| F3_C      | 1834.659         | 1811.667         | 5594.283          | <b>1574.233</b>    |
+| F3_E      | 1242.309         | 1228.920         | 3523.209          | <b>1059.789</b>    |
+| Global    | 14902.460        | 13848.340        | 42651.510         | <b>12902.250</b>   |
+
+The data in all groups were best fit to a negative binomial distribution. The best fitting distribution to the global dataset across groups is also the negative binomial distribution. We opted to assume a negative binomial distribution in all general linear model analyses given the majority.
+
+These data are presented as Table XXX in the final ms.
+
+##### 1b.2. Plot empirical data distribution; run the Rmd chunk below.
+
+##### Plot empirical data distribution for fecundity walked: `figures/distribution.jpeg`
+```{r}
+# load mobility data
+load("data/fecundity.Rda")
+
+# plot distribution
+jpeg("figures/daily_fecundity_distribution.jpeg", width = 7000, height = 4000, res = 500)
+
+ggplot(fecundity, aes(x = number_eggs)) +
+  geom_histogram(binwidth = 3, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = -10, to = 60, by = 10),
+                     limits = c(-10,60)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 400, by = 50),
+                     limits = c(0,400)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  xlab("Daily fecundity") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+This figure is presented as Figure XXX in the final ms.
+
+#### 1a: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
+
+##### Run general linear mixed effect autocorrelation model for each generation:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get data for lineage, generation, background, and days since oviposition only
+fecundity <- fecundity %>%
+  dplyr::select(lineage:pair_id, number_eggs, days_since_oviposition)
+
+# isolate only F0 data
+f0 <- fecundity %>%
+  filter(adult_generation == "F0")
+
+# isolate only F1 data
+f1 <- fecundity %>%
+  filter(adult_generation == "F1")
+
+# isolate only F2 data
+f2 <- fecundity %>%
+  filter(adult_generation == "F2")
+
+# isolate only F3 data
+f3 <- fecundity %>%
+  filter(adult_generation == "F3")
+
+# Run general linear mixed effect model for F0
+f0_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
+                  data = f0, 
+                  random = ~1|pair_id,
+                  family = negative.binomial(theta = 1),
+                  correlation = corAR1(form = ~ days_since_oviposition))
+
+# Run general linear mixed effect model for F1
+f1_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
+                data = f1,
+                random = ~1|pair_id,
+                family = negative.binomial(theta = 1),
+                correlation = corAR1(form = ~ days_since_oviposition))
+
+# Run general linear mixed effect model for F2
+f2_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
+                data = f2,
+                random = ~1|pair_id,
+                family = negative.binomial(theta = 1),
+                correlation = corAR1(form = ~ days_since_oviposition))
+
+# Run general linear mixed effect model for F3
+f3_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
+                data = f3,
+                random = ~1|pair_id,
+                family = negative.binomial(theta = 1),
+                correlation = corAR1(form = ~ days_since_oviposition))
+
+# summarize f0 model
+summary(f0_mod)
+Anova(f0_mod)
+
+# summarize f1 model
+summary(f1_mod)
+Anova(f1_mod)
+
+# summarize f2 model
+summary(f2_mod)
+Anova(f2_mod)
+
+# summarize f3 model
+summary(f3_mod)
+Anova(f3_mod)
+```
+
+#### 1b: Plot daily fecundity for each generation; run the Rmd chunk below.
 
 ##### Plot daily fecundity: `figures/daily_fecundity.pdf` 
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
 
-# group data by generation, background, and days since oviposition and summarize mean and se of egg number (fecundity) across lineages. Calculate global and background-specific means for plotting.
+# group data by generation, background, and days since oviposition and summarize mean and se of egg number (fecundity) across lineages.
 fecundity <- fecundity %>%
-  select(lineage:background, number_eggs, days_since_oviposition) %>%
+  dplyr::select(lineage:background, number_eggs, days_since_oviposition) %>%
   group_by(adult_generation, background, days_since_oviposition) %>%
   summarize(n = n(),
             mean = mean(number_eggs),
             sd = sd(number_eggs),
-            se = sd/sqrt(n)) %>%
-  group_by(adult_generation) %>%
-  mutate(global_mean = mean(mean)) %>%
-  group_by(adult_generation, background) %>%
-  mutate(background_mean = mean(mean))
+            se = sd/sqrt(n))
 
 # isolate only F0 data
 f0 <- fecundity %>%
@@ -383,13 +881,9 @@ f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot average daily fecundity
-jpeg("figures/daily_fecundity.jpeg", width = 20000, height = 30000, res = 1700)
+jpeg("figures/daily_fecundity_means.jpeg", width = 22000, height = 30000, res = 1700)
 
-f0_plot + 
-  f1_plot + 
-  f2_plot + 
-  f3_plot + 
-  plot_layout(nrow = 4, ncol = 1)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 4, ncol = 1)
 
 dev.off()
 ```
