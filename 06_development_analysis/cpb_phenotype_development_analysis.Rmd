@@ -29,6 +29,7 @@ library(scales)
 library(fitdistrplus)
 library(forcats)
 library(patchwork)
+library(emmeans)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS

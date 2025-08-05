@@ -22,6 +22,7 @@ library(cowplot)
 library(readxl)
 library(writexl)
 library(lme4)
+library(nlme)
 library(rsq)
 library(fitdistrplus)
 library(patchwork)
@@ -217,7 +218,7 @@ rsq.lmm(m_mean) # get r-squared values
 
 Given that these metrics are not correlated, we opted to omit mass from all downstream model analyses. Correlation plots of male and female mass, delineated by generation (grid rows) and background treatment (different colored regression lines in the plot) are generated in Step 2b.2 below.
 
-##### 2b.2. Plot correlationsfor mass and average fecundity; run the Rmd chunk below.
+##### 2b.2. Plot correlations for mass and average fecundity; run the Rmd chunk below.
 
 ##### Plot correlations for mass and fecundity: `figures/mass_fecundity_correlation.jpeg`
 ```{r}
@@ -673,7 +674,7 @@ f3 <- fecundity %>%
 
 # Run general linear mixed effect model for F0
 f0_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                  data = f0, 
+                  data = f0,
                   random = ~1|pair_id,
                   family = negative.binomial(theta = 1),
                   correlation = corAR1(form = ~ days_since_oviposition))
@@ -754,6 +755,7 @@ f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = T) +
+  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 
@@ -793,6 +795,7 @@ f1_plot <- ggplot(f1, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4),
             linewidth = 2,
             show.legend = F) +
+  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4),
                 width = 0.8, 
@@ -824,6 +827,7 @@ f2_plot <- ggplot(f2, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) +
+  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 
@@ -855,6 +859,7 @@ f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) +
+  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 

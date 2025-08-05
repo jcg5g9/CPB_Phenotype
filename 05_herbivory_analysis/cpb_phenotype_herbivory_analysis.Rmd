@@ -30,6 +30,7 @@ library(fitdistrplus)
 library(forcats)
 library(patchwork)
 library(glmmTMB)
+library(emmeans)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
