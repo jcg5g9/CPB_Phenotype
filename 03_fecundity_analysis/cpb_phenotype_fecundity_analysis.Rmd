@@ -680,24 +680,24 @@ f0_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
 
 # Run general linear mixed effect model for F1
 f1_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                data = f1,
-                random = ~1|pair_id,
-                family = negative.binomial(theta = 1),
-                correlation = corAR1(form = ~ days_since_oviposition))
+                  data = f1,
+                  random = ~1|pair_id,
+                  family = negative.binomial(theta = 1),
+                  correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F2
 f2_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                data = f2,
-                random = ~1|pair_id,
-                family = negative.binomial(theta = 1),
-                correlation = corAR1(form = ~ days_since_oviposition))
+                  data = f2,
+                  random = ~1|pair_id,
+                  family = negative.binomial(theta = 1),
+                  correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F3
 f3_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                data = f3,
-                random = ~1|pair_id,
-                family = negative.binomial(theta = 1),
-                correlation = corAR1(form = ~ days_since_oviposition))
+                  data = f3,
+                  random = ~1|pair_id,
+                  family = negative.binomial(theta = 1),
+                  correlation = corAR1(form = ~ days_since_oviposition))
 
 # summarize f0 model
 summary(f0_mod)
