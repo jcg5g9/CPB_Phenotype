@@ -29,6 +29,7 @@ library(forcats)
 library(patchwork)
 library(glmmTMB)
 library(emmeans)
+library(DHARMa)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -372,21 +373,24 @@ f3_mod <- glmmTMB(total_distance ~ treatment*background + (1|lineage),
 # summarize f0 model
 summary(f0_mod) 
 emmeans(f0_mod, poly ~ background)
-df.residual(f0_mod)df.rbackground_grid()esidual(f0_mod)
+df.residual(f0_mod)
 
 # summarize f1 model
 summary(f1_mod) 
 emmeans(f1_mod, poly ~ background|treatment)
+emmeans(f1_mod, poly ~ treatment|background)
 df.residual(f1_mod)
 
 # summarize f2 model
 summary(f2_mod) 
 emmeans(f2_mod, poly ~ background|treatment)
+emmeans(f2_mod, poly ~ treatment|background)
 df.residual(f2_mod)
 
 # summarize f3 model
 summary(f3_mod) 
 emmeans(f3_mod, poly ~ background|treatment)
+emmeans(f3_mod, poly ~ treatment|background)
 df.residual(f3_mod)
 ```
 
