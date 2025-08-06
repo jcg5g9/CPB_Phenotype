@@ -323,7 +323,7 @@ This figure is presented as Figure XXX in the final ms.
 ### STEP 4: Assess phenotypic effects of insecticide stress in total distance walked.
 
 #### 4a: Run two-factor general linear mixed effect interaction models assuming a zero-inflated gamma distribution to test the relative effects of background and treatment of insecticide stress on total distance walked; run the Rmd chunk below.
-In this step, we run general linear mixed effect interaction models with raw total distance as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying Gamma distribution for the data (see Step 3 above). We also assume zero-inflation of the data, given that there may be distinct processes driving the ability of an individual larva to move at all (zero or non-zero) and how much they are able to move if they can (non-zero). We therefore run a zero-inflation gamma model, estimating coefficients of both the zero/non-zero model (i.e., zero-inflation; logistic regression) and the conditional model (non-zero; general linear regression).
+In this step, we run general linear mixed effect interaction models with raw total distance as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying Gamma distribution for the data (see Step 3 above). We also assume zero-inflation of the data, given that there may be distinct processes driving the ability of an individual larva to move at all (zero or non-zero) and how much they are able to move if they can (non-zero). We therefore run a zero-inflation gamma model, estimating coefficients of both the zero/non-zero model (i.e., zero-inflation; logistic regression) and the conditional model (non-zero; general linear regression). For the conditional model, we also estimate marginal means and pairwise differences between treatments within backgrounds and between backgrounds within treatments. 
 
 ##### Run general linear mixed effect interaction models for total distance walked:
 ```{r}
@@ -371,27 +371,27 @@ f3_mod <- glmmTMB(total_distance ~ treatment*background + (1|lineage),
                   family = ziGamma(link = "log"))
 
 # summarize f0 model
-summary(f0_mod) 
-emmeans(f0_mod, poly ~ background)
-df.residual(f0_mod)
+summary(f0_mod) # get z and p value
+emmeans(f0_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
 
 # summarize f1 model
-summary(f1_mod) 
-emmeans(f1_mod, poly ~ background|treatment)
-emmeans(f1_mod, poly ~ treatment|background)
-df.residual(f1_mod)
+summary(f1_mod) # get z and p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) # get degrees of freedom
 
 # summarize f2 model
-summary(f2_mod) 
-emmeans(f2_mod, poly ~ background|treatment)
-emmeans(f2_mod, poly ~ treatment|background)
-df.residual(f2_mod)
+summary(f2_mod) # get z and p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
 
 # summarize f3 model
-summary(f3_mod) 
-emmeans(f3_mod, poly ~ background|treatment)
-emmeans(f3_mod, poly ~ treatment|background)
-df.residual(f3_mod)
+summary(f3_mod) # get z and p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
 ```
 
 <b>Analysis results:</b> <br>
@@ -436,6 +436,74 @@ Treatment x Background: z = -0.820; p = 0.4122 <br>
 
 These data are presented in Table 2a of the final ms.
 
+#### 4b: Run individual logistic regression models to assess probability of mobility and estimate marginal means within treatments and backgrounds; run the Rmd chunk below.
+
+##### Run logisitic regression models for mobility and extract marginal means:
+```{r}
+# load mobility data
+load("data/mobility.Rda")
+
+# isolate only F0 data
+f0 <- mobility %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- mobility %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- mobility %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- mobility %>%
+  filter(larval_generation == "F3")
+
+# f0 general linear mixed effect model
+f0_mod <- glmer(moved ~ background + (1|lineage),
+               family = binomial(link = "logit"),
+               data = f0)
+
+# f1 general linear mixed effect model
+f1_mod <- glmer(moved ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f1)
+
+# f2 general linear mixed effect model
+f2_mod <- glmer(moved ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- glmer(moved ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f3)
+
+# summarize f0 model
+summary(f0_mod) # get z and p value
+emmeans(f0_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
+
+# summarize f1 model
+summary(f1_mod) # get z and p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) # get degrees of freedom
+
+# summarize f2 model
+summary(f2_mod) # get z and p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
+
+# summarize f3 model
+summary(f3_mod) # get z and p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
+
+```
+
 ### STEP 5: Plot mobility data analyses.
 
 #### 5a: Plot means and standard errors for proportion of larvae exhibiting mobility; run the Rmd chunk below.
@@ -449,9 +517,9 @@ load("data/mobility.Rda")
 mobility <- mobility %>%
   group_by(larval_generation, background, treatment) %>%
   summarize(n = n(),
-            prop_mobility = sum(mobility)/n,
-            sd_mobility = sd(mobility),
-            se_mobility = sd_mobility/sqrt(n)) %>%
+            prop_moved = sum(moved)/n,
+            sd_moved = sd(moved),
+            se_moved = sd_moved/sqrt(n)) %>%
   mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
          treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
 

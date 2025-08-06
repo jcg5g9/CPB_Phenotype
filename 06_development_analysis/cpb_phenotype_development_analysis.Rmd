@@ -194,24 +194,31 @@ f3_mod <- lmer(pupa_mass ~ treatment*background + (1|lineage),
                data = f3)
 
 # summarize f0 model
-anova(f0_mod)
-Anova(f0_mod)
-df.residual(f0_mod)
+anova(f0_mod) # get F value
+Anova(f0_mod) # get p value
+emmeans(f0_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
 
 # summarize f1 model
-anova(f1_mod)
-Anova(f1_mod)
-df.residual(f1_mod)
+anova(f1_mod) # get F value
+Anova(f1_mod) # get p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) # get degrees of freedom
 
 # summarize f2 model
-anova(f2_mod)
-Anova(f2_mod)
-df.residual(f2_mod)
+anova(f2_mod) # get F values
+Anova(f2_mod) # get p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
 
 # summarize f3 model
-anova(f3_mod)
-Anova(f3_mod)
-df.residual(f3_mod)
+anova(f3_mod) # get F values
+Anova(f3_mod) # get p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
 ```
 
 <b>Analysis results:</b> <br>
@@ -291,7 +298,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(90,130) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
+                     limits = c(0,140)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
@@ -323,7 +331,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(90,130) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
+                     limits = c(0,140)) +
   theme(axis.title = element_text(size = 30)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
@@ -360,7 +369,8 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(90,130) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
+                     limits = c(0,140)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -390,7 +400,8 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(90,130) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
+                     limits = c(0,140)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
@@ -402,11 +413,7 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
 # plot all pupa mass figures together
 jpeg("figures/pupa_mass_means.jpeg", width = 17000, height = 15000, res = 1000)
 
-f0_plot + 
-  f1_plot + 
-  f2_plot + 
-  f3_plot + 
-  plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot +  f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```
@@ -833,7 +840,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(11,16) + 
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+                     limits = c(10,16)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
@@ -865,7 +873,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(11,16) + 
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+                     limits = c(10,16)) +
   theme(axis.title = element_text(size = 30)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
@@ -902,7 +911,8 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(11,16) + 
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+                     limits = c(10,16)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -932,7 +942,8 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(11,16) + 
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+                     limits = c(10,16)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
@@ -944,11 +955,7 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
 # plot all pupa time figures together
 jpeg("figures/pupa_time_means.jpeg", width = 17000, height = 15000, res = 1000)
 
-f0_plot + 
-  f1_plot + 
-  f2_plot + 
-  f3_plot + 
-  plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```
@@ -1357,7 +1364,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(4.5,7.5) + 
+  scale_y_continuous(breaks = seq(from = 4, to = 8, by = 1),
+                     limits = c(4,8)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
@@ -1389,7 +1397,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(4.5,7.5) + 
+  scale_y_continuous(breaks = seq(from = 4, to = 8, by = 1),
+                     limits = c(4,8)) +
   theme(axis.title = element_text(size = 30)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
@@ -1426,7 +1435,8 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(4.5,7.5) + 
+  scale_y_continuous(breaks = seq(from = 4, to = 8, by = 1),
+                     limits = c(4,8)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -1456,7 +1466,8 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  ylim(4.5,7.5) + 
+  scale_y_continuous(breaks = seq(from = 4, to = 8, by = 1),
+                     limits = c(4,8)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
@@ -1468,11 +1479,7 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
 # plot all pupa duration figures together
 jpeg("figures/pupa_duration_means.jpeg", width = 17000, height = 15000, res = 1000)
 
-f0_plot + 
-  f1_plot + 
-  f2_plot + 
-  f3_plot + 
-  plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```

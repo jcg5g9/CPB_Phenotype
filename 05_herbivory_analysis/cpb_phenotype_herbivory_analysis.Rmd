@@ -326,9 +326,9 @@ dev.off()
 
 This figure is presented as Figure XXX in the final ms.
 
-### STEP 3: Assess phenotypic effects of insecticide stress in total herbivory walked.
+### STEP 3: Assess phenotypic effects of insecticide stress in total herbivory.
 
-#### 4a: Run two-factor general linear mixed effect interaction models assuming a zero-inflated gamma distribution to test the relative effects of background and treatment of insecticide stress on herbivory; run the Rmd chunk below.
+#### 3a: Run two-factor general linear mixed effect interaction models assuming a zero-inflated gamma distribution to test the relative effects of background and treatment of insecticide stress on herbivory; run the Rmd chunk below.
 In this step, we run general linear mixed effect interaction models with raw herbivory (leaf area consumed) as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying Gamma distribution for the data (see Step 3 above). We also assume zero-inflation of the data, given that there may be distinct processes driving the ability of an individual larva to eat at all (zero or non-zero) and how much they are able to eat if they can (non-zero). We therefore run a zero-inflation gamma model, estimating coefficients of both the zero/non-zero model (i.e., zero-inflation; logistic regression) and the conditional model (non-zero; general linear regression).
 
 ##### Run general linear mixed effect interaction models for herbivory:
@@ -380,20 +380,27 @@ f3_mod <- glmmTMB(leaf_area_consumed ~ treatment*background + (1|lineage),
                   family = ziGamma(link = "log"))
 
 # summarize f0 model
-summary(f0_mod) 
-df.residual(f0_mod)
+summary(f0_mod) # get z and p value
+emmeans(f1_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
 
 # summarize f1 model
-summary(f1_mod) 
-df.residual(f1_mod)
+summary(f1_mod) # get z and p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) # get degrees of freedom
 
 # summarize f2 model
-summary(f2_mod) 
-df.residual(f2_mod)
+summary(f2_mod) # get z and p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
 
 # summarize f3 model
-summary(f3_mod) 
-df.residual(f3_mod)
+summary(f3_mod) # get z and p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
 ```
 
 <b>Analysis results:</b> <br>
@@ -438,9 +445,77 @@ Treatment x Background: z = 0.385; p = 0.700 <br>
 
 These data are presented in Table 2b in the final ms.
 
-### STEP 3: Plot mobility data analyses
+#### 3b: Run individual logistic regression models to assess probability of herbivory and estimate marginal means within treatments and backgrounds; run the Rmd chunk below.
 
-#### 3a: Plot probability of hervivory data; run the Rmd chunk below.
+##### Run logisitic regression models for herbivory and extract marginal means:
+```{r}
+# load herbivory data
+load("data/herbivory.Rda")
+
+# isolate only F0 data
+f0 <- herbivory %>%
+  filter(larval_generation == "F0")
+
+# isolate only F1 data
+f1 <- herbivory %>%
+  filter(larval_generation == "F1")
+
+# isolate only F2 data
+f2 <- herbivory %>%
+  filter(larval_generation == "F2")
+
+# isolate only F3 data
+f3 <- herbivory %>%
+  filter(larval_generation == "F3")
+
+# f0 general linear mixed effect model
+f0_mod <- glmer(consumed ~ background + (1|lineage),
+               family = binomial(link = "logit"),
+               data = f0)
+
+# f1 general linear mixed effect model
+f1_mod <- glmer(consumed ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f1)
+
+# f2 general linear mixed effect model
+f2_mod <- glmer(consumed ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- glmer(consumed ~ treatment*background + (1|lineage),
+                family = binomial(link = "logit"),
+                data = f3)
+
+# summarize f0 model
+summary(f0_mod) # get z and p value
+emmeans(f0_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
+
+# summarize f1 model
+summary(f1_mod) # get z and p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) # get degrees of freedom
+
+# summarize f2 model
+summary(f2_mod) # get z and p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
+
+# summarize f3 model
+summary(f3_mod) # get z and p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
+
+```
+
+### STEP 4: Plot mobility data analyses
+
+#### 4a: Plot probability of hervivory data; run the Rmd chunk below.
 
 ##### Plot probability data: `figures/herbivory_probability.jpeg`
 ```{r}
@@ -612,7 +687,7 @@ dev.off()
 
 This figure is presented as Figure XXX in the final ms.
 
-#### 3b: Plot means of hervivory data; run the Rmd chunk below.
+#### 4b: Plot means of hervivory data; run the Rmd chunk below.
 
 ##### Plot mean data: `figures/herbivory_means.jpeg`
 ```{r}
