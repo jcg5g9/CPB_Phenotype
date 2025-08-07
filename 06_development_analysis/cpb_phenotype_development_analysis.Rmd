@@ -460,7 +460,7 @@ F3_E_R: p = 0.43241127674505<br>
 Since 9/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
 
 #### 2b: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
-In this step, we plot the raw data distribution and test the fit of five potential distributions that commonly underlie count data (i.e., normal, log-normal, weibull, poisson, and negative binomial), and determine the best fitting distribution for each group of interest.
+In this step, we plot the raw data distribution and test the fit of four potential distributions that commonly underlie count data (i.e., normal, log-normal, poisson, and negative binomial), and determine the best fitting distribution for each group of interest.
 
 ##### Test fit of alternative distributions:
 ```{r}
@@ -476,11 +476,11 @@ pupa_time <- pupa_time %>%
 levels <- levels(pupa_time$group)
 
 # define empty lists to hold statistics for each distribution test
+unif <- list()
 norm <- list()
 lnor <- list()
-weib <- list()
-pois <- list() 
-nbin <- list()
+gamm <- list()
+
 
 # Write for loop to fit each distribution to data, iterating through group levels (i)
 for(i in levels) {
@@ -489,121 +489,105 @@ for(i in levels) {
   subset <- pupa_time[pupa_time$group == i, ]
   
   # fit distributions to leaf area for each subset
+  fit_unif <- fitdist(subset$pupa_time, "unif") 
   fit_norm <- fitdist(subset$pupa_time, "norm") 
   fit_lnor <- fitdist(subset$pupa_time, "lnorm")
-  fit_weib <- fitdist(subset$pupa_time, "weibull")
-  fit_pois <- fitdist(subset$pupa_time, "pois") 
-  fit_nbin <- fitdist(subset$pupa_time, "nbinom") 
+  fit_gamm <- fitdist(subset$pupa_time, "gamma") 
   
   # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif
   norm[[i]] <- fit_norm
   lnor[[i]] <- fit_lnor
-  weib[[i]] <- fit_weib
-  pois[[i]] <- fit_pois 
-  nbin[[i]] <- fit_nbin
+  gamm[[i]] <- fit_gamm
   
 }
 
 # Get table of distribution stats for F0 C N group
-stats_1 <- data_frame(F0_C_N = gofstat(list(norm$F0_C_N,
-                                            lnor$F0_C_N,
-                                            weib$F0_C_N,
-                                            pois$F0_C_N, 
-                                            nbin$F0_C_N))$aic)
+stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N,
+                                            norm$F0_C_N,
+                                            lnor$F0_C_N, 
+                                            gamm$F0_C_N))$aic)
 
 # Get table of distribution stats for F0 E N group
-stats_2 <- data_frame(F0_E_N = gofstat(list(norm$F0_E_N,
-                                            lnor$F0_E_N,
-                                            weib$F0_E_N,
-                                            pois$F0_E_N, 
-                                            nbin$F0_E_N))$aic)
+stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N,
+                                            norm$F0_E_N,
+                                            lnor$F0_E_N, 
+                                            gamm$F0_E_N))$aic)
 
 # Get table of distribution stats for F1 C N group
-stats_3 <- data_frame(F1_C_N = gofstat(list(norm$F1_C_N,
-                                            lnor$F1_C_N,
-                                            weib$F1_C_N,
-                                            pois$F1_C_N, 
-                                            nbin$F1_C_N))$aic)
+stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N,
+                                            norm$F1_C_N,
+                                            lnor$F1_C_N, 
+                                            gamm$F1_C_N))$aic)
 
 # Get table of distribution stats for F1 C R group
-stats_4 <- data_frame(F1_C_R = gofstat(list(norm$F1_C_R, 
-                                            lnor$F1_C_R,
-                                            weib$F1_C_R,
-                                            pois$F1_C_R, 
-                                            nbin$F1_C_R))$aic)
+stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
+                                            norm$F1_C_R,
+                                            lnor$F1_C_R, 
+                                            gamm$F1_C_R))$aic)
 
 # Get table of distribution stats for F1 E N group
-stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N, 
-                                            lnor$F1_E_N, 
-                                            weib$F1_E_N,
-                                            pois$F1_E_N,
-                                            nbin$F1_E_N))$aic)
+stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
+                                            norm$F1_E_N,
+                                            lnor$F1_E_N,
+                                            gamm$F1_E_N))$aic)
 
 # Get table of distribution stats for F1 E R group
-stats_6 <- data_frame(F1_E_R = gofstat(list(norm$F1_E_R, 
-                                            lnor$F1_E_R, 
-                                            weib$F1_E_R,
-                                            pois$F1_E_R,
-                                            nbin$F1_E_R))$aic)
+stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
+                                            norm$F1_E_R,
+                                            lnor$F1_E_R,
+                                            gamm$F1_E_R))$aic)
 
 # Get table of distribution stats for F2 C N group
-stats_7 <- data_frame(F2_C_N = gofstat(list(norm$F2_C_N, 
-                                            lnor$F2_C_N, 
-                                            weib$F2_C_N,
-                                            pois$F2_C_N,
-                                            nbin$F2_C_N))$aic)
+stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
+                                            norm$F2_C_N,
+                                            lnor$F2_C_N,
+                                            gamm$F2_C_N))$aic)
 
 # Get table of distribution stats for F2 C R group
-stats_8 <- data_frame(F2_C_R = gofstat(list(norm$F2_C_R, 
-                                            lnor$F2_C_R, 
-                                            weib$F2_C_R,
-                                            pois$F2_C_R,
-                                            nbin$F2_C_R))$aic)
+stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
+                                            norm$F2_C_R,
+                                            lnor$F2_C_R,
+                                            gamm$F2_C_R))$aic)
 
 # Get table of distribution stats for F2 E N group
-stats_9 <- data_frame(F2_E_N = gofstat(list(norm$F2_E_N, 
-                                            lnor$F2_E_N, 
-                                            weib$F2_E_N,
-                                            pois$F2_E_N,
-                                            nbin$F2_E_N))$aic)
+stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
+                                            norm$F2_E_N,
+                                            lnor$F2_E_N,
+                                            gamm$F2_E_N))$aic)
 
 # Get table of distribution stats for F2 E R group
-stats_10 <- data_frame(F2_E_R = gofstat(list(norm$F2_E_R, 
-                                             lnor$F2_E_R, 
-                                             weib$F2_E_R,
-                                             pois$F2_E_R,
-                                             nbin$F2_E_R))$aic)
+stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
+                                             norm$F2_E_R,
+                                             lnor$F2_E_R,
+                                             gamm$F2_E_R))$aic)
 
 # Get table of distribution stats for F3 C N group
-stats_11 <- data_frame(F3_C_N = gofstat(list(norm$F3_C_N, 
-                                             lnor$F3_C_N, 
-                                             weib$F3_C_N,
-                                             pois$F3_C_N,
-                                             nbin$F3_C_N))$aic)
+stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
+                                             norm$F3_C_N,
+                                             lnor$F3_C_N,
+                                             gamm$F3_C_N))$aic)
 
 # Get table of distribution stats for F3 C R group
-stats_12 <- data_frame(F3_C_R = gofstat(list(norm$F3_C_R, 
+stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
+                                             norm$F3_C_R,
                                              lnor$F3_C_R,
-                                             weib$F3_C_R,
-                                             pois$F3_C_R,
-                                             nbin$F3_C_R))$aic)
+                                             gamm$F3_C_R))$aic)
 
 # Get table of distribution stats for F3 E N group
-stats_13 <- data_frame(F3_E_N = gofstat(list(norm$F3_E_N, 
-                                             lnor$F3_E_N, 
-                                             weib$F3_E_N,
-                                             pois$F3_E_N,
-                                             nbin$F3_E_N))$aic)
+stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
+                                             norm$F3_E_N,
+                                             lnor$F3_E_N,
+                                             gamm$F3_E_N))$aic)
 
-# Get table of distribution stats for F3 E R group (and add an additional row with "NA" to reflect failure to calculate exposon statistics)
-stats_14 <- data_frame(F3_E_R = gofstat(list(norm$F3_E_R,
-                                             lnor$F3_E_R, 
-                                             weib$F3_E_R,
-                                             pois$F3_E_R,
-                                             nbin$F3_E_R)))
+# Get table of distribution stats for F3 E R group
+stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
+                                             norm$F3_E_R,
+                                             lnor$F3_E_R,
+                                             gamm$F3_E_R))$aic)
 
 # combine all stats into a single table and add a first column with the name of the distribution being tested
-stats <- cbind(distribution = c("normal", "lognormal", "weibull", "poisson", "negative binomial"), 
+stats <- cbind(distribution = c("uniform", "normal", "log-normal", "gamma"), 
                stats_1, 
                stats_2, 
                stats_3, 
@@ -622,46 +606,43 @@ stats <- cbind(distribution = c("normal", "lognormal", "weibull", "poisson", "ne
 # Run global distribution to test if gamma is best fitting
 
 # Run individual global distributions 
+unif <- fitdist(pupa_time$pupa_time, "unif")
 norm <- fitdist(pupa_time$pupa_time, "norm")
 lnor <- fitdist(pupa_time$pupa_time, "lnorm")
-weib <- fitdist(pupa_time$pupa_time, "weibull")
-pois <- fitdist(pupa_time$pupa_time, "pois")
-nbin <- fitdist(pupa_time$pupa_time, "nbinom")
+gamm <- fitdist(pupa_time$pupa_time, "gamma")
 
 # compare AIC values 
-gofstat(list(norm, 
+gofstat(list(unif, 
+             norm,
              lnor,
-             weib,
-             pois,
-             nbin),
-        fitnames = c("normal",
+             gamm),
+        fitnames = c("uniform",
+                     "normal",
                      "log-normal",
-                     "weibull",
-                     "poisson",
-                     "negative binomial"))$aic
+                     "gamma"))$aic
 ```
 
 <b>Analysis results:</b> <br>
 
-| Group     | Normal           | Log-normal       | Weibull           | Poisson            | Negative binomial |
-|:----------|:-----------------|:-----------------|:----------------- | :----------------- |:----------------- |
-| F0_C_N    | 234.457          | <b>229.903</b>   | 249.160           | 300.109            | 302.109           |
-| F0_E_N    | 181.659          | <b>165.241</b>   | 200.363           | 196.672	           | 198.672           |
-| F1_C_N    | 115.414          | <b>111.138</b>   | 120.654           | 121.927            | 123.927           |
-| F1_C_R    | 57.536           | <b>56.858</b>    | 58.785            | 63.043             | 65.043            |
-| F1_E_N    | 87.528           | <b>87.341</b>    | 89.789            | 106.866            | 108.866           |
-| F1_E_R    | 108.894          | <b>97.768</b>    | 110.079           | 102.799            | 103.999           |
-| F2_C_N    | 113.515          | <b>101.458</b>   | 114.687           | 107.113            | 108.412           |
-| F2_C_R    | 26.721           | 27.762           | <b>19.819</b>     | 55.044             | 57.044            |
-| F2_E_N    | 79.306           | <b>73.796</b>    | 81.301            | 75.669             | 77.6689           |
-| F2_E_R    | 43.631           | <b>43.504</b>    | 44.615            | 52.445             | 54.445            |
-| F3_C_N    | 59.662           | <b>57.093</b>    | 62.135            | 62.809             | 64.810            |
-| F3_C_R    | 53.436           | <b>50.846</b>    | 55.594            | 54.448             | 56.448            |
-| F3_E_N    | 55.048           | <b>54.374</b>    | 57.598            | 68.917             | 70.917            |
-| F3_E_R    | 28.573           | <b>28.230</b>    | 29.415            | 33.712             | 35.712            |
-| Global    | 1355.923         | <b>1235.982</b>  | 1461.471          | 1392.147           | 1394.148          |
+| Group     | Uniform          | Normal           | Log-normal       | Gamma             | 
+|:----------|:-----------------|:-----------------|:-----------------| :-----------------|
+| F0_C_N    | 264.752          | 234.457          | <b>229.903</b>   | 231.115           |
+| F0_E_N    | 219.456          | 181.659          | <b>165.241</b>   | 170.118           | 
+| F1_C_N    | 113.861          | 115.414          | <b>111.138</b>   | 112.389           | 
+| F1_C_R    | <b>50.590</b>    | 57.536           | 56.858           | 57.032            | 
+| F1_E_N    | <b>86.421</b>    | 87.528           | 87.341           | 87.308            | 
+| F1_E_R    | 113.603          | 108.894          | <b>97.768</b>    | 101.056           | 
+| F2_C_N    | 115.889          | 113.515          | <b>101.458</b>   | 105.114           |
+| F2_C_R    | <b>20.636</b>    | 26.721           | 27.762           | 27.409            |
+| F2_E_N    | 79.825           | 79.306           | <b>73.796</b>    | 79.825            | 
+| F2_E_R    | <b>39.408</b>    | 43.631           | 43.504           | 43.511            |
+| F3_C_N    | <b>50.586</b>    | 59.662           | 57.093           | 57.093            |
+| F3_C_R    | <b>46.810</b>    | 53.436           | 50.846           | 51.661            |
+| F3_E_N    | <b>52.283</b>    | 55.048           | 54.374           | 54.545            |
+| F3_E_R    | <b>23.408</b>    | 28.573           | 28.230           | 28.23025          |
+| Global    | 1796.805         | 1355.923         | <b>1235.982</b>  | 1269.739          |
 
-The data in all but one group were best fit to a log-normal distribution. The best fitting distribution to the global data set across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given the majority.
+The data in the majority of groups were best fit to a uniform distribution. The best fitting distribution to the global data set across groups is the log-normal distribution. We opted to assume a log-normal distribution in all general linear model analyses given that it is biologically unlikely that the distribution of time to pupation follows a uniform distribution.
 
 These data are presented as Table XXX in the final ms.
 
@@ -701,7 +682,7 @@ This figure is presented as Figure XXX in the final ms.
 #### 2d: Run two-factor general linear mixed effect interaction models assuming a log-normal distribution to test the relative effects of background and treatment of insecticide stress on pupa time; run the Rmd chunk below.
 In this step, we run general linear mixed effect interaction models with raw time to pupation as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying log-normal distribution for the data (see Step 2b above).
 
-##### Run linear mixed effect interaction models for pupa mass:
+##### Run linear mixed effect interaction models for pupa time:
 ```{r}
 # load pupa time data
 load("data/pupa_time.Rda")
@@ -743,24 +724,31 @@ f3_mod <- glmer(pupa_time ~ treatment*background + (1|lineage),
                 data = f3)
 
 # summarize f0 model
-anova(f0_mod)
-Anova(f0_mod)
-df.residual(f0_mod)
+anova(f0_mod) # get F values
+Anova(f0_mod) # get p values
+emmeans(f1_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
 
 # summarize f1 model
-anova(f1_mod)
-Anova(f1_mod)
-df.residual(f1_mod)
+anova(f1_mod) # get F values
+Anova(f1_mod) # get p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) # get degrees of freedom
 
 # summarize f2 model
-anova(f2_mod)
-Anova(f2_mod)
-df.residual(f2_mod)
+anova(f2_mod) # get F values
+Anova(f2_mod) # get p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
 
 # summarize f3 model
-anova(f3_mod)
-Anova(f3_mod)
-df.residual(f3_mod)
+anova(f3_mod) # get F values
+Anova(f3_mod) # get p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
 ```
 
 <b>Analysis results:</b> <br>
@@ -1003,7 +991,7 @@ F3_E_R: p = 0.07964145292327768<br>
 Since 9/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
 
 #### 3b: Test fit of empirical data to alternative distributions; run the Rmd chunk below.
-In this step, we plot the raw data distribution and test the fit of five potential distributions that commonly underlie count data (i.e., normal, log-normal, weibull, poisson, and negative binomial), and determine the best fitting distribution for each group of interest.
+In this step, we plot the raw data distribution and test the fit of four potential distributions that commonly underlie count data (i.e., normal, log-normal, poisson, and negative binomial), and determine the best fitting distribution for each group of interest.
 
 ##### Test fit of alternative distributions:
 ```{r}
@@ -1019,11 +1007,10 @@ pupa_duration <- pupa_duration %>%
 levels <- levels(pupa_duration$group)
 
 # define empty lists to hold statistics for each distribution test
+unif <- list()
 norm <- list()
 lnor <- list()
-weib <- list()
-pois <- list() 
-nbin <- list()
+gamm <- list() 
 
 # Write for loop to fit each distribution to data, iterating through group levels (i)
 for(i in levels) {
@@ -1032,108 +1019,105 @@ for(i in levels) {
   subset <- pupa_duration[pupa_duration$group == i, ]
   
   # fit distributions to leaf area for each subset
-  fit_norm <- fitdist(subset$pupa_duration, "norm") 
-  fit_lnor <- fitdist(subset$pupa_duration, "lnorm")
-  fit_weib <- fitdist(subset$pupa_duration, "weibull")
-  fit_pois <- fitdist(subset$pupa_duration, "pois") 
-  fit_nbin <- fitdist(subset$pupa_duration, "nbinom") 
+  fit_unif <- fitdist(subset$pupa_duration, "unif") 
+  fit_norm <- fitdist(subset$pupa_duration, "norm")
+  fit_lnor <- fitdist(subset$pupa_duration, "lnorm") 
+  fit_gamm <- fitdist(subset$pupa_duration, "gamma") 
   
   # fill list with fit results for each distribution
+  unif[[i]] <- fit_unif
   norm[[i]] <- fit_norm
-  lnor[[i]] <- fit_lnor
-  weib[[i]] <- fit_weib
-  pois[[i]] <- fit_pois 
-  nbin[[i]] <- fit_nbin
+  lnor[[i]] <- fit_lnor 
+  gamm[[i]] <- fit_gamm
   
 }
 
 # Get table of distribution stats for F0 C N group
-stats_1 <- data_frame(F0_C_N = gofstat(list(norm$F0_C_N,
-                                            lnor$F0_C_N,
-                                            weib$F0_C_N,
-                                            pois$F0_C_N, 
-                                            nbin$F0_C_N))$aic)
+stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N,
+                                            norm$F0_C_N,
+                                            lnor$F0_C_N, 
+                                            gamm$F0_C_N))$aic)
 
 # Get table of distribution stats for F0 E N group
-stats_2 <- data_frame(F0_E_N = gofstat(list(norm$F0_E_N,
-                                            lnor$F0_E_N,
-                                            pois$F0_E_N, 
-                                            nbin$F0_E_N))$aic)
+stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N,
+                                            norm$F0_E_N,
+                                            lnor$F0_E_N, 
+                                            gamm$F0_E_N))$aic)
 
 # Get table of distribution stats for F1 C N group
-stats_3 <- data_frame(F1_C_N = gofstat(list(norm$F1_C_N,
-                                            lnor$F1_C_N,
-                                            pois$F1_C_N, 
-                                            nbin$F1_C_N))$aic)
+stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N,
+                                            norm$F1_C_N,
+                                            lnor$F1_C_N, 
+                                            gamm$F1_C_N))$aic)
 
 # Get table of distribution stats for F1 C R group
-stats_4 <- data_frame(F1_C_R = gofstat(list(norm$F1_C_R, 
-                                            lnor$F1_C_R,
-                                            pois$F1_C_R, 
-                                            nbin$F1_C_R))$aic)
+stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
+                                            norm$F1_C_R,
+                                            lnor$F1_C_R, 
+                                            gamm$F1_C_R))$aic)
          
 # Get table of distribution stats for F1 E N group
-stats_5 <- data_frame(F1_E_N = gofstat(list(norm$F1_E_N, 
+stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
+                                            norm$F1_E_N,
                                             lnor$F1_E_N,
-                                            pois$F1_E_N,
-                                            nbin$F1_E_N))$aic)
+                                            gamm$F1_E_N))$aic)
 
 # Get table of distribution stats for F1 E R group
-stats_6 <- data_frame(F1_E_R = gofstat(list(norm$F1_E_R, 
+stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
+                                            norm$F1_E_R,
                                             lnor$F1_E_R,
-                                            pois$F1_E_R,
-                                            nbin$F1_E_R))$aic)
+                                            gamm$F1_E_R))$aic)
 
 # Get table of distribution stats for F2 C N group
-stats_7 <- data_frame(F2_C_N = gofstat(list(norm$F2_C_N, 
+stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
+                                            norm$F2_C_N,
                                             lnor$F2_C_N,
-                                            pois$F2_C_N,
-                                            nbin$F2_C_N))$aic)
+                                            gamm$F2_C_N))$aic)
 
 # Get table of distribution stats for F2 C R group
-stats_8 <- data_frame(F2_C_R = gofstat(list(norm$F2_C_R, 
+stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
+                                            norm$F2_C_R,
                                             lnor$F2_C_R,
-                                            pois$F2_C_R,
-                                            nbin$F2_C_R))$aic)
+                                            gamm$F2_C_R))$aic)
 
 # Get table of distribution stats for F2 E N group
-stats_9 <- data_frame(F2_E_N = gofstat(list(norm$F2_E_N, 
+stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
+                                            norm$F2_E_N,
                                             lnor$F2_E_N,
-                                            pois$F2_E_N,
-                                            nbin$F2_E_N))$aic)
+                                            gamm$F2_E_N))$aic)
 
 # Get table of distribution stats for F2 E R group
-stats_10 <- data_frame(F2_E_R = gofstat(list(norm$F2_E_R, 
+stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
+                                             norm$F2_E_R,
                                              lnor$F2_E_R,
-                                             pois$F2_E_R,
-                                             nbin$F2_E_R))$aic)
+                                             gamm$F2_E_R))$aic)
 
 # Get table of distribution stats for F3 C N group
-stats_11 <- data_frame(F3_C_N = gofstat(list(norm$F3_C_N, 
+stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
+                                             norm$F3_C_N,
                                              lnor$F3_C_N,
-                                             pois$F3_C_N,
-                                             nbin$F3_C_N))$aic)
+                                             gamm$F3_C_N))$aic)
 
 # Get table of distribution stats for F3 C R group
-stats_12 <- data_frame(F3_C_R = gofstat(list(norm$F3_C_R, 
+stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
+                                             norm$F3_C_R,
                                              lnor$F3_C_R,
-                                             pois$F3_C_R,
-                                             nbin$F3_C_R))$aic)
+                                             gamm$F3_C_R))$aic)
 
 # Get table of distribution stats for F3 E N group
-stats_13 <- data_frame(F3_E_N = gofstat(list(norm$F3_E_N, 
+stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
+                                             norm$F3_E_N,
                                              lnor$F3_E_N,
-                                             pois$F3_E_N,
-                                             nbin$F3_E_N))$aic)
+                                             gamm$F3_E_N))$aic)
 
 # Get table of distribution stats for F3 E R group 
-stats_14 <- data_frame(F3_E_R = gofstat(list(norm$F3_E_R,
+stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
+                                             norm$F3_E_R,
                                              lnor$F3_E_R,
-                                             pois$F3_E_R,
-                                             nbin$F3_E_R)))
+                                             gamm$F3_E_R)))
 
 # combine all stats into a single table and add a first column with the name of the distribution being tested
-stats <- cbind(distribution = c("normal", "lognormal", "poisson", "negative binomial"), 
+stats <- cbind(distribution = c("uniform", "normal", "log-normal", "gamma"), 
                stats_1, 
                stats_2, 
                stats_3, 
@@ -1150,46 +1134,43 @@ stats <- cbind(distribution = c("normal", "lognormal", "poisson", "negative bino
                stats_14)
 
 # Run individual global distributions 
+unif <- fitdist(pupa_duration$pupa_duration, "unif")
 norm <- fitdist(pupa_duration$pupa_duration, "norm")
 lnor <- fitdist(pupa_duration$pupa_duration, "lnorm")
-weib <- fitdist(pupa_duration$pupa_duration, "weibull")
-pois <- fitdist(pupa_duration$pupa_duration, "pois")
-nbin <- fitdist(pupa_duration$pupa_duration, "nbinom")
+gamm <- fitdist(pupa_duration$pupa_duration, "gamma")
 
 # compare AIC values 
-gofstat(list(norm, 
+gofstat(list(unif, 
+             norm,
              lnor,
-             weib,
-             pois,
-             nbin),
-        fitnames = c("normal",
+             gamm),
+        fitnames = c("uniform",
+                     "normal",
                      "log-normal",
-                     "weibull",
-                     "poisson",
-                     "negative binomial"))$aic
+                     "gamma"))$aic
 ```
 
 <b>Analysis results:</b> <br>
 
-| Group     | Normal           | Log-normal       | Weibull           | Poisson            | Negative binomial |
-|:----------|:-----------------|:-----------------|:----------------- | :----------------- |:----------------- |
-| F0_C_N    | <b>88.123</b>    | 88.316           | 85.960            | 220.863            | 222.863           |
-| F0_E_N    | 65.629           | 66.391           | <b>64.817</b>     | 145.125            | 147.125           |
-| F1_C_N    | 51.473           | <b>49.788</b>    | 58.411            | 90.555             | 92.555            |
-| F1_C_R    | 43.516           | <b>39.450</b>    | 47.112            | 50.066             | 52.066            |
-| F1_E_N    | <b>39.916</b>    | 40.246           | 41.892            | 86.242             | 88.242            |
-| F1_E_R    | 44.345           | 45.537           | <b>43.378</b>     | 60.377             | 62.377            |
-| F2_C_N    | <b>34.627</b>    | 34.889           | 36.104            | 68.412             | 70.412            |
-| F2_C_R    | 18.108           | 18.445           | <b>16.722</b>     | 38.301             | 40.301            |
-| F2_E_N    | 37.876           | 43.613           | <b>33.130</b>     | 50.913             | 52.913            |
-| F2_E_R    | <b>12.979</b>    | 25.809           | NA                | 42.231             | 44.231            |
-| F3_C_N    | <b>26.342</b>    | 26.581           | 26.501            | 43.141             | 45.141            |
-| F3_C_R    | 32.771           | <b>30.745</b>    | 35.041            | 40.880             | 42.880            |
-| F3_E_N    | 33.736           | 34.573           | <b>32.478</b>     | 54.866             | 56.866            |
-| F3_E_R    | 27.450           | 30.566           | 27.083            | <b>26.866</b>      | 28.866            |
-| Global    | <b>640.818</b>   | 688.246          | 700.272           | 999.525            | 1001.525          |
+| Group     | Uniform          | Normal           | Log-normal       | Gamma              | 
+|:----------|:-----------------|:-----------------|:-----------------| :----------------- |
+| F0_C_N    | <b>4.000</b>     | 88.123           | 88.316           | 88.214             | 
+| F0_E_N    | <b>56.679</b>    | 65.629           | 66.391           | 66.068             |
+| F1_C_N    | 54.536           | 51.473           | <b>49.788</b>    | 50.257             |
+| F1_C_R    | 42.627           | 43.516           | <b>39.450</b>    | 40.716             |
+| F1_E_N    | <b>34.499</b>    | 39.916           | 40.246           | 40.090             | 
+| F1_E_R    | <b>36.958</b>    | 44.345           | 45.537           | 45.065             |
+| F2_C_N    | <b>28.953</b>    | 34.627           | 34.889           | 34.749             |
+| F2_C_R    | <b>4.000</b>     | 18.108           | 18.445           | 18.323             |
+| F2_E_N    | 40.044           | <b>37.876</b>    | 43.613           | 41.573             |
+| F2_E_R    | NA               | <b>12.979</b>    | 25.809           | NA                 |
+| F3_C_N    | <b>19.249</b>    | 26.342           | 26.581           | 26.467             |
+| F3_C_R    | <b>25.972</b>    | 32.771           | 30.745           | 31.388             |
+| F3_E_N    | <b>23.40812</b>  | 33.736           | 34.573           | 34.254             |
+| F3_E_R    | <b>23.313</b>    | 27.450           | 30.566           | 29.356             | 
+| Global    | 1150.951         | <b>640.818</b>   | 688.246          | 664.926            |
 
-The data were best fit to different underlying distributions, dependent on group. Some groups were best fit with normal, log-normal, weibull, or poisson distributions. The majority of groups were fit to either a normal or weibull distribution. However, the best fitting distribution to the global dataset across groups was normal. We therefore opted to assume a normal distribution in all linear model analyses.
+The data were best fit to different underlying distributions, dependent on group. Some groups were best fit with normal, log-normal, or poisson distributions. The majority of groups were fit to either a normal or weibull distribution. However, the best fitting distribution to the global dataset across groups was normal. We therefore opted to assume a normal distribution in all linear model analyses.
 
 These data are presented in Table XXX in the final ms.
 
@@ -1267,24 +1248,31 @@ f3_mod <- lmer(pupa_duration ~ treatment*background + (1|lineage),
                data = f3)
 
 # summarize f0 model
-anova(f0_mod)
-Anova(f0_mod)
-df.residual(f0_mod)
+anova(f0_mod) # get F value
+Anova(f0_mod) # get p value
+emmeans(f0_mod, poly ~ background) # get marginal means and pairwise contrasts
+df.residual(f0_mod) # get degrees of freedom
 
 # summarize f1 model
-anova(f1_mod)
-Anova(f1_mod)
-df.residual(f1_mod)
+anova(f1_mod) # get F value
+Anova(f1_mod) # get p values
+emmeans(f1_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f1_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f1_mod) 
 
 # summarize f2 model
-anova(f2_mod)
-Anova(f2_mod)
-df.residual(f2_mod)
+anova(f2_mod) # get F value
+Anova(f2_mod) # get p values
+emmeans(f2_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f2_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f2_mod) # get degrees of freedom
 
 # summarize f3 model
-anova(f3_mod)
-Anova(f3_mod)
-df.residual(f3_mod)
+anova(f3_mod) # get F value
+Anova(f3_mod) # get p values
+emmeans(f3_mod, poly ~ background|treatment) # get marginal means and pairwise contrasts for backgrounds within treatments
+emmeans(f3_mod, poly ~ treatment|background) # get marginal means and pairwise contrasts for treatments within backgrounds
+df.residual(f3_mod) # get degrees of freedom
 ```
 
 <b>Analysis results:</b> <br>

@@ -103,7 +103,7 @@ F3_E_R: <b>p < 0.001</b><br>
 Since 10/14 tests indicate a deviation from a normal distribution (p < 0.003), we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest.
 
 ### STEP 2: Test fit of empirical data to alternative distributions.
-In this step, we plot the raw data distribution and test the fit of five potential distributions that commonly underlie continuous data (excluding negative poisson, binomial, and negative binomial distributions, given that they are typically used to describe count data), and determine the best fitting distribution for each group of interest. We specifically test uniform, normal, Gamma, exponential, and beta distributions.
+In this step, we plot the raw data distribution and test the fit of three potential distributions that commonly underlie continuous, non-proportion data (excluding negative poisson, binomial, and negative binomial distributions, given that they are typically used to describe count data), and determine the best fitting distribution for each group of interest. We specifically test uniform, normal, and Gamma distributions.
 
 #### 2a: Test fit of alternative distributions to the empirical data; run the Rmd chunk below.
 
@@ -124,8 +124,6 @@ levels <- levels(herbivory$group)
 unif <- list() 
 norm <- list()
 gamm <- list() 
-expo <- list()
-beta <- list()
 
 # Write for loop to fit each distribution to data, iterating through group levels (i)
 for(i in levels) {
@@ -135,117 +133,85 @@ for(i in levels) {
   
   # fit distributions to leaf area for each subset
   fit_unif <- fitdist(subset$leaf_area_consumed, "unif") 
-  fit_norm <- fitdist(subset$leaf_area_consumed, "norm") 
+  fit_norm <- fitdist(subset$leaf_area_consumed, "norm")
   fit_gamm <- fitdist(subset$leaf_area_consumed, "gamma") 
-  fit_expo <- fitdist(subset$leaf_area_consumed, "exp")
-  fit_beta <- fitdist(subset$leaf_area_consumed, "beta")
   
   # fill list with fit results for each distribution
   unif[[i]] <- fit_unif 
   norm[[i]] <- fit_norm 
   gamm[[i]] <- fit_gamm 
-  expo[[i]] <- fit_expo
-  beta[[i]] <- fit_beta
   
 }
 
 # Get table of distribution stats for F0 C N group
 stats_1 <- data_frame(F0_C_N = gofstat(list(unif$F0_C_N, 
-                                            norm$F0_C_N, 
-                                            gamm$F0_C_N,
-                                            expo$F0_C_N,
-                                            beta$F0_C_N))$aic)
+                                            norm$F0_C_N,
+                                            gamm$F0_C_N))$aic)
 
 # Get table of distribution stats for F0 E N group
 stats_2 <- data_frame(F0_E_N = gofstat(list(unif$F0_E_N, 
-                                            norm$F0_E_N, 
-                                            gamm$F0_E_N,
-                                            expo$F0_E_N,
-                                            beta$F0_E_N))$aic)
+                                            norm$F0_E_N,
+                                            gamm$F0_E_N))$aic)
 
 # Get table of distribution stats for F1 C N group
 stats_3 <- data_frame(F1_C_N = gofstat(list(unif$F1_C_N, 
-                                            norm$F1_C_N, 
-                                            gamm$F1_C_N,
-                                            expo$F1_C_N,
-                                            beta$F1_C_N))$aic)
+                                            norm$F1_C_N,
+                                            gamm$F1_C_N))$aic)
 
 # Get table of distribution stats for F1 C R group
 stats_4 <- data_frame(F1_C_R = gofstat(list(unif$F1_C_R, 
-                                            norm$F1_C_R, 
-                                            gamm$F1_C_R,
-                                            expo$F1_C_R,
-                                            beta$F1_C_R))$aic)
+                                            norm$F1_C_R,
+                                            gamm$F1_C_R))$aic)
          
 # Get table of distribution stats for F1 E N group
 stats_5 <- data_frame(F1_E_N = gofstat(list(unif$F1_E_N, 
-                                            norm$F1_E_N, 
-                                            gamm$F1_E_N,
-                                            expo$F1_E_N,
-                                            beta$F1_E_N))$aic)
+                                            norm$F1_E_N,
+                                            gamm$F1_E_N))$aic)
 
 # Get table of distribution stats for F1 E R group
 stats_6 <- data_frame(F1_E_R = gofstat(list(unif$F1_E_R, 
-                                            norm$F1_E_R, 
-                                            gamm$F1_E_R,
-                                            expo$F1_E_R,
-                                            beta$F1_E_R))$aic)
+                                            norm$F1_E_R,
+                                            gamm$F1_E_R))$aic)
 
 # Get table of distribution stats for F2 C N group
 stats_7 <- data_frame(F2_C_N = gofstat(list(unif$F2_C_N, 
-                                            norm$F2_C_N, 
-                                            gamm$F2_C_N,
-                                            expo$F2_C_N,
-                                            beta$F2_C_N))$aic)
+                                            norm$F2_C_N,
+                                            gamm$F2_C_N))$aic)
 
 # Get table of distribution stats for F2 C R group
 stats_8 <- data_frame(F2_C_R = gofstat(list(unif$F2_C_R, 
-                                            norm$F2_C_R, 
-                                            gamm$F2_C_R,
-                                            expo$F2_C_R,
-                                            beta$F2_C_R))$aic)
+                                            norm$F2_C_R,
+                                            gamm$F2_C_R))$aic)
 
 # Get table of distribution stats for F2 E N group
 stats_9 <- data_frame(F2_E_N = gofstat(list(unif$F2_E_N, 
-                                            norm$F2_E_N, 
-                                            gamm$F2_E_N,
-                                            expo$F2_E_N,
-                                            beta$F2_E_N))$aic)
+                                            norm$F2_E_N,
+                                            gamm$F2_E_N))$aic)
 
 # Get table of distribution stats for F2 E R group
 stats_10 <- data_frame(F2_E_R = gofstat(list(unif$F2_E_R, 
-                                             norm$F2_E_R, 
-                                             gamm$F2_E_R,
-                                             expo$F2_E_R,
-                                             beta$F2_E_R))$aic)
+                                             norm$F2_E_R,
+                                             gamm$F2_E_R))$aic)
 
 # Get table of distribution stats for F3 C N group
 stats_11 <- data_frame(F3_C_N = gofstat(list(unif$F3_C_N, 
-                                             norm$F3_C_N, 
-                                             gamm$F3_C_N,
-                                             expo$F3_C_N,
-                                             beta$F3_C_N))$aic)
+                                             norm$F3_C_N,
+                                             gamm$F3_C_N))$aic)
 
 # Get table of distribution stats for F3 C R group
 stats_12 <- data_frame(F3_C_R = gofstat(list(unif$F3_C_R, 
-                                             norm$F3_C_R, 
-                                             gamm$F3_C_R,
-                                             expo$F3_C_R,
-                                             beta$F3_C_R))$aic)
+                                             norm$F3_C_R,
+                                             gamm$F3_C_R))$aic)
 
 # Get table of distribution stats for F3 E N group
 stats_13 <- data_frame(F3_E_N = gofstat(list(unif$F3_E_N, 
-                                             norm$F3_E_N, 
-                                             gamm$F3_E_N,
-                                             expo$F3_E_N,
-                                             beta$F3_E_N))$aic)
+                                             norm$F3_E_N,
+                                             gamm$F3_E_N))$aic)
 
 # Get table of distribution stats for F3 E R group
 stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
-                                             norm$F3_E_R, 
-                                             gamm$F3_E_R,
-                                             expo$F3_E_R,
-                                             beta$F3_E_R)))
+                                             norm$F3_E_R,
+                                             gamm$F3_E_R)))
 
 # Run global distribution to test if gamma is best fitting
 
@@ -253,41 +219,36 @@ stats_14 <- data_frame(F3_E_R = gofstat(list(unif$F3_E_R,
 unif <- fitdist(herbivory$leaf_area_consumed, "unif")
 norm <- fitdist(herbivory$leaf_area_consumed, "norm")
 gamm <- fitdist(herbivory$leaf_area_consumed, "gamma")
-expo <- fitdist(herbivory$leaf_area_consumed, "exp")
-beta <- fitdist(herbivory$leaf_area_consumed, "beta")
+
 
 # compare AIC values 
 gofstat(list(unif, 
              norm,
-             gamm, 
-             expo, 
-             beta),
+             gamm),
         fitnames = c("uniform",
                      "normal",
-                     "gamma",
-                     "exponential",
-                     "beta"))$aic
+                     "gamma"))$aic
 ```
 
 <b>Analysis results:</b> <br>
 
-| Group     | Uniform          | Normal           | Gamma             | Exponential        | Beta              |
-|:----------|:-----------------|:-----------------|:----------------- | :----------------- |:----------------- |
-| F0_C_N    | -223.503         | -205.761         | <b>-88.812</b>    | -323.386           | -89.887           |
-| F0_E_N    | -203.925         | -197.072         | <b>-69.398</b>    | -332.413	         | -70.716           |
-| F1_C_N    | -85.261          | -80.147          | <b>-66.657</b>    | -100.362           | -67.11998         |
-| F1_C_R    | -107.474         | -120.673         | <b>-16.505</b>    | -223.128           | -16.573           |
-| F1_E_N    | -75.030          | -63.358          | <b>-59.169</b>    | -85.599            | -59.426           |
-| F1_E_R    | -128.401         | -121.989         | <b>-17.686</b>    | -198.561           | -17.770	         |
-| F2_C_N    | -55.271          | -48.551          | <b>-46.886</b>    | -54.286            | -47.167           |
-| F2_C_R    | -80.299          | -83.199          | <b>-19.301</b>    | -147.651           | -19.397           |
-| F2_E_N    | -50.383          | -40.278          | <b>-26.729</b>    | -60.092            | -27.258           |
-| F2_E_R    | -79.023          | -71.588          | <b>-23.297</b>    | -108.993           | -23.447           |
-| F3_C_N    | -40.748          | -33.974          | <b>-17.740</b>    | -62.307            | -17.80904         |
-| F3_C_R    | -57.926          | -61.074          | <b>-5.465</b>     | -127.7364          | -5.465403         |
-| F3_E_N    | -74.813          | -73.264          | <b>-20.262</b>    | -126.413           | -20.312           |
-| F3_E_R    | -106.766         | -114.668         | <b>-5.106</b>     | -205.987           | -5.159            |
-| Global    | -1122.154        | -1159.560        | <b>-487.994</b>   | -1909.659          | -494.259          |
+| Group     | Uniform          | Normal           | Gamma             | 
+|:----------|:-----------------|:-----------------|:----------------- | 
+| F0_C_N    | -223.503         | -205.761         | <b>-88.812</b>    | 
+| F0_E_N    | -203.925         | -197.072         | <b>-69.398</b>    |
+| F1_C_N    | -85.261          | -80.147          | <b>-66.657</b>    | 
+| F1_C_R    | -107.474         | -120.673         | <b>-16.505</b>    |
+| F1_E_N    | -75.030          | -63.358          | <b>-59.169</b>    |
+| F1_E_R    | -128.401         | -121.989         | <b>-17.686</b>    | 
+| F2_C_N    | -55.271          | -48.551          | <b>-46.886</b>    |
+| F2_C_R    | -80.299          | -83.199          | <b>-19.301</b>    | 
+| F2_E_N    | -50.383          | -40.278          | <b>-26.729</b>    | 
+| F2_E_R    | -79.023          | -71.588          | <b>-23.297</b>    | 
+| F3_C_N    | -40.748          | -33.974          | <b>-17.740</b>    | 
+| F3_C_R    | -57.926          | -61.074          | <b>-5.465</b>     |
+| F3_E_N    | -74.813          | -73.264          | <b>-20.262</b>    |
+| F3_E_R    | -106.766         | -114.668         | <b>-5.106</b>     |
+| Global    | -1122.154        | -1159.560        | <b>-487.994</b>   |
 
 The data in all groups were best fit to a Gamma distribution, including the global dataset (all groups aggregated). We therefore opted to assume a Gamma distribution in all general linear model analyses.
 
