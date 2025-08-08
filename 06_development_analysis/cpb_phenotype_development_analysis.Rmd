@@ -1170,7 +1170,7 @@ gofstat(list(unif,
 | F3_E_R    | <b>23.313</b>    | 27.450           | 30.566           | 29.356             | 
 | Global    | 1150.951         | <b>640.818</b>   | 688.246          | 664.926            |
 
-The data were best fit to different underlying distributions, dependent on group. Some groups were best fit with normal, log-normal, or poisson distributions. The majority of groups were fit to either a normal or weibull distribution. However, the best fitting distribution to the global dataset across groups was normal. We therefore opted to assume a normal distribution in all linear model analyses.
+The data in the majority of groups were fit to a uniform distribution. Some groups were best fit with the normal distribution (i.e., F1_E_N and F1_E_R) or the log-normal distribution (i.e., F1_C_N and F1_C_R). However, the best fitting distribution to the global dataset across groups was normal. We therefore opted to assume a normal distribution in all linear model analyses given that it is biologically unlikely that pupal duration follows a uniform distribution.
 
 These data are presented in Table XXX in the final ms.
 

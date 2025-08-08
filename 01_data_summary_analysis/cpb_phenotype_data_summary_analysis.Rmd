@@ -181,7 +181,7 @@ The dataset is then saved to the this analysis directory for downstream data sum
 In this step, we clean the full performance data.
 
 ##### Read in and clean full performance data:
-```{r, warning = F}
+```{r}
 # load metadata
 load("data/metadata.Rda")
 
