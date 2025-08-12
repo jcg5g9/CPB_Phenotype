@@ -231,24 +231,8 @@ fecundity <- fecundity %>%
   summarize(mean = mean(number_eggs)) %>%
   drop_na()
 
-# isolate only F0 data
-f0 <- fecundity %>%
-  filter(adult_generation == "F0")
-
-# isolate only F1 data
-f1 <- fecundity %>%
-  filter(adult_generation == "F1")
-
-# isolate only F2 data
-f2 <- fecundity %>%
-  filter(adult_generation == "F2")
-
-# isolate only F3 data
-f3 <- fecundity %>%
-  filter(adult_generation == "F3")
-
-# plot female mass and fecundity plot for f0 generation
-f0_f_plot <- ggplot(f0, aes(x = `F`, y = mean)) + 
+# plot female mass and fecundity plot
+f_plot <- ggplot(fecundity, aes(x = `F`, y = mean)) + 
   geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
   geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
   theme_set(theme_cowplot(12)) +
@@ -263,14 +247,12 @@ f0_f_plot <- ggplot(f0, aes(x = `F`, y = mean)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_blank()) +
-  theme(axis.text.x = element_blank()) +
   labs(x = "Female mass (mg)", y = "Mean fecundity") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot male mass and fecundity plot for f0 generation
-f0_m_plot <- ggplot(f0, aes(x = M, y = mean)) + 
+# plot male mass and fecundity plot 
+m_plot <- ggplot(fecundity, aes(x = M, y = mean)) + 
   geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
   geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
   theme_set(theme_cowplot(12)) +
@@ -285,149 +267,14 @@ f0_m_plot <- ggplot(f0, aes(x = M, y = mean)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_blank()) + 
-  theme(axis.title.x = element_blank()) +
-  theme(axis.text.x = element_blank()) +
-  theme(axis.text.y = element_blank()) +
-  labs(x = "Male mass (mg)", y = "Mean fecundity") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-# plot female mass and fecundity plot for f1 generation
-f1_f_plot <- ggplot(f1, aes(x = `F`, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
-  theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
-                    expand = c(0,0)) + 
-  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
-                    limits = c(0,60),
-                    expand = c(0,0)) +
-  theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_blank()) +
-  theme(axis.text.x = element_blank()) +
-  labs(x = "Female mass (mg)", y = "Mean fecundity") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-# plot male mass and fecundity plot for f1 generation
-f1_m_plot <- ggplot(f1, aes(x = M, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
-  theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
-                    expand = c(0,0)) + 
-  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
-                    limits = c(0,60),
-                    expand = c(0,0)) +
-  theme(axis.title.y = element_blank()) + 
-  theme(axis.title.x = element_blank()) +
-  theme(axis.text.x = element_blank()) +
-  theme(axis.text.y = element_blank()) +
-  labs(x = "Male mass (mg)", y = "Mean fecundity") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-# plot female mass and fecundity plot for f2 generation
-f2_f_plot <- ggplot(f2, aes(x = `F`, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
-  theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
-                    expand = c(0,0)) + 
-  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
-                    limits = c(0,60),
-                    expand = c(0,0)) +
-  theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_blank()) +
-  theme(axis.text.x = element_blank()) +
-  labs(x = "Female mass (mg)", y = "Mean fecundity") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-# plot male mass and fecundity plot for f2 generation
-f2_m_plot <- ggplot(f2, aes(x = M, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
-  theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
-                    expand = c(0,0)) + 
-  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
-                    limits = c(0,60),
-                    expand = c(0,0)) +
-  theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title.y = element_blank()) + 
-  theme(axis.title.x = element_blank()) +
-  theme(axis.text.x = element_blank()) +
-  theme(axis.text.y = element_blank()) +
-  labs(x = "Male mass (mg)", y = "Mean fecundity") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-# plot female mass and fecundity plot for f3 generation
-f3_f_plot <- ggplot(f3, aes(x = `F`, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
-  theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
-                    expand = c(0,0)) + 
-  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
-                    limits = c(0,60),
-                    expand = c(0,0)) +
-  theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
-  labs(x = "Female mass (mg)", y = "Mean fecundity") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
-
-# plot male mass and fecundity plot for f3 generation
-f3_m_plot <- ggplot(f3, aes(x = M, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
-  theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
-                    expand = c(0,0)) + 
-  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
-                    limits = c(0,60),
-                    expand = c(0,0)) +
-  theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
-  theme(axis.title.y = element_blank()) + 
-  theme(axis.text.y = element_blank()) +
-  theme(axis.title.x = element_text(vjust = -0.5)) +
-  theme(axis.text.x = element_text(hjust = 0.5)) +
   labs(x = "Male mass (mg)", y = "Mean fecundity") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all mass and fecundity correlations all together
-jpeg("figures/mass_fecundity_correlation.jpeg", width = 20000, height = 30000, res = 1800)
+jpeg("figures/mass_fecundity_correlation.jpeg", width = 20000, height = 8000, res = 1500)
 
-f0_f_plot + f0_m_plot + f1_f_plot + f1_m_plot + f2_f_plot + f2_m_plot + f3_f_plot + f3_m_plot + plot_layout(nrow = 4, ncol = 2)
+f_plot + m_plot + plot_layout(nrow = 1, ncol = 2)
 
 dev.off()
 ```

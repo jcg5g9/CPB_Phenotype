@@ -29,7 +29,6 @@ library(forcats)
 library(patchwork)
 library(glmmTMB)
 library(emmeans)
-library(DHARMa)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
