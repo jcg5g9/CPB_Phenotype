@@ -171,7 +171,7 @@ save(ld_probit, file = "data/ld_probit.Rda")
 ```
 
 <b>Summary results</b>:
-LD<sub>25</sub> (initial estimate) = 12.21458 ppm
+LD<sub>25</sub> (initial estimate) = 10^0.9042961-ppm = ~8.02-ppm
 
 #### 3b: Plot fitted probit regression for ld data; run the Rmd chunk below.
 

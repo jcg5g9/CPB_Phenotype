@@ -560,6 +560,31 @@ summary(f3_mod)
 Anova(f3_mod)
 ```
 
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of general linear mixed model with autocorrelation by generation:</b><br>
+<b>F0</b>: <br>
+Days: t = 0.943118; p = 0.3461; d.f. = 437 <br>
+Background: t = 0.815506; p = 0.4268; d.f. = 16 <br>
+Days x Background : t = -1.531633; p = 0.1263; d.f. = 437 <br>
+
+<b>F1</b>: <br>
+Days: t = -1.847735; p = 0.0656; d.f. = 313 <br>
+Background: t = -0.319095; p = 0.7541; d.f. = 15 <br>
+Days x Background : t = 0.411236; p = 0.6812; d.f. = 313 <br>
+
+<b>F2</b>: <br>
+Days: t = -2.198734; p = 0.0285; d.f. = 353 <br>
+Background: t = 1.211570; p = 0.2444; d.f. = 15 <br>
+Days x Background: t = -0.662149; p = 0.5083; d.f. = 353 <br>
+
+<b>F3</b>: <br>
+Days: t = -4.486162; p = 0.0000; d.f. = 323 <br>
+Background: t = -0.561831; p = 0.5838; d.f. = 13 <br>
+Days x Background: t = 1.119440; p = 0.2638; d.f. = 323 <br>
+
+These data are presented in Table 2a of the final ms.
+
 #### 1b: Plot daily fecundity for each generation; run the Rmd chunk below.
 
 ##### Plot daily fecundity: `figures/daily_fecundity.pdf` 
@@ -614,8 +639,10 @@ f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2),
+                     limits = c(0,28)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), 
+                     limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -654,8 +681,10 @@ f1_plot <- ggplot(f1, aes(x = days_since_oviposition, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2),
+                     limits = c(0,28)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), 
+                     limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -686,8 +715,10 @@ f2_plot <- ggplot(f2, aes(x = days_since_oviposition, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2), 
+                     limits = c(0,28)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), 
+                     limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -718,8 +749,10 @@ f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2)) +
-  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), limits = c(0,100)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2), 
+                     limits = c(0,28)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20),
+                     limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
