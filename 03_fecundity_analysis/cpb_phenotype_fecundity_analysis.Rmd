@@ -233,11 +233,9 @@ fecundity <- fecundity %>%
 
 # plot female mass and fecundity plot
 f_plot <- ggplot(fecundity, aes(x = `F`, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", show.legend = T, se = T, fullrange = T, color = "black") +
+  geom_point(show.legend = T, size = 4, pch = 21, fill = "grey", color = "black") + 
   theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
   scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
                     limits = c(0,160),
                     expand = c(0,0)) + 
@@ -253,11 +251,9 @@ f_plot <- ggplot(fecundity, aes(x = `F`, y = mean)) +
 
 # plot male mass and fecundity plot 
 m_plot <- ggplot(fecundity, aes(x = M, y = mean)) + 
-  geom_smooth(aes(color = background), method = "lm", fullrange = T, show.legend = F, se = F) +
-  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  geom_smooth(method = "lm", show.legend = T, se = T, fullrange = T, color = "black") +
+  geom_point(show.legend = T, size = 4, pch = 21, fill = "grey", color = "black") +  
   theme_set(theme_cowplot(12)) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) + 
   scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
                     limits = c(0,160),
                     expand = c(0,0)) + 
