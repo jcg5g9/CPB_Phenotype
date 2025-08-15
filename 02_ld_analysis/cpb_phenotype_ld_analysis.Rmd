@@ -20,12 +20,13 @@ library(tidyverse)
 library(cowplot)
 library(readxl)
 library(writexl)
+library(scales)
 ```
 
 ## PHASE 1: DETERMINATION OF SUB-LETHAL (LD<sub>25</sub>) INSECTICIDE DOSAGE
-In this phase of analysis, we use 24-hour survival data from a insecticide dosage experiment (see `cpb_tei_experimental_protocol.Rmd`, Section 3) conducted on I3 larvae collected from the VTM CPB colony (see `cpb_tei_experimental_protocol.Rmd`, Section 1, for description of colony origins and laboratory maintenance). Briefly, we used a logistic regression analysis framework with a probit link function to assess the probability of survival of I3 larvae at different pre-set concentrations of insecticide (i.e., imidacloprid).
+In this phase of analysis, we use 48-hour survival data from a insecticide dosage experiment (see `cpb_tei_experimental_protocol.Rmd`, Section 3) conducted on third-instar larvae collected from the VTM CPB colony (see `cpb_tei_experimental_protocol.Rmd`, Section 1, for description of colony origins and laboratory maintenance). Briefly, we used a logistic regression analysis framework with a probit link function to assess the probability of survival of third-instar larvae at different pre-set concentrations of insecticide (i.e., imidacloprid).
 
-We conducted the LD assay (as described in the experimental protocol) over multiple days over the course of two months, depending on the availability of I3 larvae in the VTM laboratory colony. We therefore randomized all individual larvae over dosage treatments and over multiple 6-well assay plates. Specifically, we generated a list of individual larva IDs to reflect colony, dosage treatment received, and a unique numerical identifier,  based on the number of samples needed per dosage treatment. These IDs were then randomized onto 50 6-well plates.
+We conducted the LD assay (as described in the experimental protocol) over multiple days over the course of two months, depending on the availability of third-instar larvae in the VTM laboratory colony. We therefore randomized all individual larvae over dosage treatments and over multiple 6-well assay plates. Specifically, we generated a list of individual larva IDs to reflect colony, dosage treatment received, and a unique numerical identifier,  based on the number of samples needed per dosage treatment. These IDs were then randomized onto 50 6-well plates.
 
 ### STEP 1: Read in, filter, and clean full dataset
 In this step, we read in the raw data file (which includes some sample metadata, described below; `../raw_data/ld_data.xlsx`), manipulate and clean the data.
@@ -181,20 +182,23 @@ LD<sub>25</sub> (initial estimate) = 10^0.9042961-ppm = ~8.02-ppm
 load("data/ld_probit.Rda")
 
 # Plot probit curve of survival at all dosages
-jpeg("figures/ld.jpeg", width = 5000, height = 4000, res = 800)
+jpeg("figures/ld.jpeg", width = 12000, height = 8000, res = 1500)
 
 ggplot(ld_probit, aes(x = log_dosage, y = survival_status)) + 
   geom_point(position = position_jitter(height = 0.05), size = 4, color = "black", fill = "grey", pch = 21) + 
-  geom_smooth(method = "glm", method.args = list(family = "binomial"), color = "black", fullrange = T) + 
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), color = "black", fullrange = T) +
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(expand = c(0,0), limits = c(0,2)) +
-  labs(x = "Dosage (ppm)", y = "Survival proportion") +
+  scale_x_continuous(expand = c(0,0), 
+                     limits = c(0,2),
+                     labels = scales::label_number(accuracy = 0.01)) +
+  labs(x = "Log(concentration, ppm)", y = "Survival proportion") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(axis.title = element_text(size = 15)) +
-  theme(axis.text = element_text(size = 15)) +
+  theme(axis.title = element_text(size = 30)) +
+  theme(axis.text = element_text(size = 30)) +
   theme(axis.ticks.x = element_blank()) +
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.75)) 
+  theme(axis.ticks.y = element_blank()) + 
+  theme(axis.text.x = element_text(hjust = 0.9)) +
+  theme(axis.title.y = element_text(vjust = +1.5))
 
 dev.off()
 ```
