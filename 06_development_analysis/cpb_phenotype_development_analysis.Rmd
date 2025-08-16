@@ -261,9 +261,7 @@ pupa_mass <- pupa_mass %>%
   summarize(mean = mean(pupa_mass),
             sd = sd(pupa_mass),
             n = n(),
-            se = sd/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se = sd/sqrt(n))
 
 # isolate only F0 data
 f0 <- pupa_mass %>%
@@ -298,14 +296,16 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
-                     limits = c(0,140)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 150, by = 30),
+                     limits = c(0,150)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
   labs(x = "Original exposure", y = "Pupa mass (mg)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -331,12 +331,14 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
-                     limits = c(0,140)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 150, by = 30),
+                     limits = c(0,150)) +
   theme(axis.title = element_text(size = 30)) +
-  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.text = element_text(size = 30)) +
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -369,12 +371,16 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
-                     limits = c(0,140)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 150, by = 30),
+                     limits = c(0,150)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Pupa mass (mg)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -400,20 +406,23 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 140, by = 20),
+  scale_y_continuous(breaks = seq(from = 0, to = 150, by = 30),
                      limits = c(0,140)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
-  theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment",  y = "Pupa mass (mg)")+
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all pupa mass figures together
-jpeg("figures/pupa_mass_means.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/pupa_mass_means.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot +  f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot +  f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```
@@ -791,9 +800,7 @@ pupa_time <- pupa_time %>%
   summarize(mean = mean(pupa_time),
             sd = sd(pupa_time),
             n = n(),
-            se = sd/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se = sd/sqrt(n))
 
 # isolate only F0 data
 f0 <- pupa_time %>%
@@ -828,7 +835,7 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 1),
                      limits = c(10,16)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
@@ -836,6 +843,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
   labs(x = "Original exposure", y = "Time to pupation (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -861,12 +870,14 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 1),
                      limits = c(10,16)) +
   theme(axis.title = element_text(size = 30)) +
-  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.text = element_text(size = 30)) +
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -899,12 +910,16 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 1),
                      limits = c(10,16)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Time to pupation (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -930,20 +945,23 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 2),
+  scale_y_continuous(breaks = seq(from = 10, to = 16, by = 1),
                      limits = c(10,16)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
-  theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Time to pupation (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all pupa time figures together
-jpeg("figures/pupa_time_means.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/pupa_time_means.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```
@@ -1315,9 +1333,7 @@ pupa_duration <- pupa_duration %>%
   summarize(mean = mean(pupa_duration),
             sd = sd(pupa_duration),
             n = n(),
-            se = sd/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se = sd/sqrt(n))
 
 # isolate only F0 data
 f0 <- pupa_duration %>%
@@ -1360,6 +1376,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
   labs(x = "Original exposure", y = "Duration (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -1391,6 +1409,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -1429,6 +1449,10 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Duration (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -1458,16 +1482,19 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
                      limits = c(4,8)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
-  theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Duration (days)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all pupa duration figures together
-jpeg("figures/pupa_duration_means.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/pupa_duration_means.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```

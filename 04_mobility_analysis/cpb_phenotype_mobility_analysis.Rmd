@@ -498,9 +498,7 @@ mobility <- mobility %>%
   summarize(n = n(),
             prop_moved = sum(moved)/n,
             sd_moved = sd(moved),
-            se_moved = sd_moved/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se_moved = sd_moved/sqrt(n))
 
 # isolate only F0 data
 f0 <- mobility %>%
@@ -541,8 +539,9 @@ f0_plot <- ggplot(f0, aes(x = background, y = prop_moved, group = background, co
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
   theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.x = element_blank()) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_blank()) +
   labs(x = "Original exposure", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -574,6 +573,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = prop_moved, group = background, col
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
+  theme(axis.text.x = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -612,6 +613,10 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = prop_moved, group = background, col
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -642,15 +647,17 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = prop_moved, group = background, col
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
-  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "P(Mobility)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all mobility figures together
-jpeg("figures/mobility_probability.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/mobility_probability.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```
@@ -670,9 +677,7 @@ mobility <- mobility %>%
   summarize(mean = mean(total_distance),
             sd = sd(total_distance),
             n = n(),
-            se = sd/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se = sd/sqrt(n))
 
 # isolate only F0 data
 f0 <- mobility %>%
@@ -707,7 +712,7 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 180, by = 20),
+  scale_y_continuous(breaks = seq(from = 0, to = 180, by = 30),
                      limits = c(0,180)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
   theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
@@ -715,6 +720,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.title.x = element_blank()) +
   labs(x = "Original exposure", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -746,6 +753,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -784,6 +793,10 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -814,15 +827,18 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "Distance (mm)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all distance figures together
-jpeg("figures/mobility_means.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/mobility_means.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```

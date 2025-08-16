@@ -489,9 +489,7 @@ herbivory <- herbivory %>%
   summarize(n = n(),
             prop_consumed = sum(consumed)/n,
             sd_consumed = sd(consumed),
-            se_consumed = sd_consumed/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se_consumed = sd_consumed/sqrt(n))
 
 # isolate only F0 data
 f0 <- herbivory %>%
@@ -534,6 +532,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = prop_consumed, group = background,
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
   labs(x = "Original exposure", y = "P(Herbivory)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -565,6 +565,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = prop_consumed, group = background, 
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -603,6 +605,10 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = prop_consumed, group = background, 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "P(Herbivory)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -631,17 +637,20 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = prop_consumed, group = background, 
   scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2),
                      limits = c(0,1)) +
   theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title = element_text(size = 30)) + 
-  theme(axis.title.y = element_blank()) +
+  theme(axis.title = element_text(size = 30)) +
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment", y = "P(Herbivory)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all distance figures together
-jpeg("figures/herbivory_probability.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/herbivory_probability.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```
@@ -661,9 +670,7 @@ herbivory <- herbivory %>%
   summarize(mean = mean(leaf_area_consumed),
             sd = sd(leaf_area_consumed),
             n = n(),
-            se = sd/sqrt(n)) %>%
-  mutate(background = recode_factor(background, C = "Control", E = "Insecticide"),
-         treatment = recode_factor(treatment, N = "Not re-exposed", R = "Re-exposed"))
+            se = sd/sqrt(n))
 
 # isolate only F0 data
 f0 <- herbivory %>%
@@ -706,6 +713,8 @@ f0_plot <- ggplot(f0, aes(x = background, y = mean, group = background, color = 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
   labs(x = "Original exposure") +
   ylab(expression("Leaf area consumed"~(cm^{"2"}))) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
@@ -738,6 +747,8 @@ f1_plot <- ggplot(f1, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   #theme(legend.text = element_text(size = 30)) +
   #theme(legend.title = element_text(size = 30, face = "bold")) +
   #theme(legend.key.size = unit(2, 'cm')) +
@@ -777,6 +788,10 @@ f2_plot <- ggplot(f2, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment") +
   ylab(expression("Leaf area consumed"~(cm^{"2"}))) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
@@ -809,15 +824,19 @@ f3_plot <- ggplot(f3, aes(x = treatment, y = mean, group = background, color = b
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_blank()) +
   theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank()) +
   labs(x = "Treatment") +
   ylab(expression("Leaf area consumed"~(cm^{"2"}))) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot all herbivory figures together
-jpeg("figures/herbivory_means.jpeg", width = 17000, height = 15000, res = 1000)
+jpeg("figures/herbivory_means.jpeg", width = 20000, height = 4000, res = 1000)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 2, ncol = 2)
+f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 1, ncol = 4)
 
 dev.off()
 ```
