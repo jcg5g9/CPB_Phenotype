@@ -678,7 +678,7 @@ ggplot(pupa_time, aes(x = pupa_time)) +
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  xlab("Time to pupation (days)") +
+  xlab("Time to pupal stage (days)") +
   ylab("Frequency") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -1215,7 +1215,7 @@ ggplot(pupa_duration, aes(x = pupa_duration)) +
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  xlab("Duration of pupation (days)") +
+  xlab("Duration of pupal stage (days)") +
   ylab("Frequency") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))

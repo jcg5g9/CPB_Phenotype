@@ -28,7 +28,8 @@ library(fitdistrplus)
 library(patchwork)
 library(forcats)
 library(car)
-library(MASS)
+library(NBZIMM)
+sessionInfo()
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -203,11 +204,13 @@ m_mean <- lmer(mean ~ M + (1|background) + (1|adult_generation),
 anova(f_mean) # get F values
 Anova(f_mean) # get p-values
 rsq.lmm(f_mean) # get r-squared values
+df.residual(f_mean) # get degrees of freedom
 
 # summarize model results for fecundity and male mass
 anova(m_mean) # get F values
 Anova(m_mean) # get p-values
 rsq.lmm(m_mean) # get r-squared values
+df.residual(m_mean) # get degrees of freedom
 ```
 
 <b>Analysis results:</b> <br>
@@ -516,72 +519,64 @@ f3 <- fecundity %>%
   filter(adult_generation == "F3")
 
 # Run general linear mixed effect model for F0
-f0_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                  data = f0,
-                  random = ~1|pair_id,
-                  family = negative.binomial(theta = 1),
-                  correlation = corAR1(form = ~ days_since_oviposition))
+f0_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+                    data = f0,
+                    random = ~1|pair_id,
+                    correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F1
-f1_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                  data = f1,
-                  random = ~1|pair_id,
-                  family = negative.binomial(theta = 1),
-                  correlation = corAR1(form = ~ days_since_oviposition))
+f1_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+                    data = f1,
+                    random = ~1|pair_id,
+                    correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F2
-f2_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                  data = f2,
-                  random = ~1|pair_id,
-                  family = negative.binomial(theta = 1),
-                  correlation = corAR1(form = ~ days_since_oviposition))
+f2_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+                    data = f2,
+                    random = ~1|pair_id,
+                    correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F3
-f3_mod <- glmmPQL(number_eggs ~ days_since_oviposition*background,
-                  data = f3,
-                  random = ~1|pair_id,
-                  family = negative.binomial(theta = 1),
-                  correlation = corAR1(form = ~ days_since_oviposition))
+f3_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+                    data = f3,
+                    random = ~1|pair_id,
+                    correlation = corAR1(form = ~ days_since_oviposition))
 
 # summarize f0 model
-summary(f0_mod)
-Anova(f0_mod)
+summary(f0_mod) # get all stats
 
 # summarize f1 model
-summary(f1_mod)
-Anova(f1_mod)
+summary(f1_mod) # get all stats
 
 # summarize f2 model
-summary(f2_mod)
-Anova(f2_mod)
+summary(f2_mod) # get all stats
 
 # summarize f3 model
-summary(f3_mod)
-Anova(f3_mod)
+summary(f3_mod) # get all stats
 ```
 
 <b>Analysis results:</b> <br>
 
 <b>Coefficients of general linear mixed model with autocorrelation by generation:</b><br>
 <b>F0</b>: <br>
-Days: t = 0.943118; p = 0.3461; d.f. = 437 <br>
-Background: t = 0.815506; p = 0.4268; d.f. = 16 <br>
-Days x Background : t = -1.531633; p = 0.1263; d.f. = 437 <br>
+Days: t = 0.41509; p = 0.6783; d.f. = 437 <br>
+Background: t = 0.14683; p = 0.8851; d.f. = 16 <br>
+Days x Background : t = 0.23690; p = 0.8128; d.f. = 437 <br>
 
 <b>F1</b>: <br>
-Days: t = -1.847735; p = 0.0656; d.f. = 313 <br>
-Background: t = -0.319095; p = 0.7541; d.f. = 15 <br>
-Days x Background : t = 0.411236; p = 0.6812; d.f. = 313 <br>
+Days: t = -0.74264; p = 0.4583; d.f. = 313 <br>
+Background: t = -0.64867; p = 0.5264; d.f. = 15 <br>
+Days x Background : t = 1.37520; p = 0.1701; d.f. = 313 <br>
 
 <b>F2</b>: <br>
-Days: t = -2.198734; p = 0.0285; d.f. = 353 <br>
-Background: t = 1.211570; p = 0.2444; d.f. = 15 <br>
-Days x Background: t = -0.662149; p = 0.5083; d.f. = 353 <br>
+Days: t = -1.35692; p = 0.1757; d.f. = 353 <br>
+Background: t = 1.33624; p = 0.2014; d.f. = 15 <br>
+Days x Background: t = 0.32203; p = 0.7476; d.f. = 353 <br>
 
 <b>F3</b>: <br>
-Days: t = -4.486162; p = 0.0000; d.f. = 323 <br>
-Background: t = -0.561831; p = 0.5838; d.f. = 13 <br>
-Days x Background: t = 1.119440; p = 0.2638; d.f. = 323 <br>
+Days: t = -1.885579; p = 0.0602; d.f. = 323 <br>
+Background: t = -0.425972; p = 0.6771; d.f. = 13 <br>
+Days x Background: t = 0.350417; p = 0.7263; d.f. = 323 <br>
 
 These data are presented in Table 2a of the final ms.
 
@@ -623,7 +618,6 @@ f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = T) +
-  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 
@@ -655,7 +649,7 @@ f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
   theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
   theme(legend.box.margin = margin(5, 10, 1, 10)) +
   guides(color = guide_legend(nrow = 1, byrow = T)) +
-  labs(y = "Mean fecundity", color = "Background", fill = "Background") +
+  labs(y = "Mean fecundity", color = "Parental treatment", fill = "Parental treatment") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
@@ -665,7 +659,6 @@ f1_plot <- ggplot(f1, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4),
             linewidth = 2,
             show.legend = F) +
-  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4),
                 width = 0.8, 
@@ -699,7 +692,6 @@ f2_plot <- ggplot(f2, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) +
-  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 
@@ -733,7 +725,6 @@ f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
             position = position_dodge(width = 0.4), 
             linewidth = 2, 
             show.legend = F) +
-  geom_hline(yintercept = 32.23195, size = 2, linetype = "dashed") +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
                 position = position_dodge(width = 0.4), 
                 width = 0.8, 
