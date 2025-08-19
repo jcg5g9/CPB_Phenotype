@@ -296,10 +296,21 @@ Here, we summarize all fecundity (i.e., egg count) data from the experiment. For
 load("../03_fecundity_analysis/data/fecundity.Rda")
 
 # calculate average eggs per day for each background, lineage, and generation and make new dataframe
-average_fecundity <- fecundity %>%
+daily_fecundity <- fecundity %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(average_number_eggs = mean(number_eggs)) %>%
   as.data.frame()
+
+# calculate average total fecundity for each background, lineage, and generation and make new dataframe
+total_fecundity <- fecundity %>%
+  filter(days_since_oviposition < 11) %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs)) %>%
+  as.data.frame()
+
+fecundity %>%
+  group_by(days_since_oviposition) %>%
+  count()
 
 # get total number of fecundity data points
 average_fecundity %>%
@@ -315,8 +326,11 @@ average_fecundity %>%
   group_by(adult_generation, background) %>%
   count()
 
-# save average fecundity data for downstream analyses
-save(average_fecundity, file = "../03_fecundity_analysis/data/average_fecundity.Rda")
+# save daily fecundity data for downstream analyses
+save(daily_fecundity, file = "../03_fecundity_analysis/data/daily_fecundity.Rda")
+
+# save total fecundity data for downstream analyses
+save(total_fecundity, file = "../03_fecundity_analysis/data/total_fecundity.Rda")
 ```
 
 <b>Data summary:</b> <br>

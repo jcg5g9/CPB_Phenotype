@@ -29,22 +29,24 @@ library(patchwork)
 library(forcats)
 library(car)
 library(NBZIMM)
-sessionInfo()
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
 In this phase of the analysis, we calculate mean, standard deviation, and variance for average fecundity within experimental groups of interest. 
 
-### STEP 1: Calculate summary statistics for fecundity data; run the Rmd chunk below.
-In this step, we calculate mean, standard deviation, and variance for average fecundity (i.e., average number of eggs per day across lineages) for all experimental groups.
+### STEP 1: Calculate summary statistics for fecundity data.
+In this step, we calculate mean, standard deviation, and variance for average fecundity for all experimental groups.
 
-##### Calculate summary statistics for fecundity data:
+#### 1a: Calculate summary statistics for average daily fecundity; run the Rmd chunk below.
+Here, we calculate mean, standard deviation, and variance for average daily fecundity (i.e., average number of eggs per day across lineages).
+
+##### Calculate summary statistics for average daily fecundity data:
 ```{r}
-# load average fecundity data
-load("data/average_fecundity.Rda")
+# load average daily fecundity data
+load("data/daily_fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
-average_fecundity %>%
+daily_fecundity %>%
   group_by(adult_generation, background) %>% 
   summarize(n = n(),
             mean = mean(average_number_eggs),
@@ -52,8 +54,50 @@ average_fecundity %>%
             se = sd/sqrt(n()))
 ```
 
+#### 1b: Calculate summary statistics for average total fecundity; run the Rmd chunk below.
+Here, we calculate mean, standard deviation, and variance for average total fecundity (i.e., average lifetime fecundity across lineages).
+
+##### Calculate summary statistics for average total fecundity data:
+```{r}
+# load average daily fecundity data
+load("data/total_fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+total_fecundity <- total_fecundity %>%
+  group_by(adult_generation, background) %>% 
+  summarize(n = n(),
+            mean = mean(total_number_eggs),
+            sd = sd(total_number_eggs),
+            se = sd/sqrt(n()))
+
+ggplot(total_fecundity, aes(x = background, y = mean)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.8, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = background, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  facet_grid(~adult_generation) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  labs(x = "Background", y = "Mean lifetime fecundity", color = "Parental Background", fill = "Parental treatment") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+```
+
 ### STEP 2: Test for correlation between adult mass and fecundity.
-In this step, we determine whether they is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
+In this step, we determine whether there is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
 
 #### 2a: Test fit of mass and fecundity data to a normal distribution.
 
