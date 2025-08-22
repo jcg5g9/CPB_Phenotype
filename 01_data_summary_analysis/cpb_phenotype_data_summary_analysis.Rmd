@@ -15,7 +15,7 @@ output: html_document
 ### Phase 1: Data preparation and filtering
 ### Phase 2: Data summarization and enumeration
 
-### Libraries needed for analysis
+### Libraries needed for analysis:
 ```{r}
 library(tidyverse)
 library(cowplot)
@@ -287,10 +287,13 @@ save(survival, file = "../07_survival_analysis/data/survival.Rda")
 ### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)
 In this step, we summarize sample sizes and number of data points for each dataset, including fecundity and three performance phenotypes: herbivory, mobility, and development. We report all summary data here and in the final ms.
 
-#### 2a: Summarize fecundity data; run the Rmd chunk below
-Here, we summarize all fecundity (i.e., egg count) data from the experiment. For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then summarize sample sizes based on the number of replicate lineages represented.
+#### 2a: Summarize fecundity data.
+Here, we summarize all fecundity (i.e., egg count) data from the experiment. For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate average total fecundity (number of eggs laid across a mated pair lineage's "lifetime" within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.
 
-##### Summarize fecundity data:
+##### 2a.1. Summarize daily fecundity data; run the Rmd chunk below.
+Here, we summarize daily data.
+
+##### Summarize daily fecundity data:
 ```{r}
 # load fecundity data
 load("../03_fecundity_analysis/data/fecundity.Rda")
@@ -300,17 +303,6 @@ daily_fecundity <- fecundity %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(average_number_eggs = mean(number_eggs)) %>%
   as.data.frame()
-
-# calculate average total fecundity for each background, lineage, and generation and make new dataframe
-total_fecundity <- fecundity %>%
-  filter(days_since_oviposition < 11) %>%
-  group_by(adult_generation, lineage, background) %>%
-  summarize(total_number_eggs = sum(number_eggs)) %>%
-  as.data.frame()
-
-fecundity %>%
-  group_by(days_since_oviposition) %>%
-  count()
 
 # get total number of fecundity data points
 average_fecundity %>%
@@ -356,7 +348,75 @@ save(total_fecundity, file = "../03_fecundity_analysis/data/total_fecundity.Rda"
 
 These data are presented in Table 1a of the final ms.
 
-#### 2b: Summarize performance data
+##### 2a.2. Summarize total fecundity data; run the Rmd chunk below.
+Here, we summarize total data. To assess total "lifetime" fecundity without bias, it is necessary to total the number of eggs over the same number of days for each mated pair within background treatment, because each pair must have had the opportunity to produce eggs for the exact same amount of time. Although we recorded fecundity daily for each pair across all generations, some individual beetles in some pairs died before others within generations, and those pairs were therefore omitted from further egg counts. For this reason, within each generation, we first determined the maximum number of days at which the highest possible number of pairs were still laying eggs, and we then totaled number of eggs for each pair up to this day threshold. 
+
+##### Summarize total fecundity data:
+```{r}
+# load fecundity data
+load("../03_fecundity_analysis/data/fecundity.Rda")
+
+# Determine maximum number of days to use for pairs within each generation for calculating total fecundity.
+fecundity %>%
+  group_by(adult_generation, days_since_oviposition) %>%
+  summarize(n = n())
+
+# generate dataset with number of days since oviposition for each generation determined from code above, and omit any mated pairs falling below the threshold for each generation
+fecundity <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C")
+            
+# calculate average total eggs for each background, lineage, and generation and make new dataframe
+total_fecundity <- fecundity %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs)) %>%
+  as.data.frame()
+
+# get total number of fecundity data points
+total_fecundity %>%
+  count()
+
+# get number of fecundity data points by generation
+total_fecundity %>% 
+  group_by(adult_generation) %>%
+  count()
+
+# get number of fecundity data points by generation and background
+total_fecundity %>%
+  group_by(adult_generation, background) %>%
+  count()
+
+# save total fecundity data for downstream analyses
+save(total_fecundity, file = "../03_fecundity_analysis/data/total_fecundity.Rda")
+```
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 64 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 18 </b><br>
+<b><i>N</i><sub>F1</sub> = 16 </b><br>
+<b><i>N</i><sub>F2</sub> = 16 </b><br>
+<b><i>N</i><sub>F3</sub> = 14 </b><br>
+
+<b>Sample size per background per generation:</b><br>
+<b><i>N</i><sub>F0_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F0_E</sub> = 8 </b><br>
+<b><i>N</i><sub>F1_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F1_E</sub> = 6 </b><br>
+<b><i>N</i><sub>F2_C</sub> = 10 </b><br>
+<b><i>N</i><sub>F2_E</sub> = 6 </b><br>
+<b><i>N</i><sub>F3_C</sub> = 8 </b><br>
+<b><i>N</i><sub>F3_e</sub> = 6 </b><br>
+
+These data are presented in Table 1a of the final ms.
+
+#### 2b: Summarize performance data.
 Here, we summarize all performance trait data (i.e., mobility, herbivory, and development) from the experiment.
 
 ##### 2b.1. Summarize full performance data; run the Rmd chunk below.
