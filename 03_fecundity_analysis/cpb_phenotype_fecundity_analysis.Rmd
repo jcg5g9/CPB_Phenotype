@@ -29,6 +29,7 @@ library(patchwork)
 library(forcats)
 library(car)
 library(NBZIMM)
+library(stringr)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -43,14 +44,16 @@ Here, we calculate mean, standard deviation, and variance for average daily fecu
 ##### Calculate summary statistics for average daily fecundity data:
 ```{r}
 # load average daily fecundity data
-load("data/daily_fecundity.Rda")
+load("data/fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
-daily_fecundity %>%
-  group_by(adult_generation, background) %>% 
+fecundity %>%
+  group_by(adult_generation, lineage, background) %>% 
+  summarize(average_fecundity = mean(number_eggs)) %>%
+  group_by(adult_generation, background) %>%
   summarize(n = n(),
-            mean = mean(average_number_eggs),
-            sd = sd(average_number_eggs),
+            mean = mean(average_fecundity),
+            sd = sd(average_fecundity),
             se = sd/sqrt(n()))
 ```
 
@@ -60,40 +63,24 @@ Here, we calculate mean, standard deviation, and variance for average total fecu
 ##### Calculate summary statistics for average total fecundity data:
 ```{r}
 # load average daily fecundity data
-load("data/total_fecundity.Rda")
+load("data/fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
-total_fecundity <- total_fecundity %>%
+fecundity <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs)) %>%
   group_by(adult_generation, background) %>% 
   summarize(n = n(),
             mean = mean(total_number_eggs),
             sd = sd(total_number_eggs),
             se = sd/sqrt(n()))
-
-ggplot(total_fecundity, aes(x = background, y = mean)) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
-                position = position_dodge(width = 0.4), 
-                width = 0.8, 
-                linewidth = 2, 
-                show.legend = F) +
-  geom_point(aes(x = background, y = mean, group = background, fill = background), 
-             position = position_dodge(width = 0.4), 
-             size = 5, 
-             pch = 22, 
-             stroke = 2, 
-             color = "black", 
-             show.legend = F) + 
-  theme_set(theme_cowplot(12)) +
-  facet_grid(~adult_generation) +
-  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  theme(axis.text = element_text(size = 30)) + 
-  theme(axis.title = element_text(size = 30)) + 
-  theme(axis.title.y = element_text(vjust = +3)) + 
-  theme(axis.title.x = element_blank()) +
-  labs(x = "Background", y = "Mean lifetime fecundity", color = "Parental Background", fill = "Parental treatment") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
-  theme(plot.margin = margin(20,20,20,20))
 ```
 
 ### STEP 2: Test for correlation between adult mass and fecundity.
@@ -624,51 +611,51 @@ Days x Background: t = 0.350417; p = 0.7263; d.f. = 323 <br>
 
 These data are presented in Table 2a of the final ms.
 
-#### 1b: Plot daily fecundity for each generation; run the Rmd chunk below.
+#### 1b: Plot daily and total fecundity for each generation; run the Rmd chunk below.
 
-##### Plot daily fecundity: `figures/daily_fecundity.pdf` 
+##### Plot daily and total fecundity: `figures/daily_fecundity.pdf` 
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
 
-# group data by generation, background, and days since oviposition and summarize mean and se of egg number (fecundity) across lineages.
-fecundity <- fecundity %>%
+# group data by generation, background, and days since oviposition and summarize mean and se of daily fecundity across lineages.
+daily <- fecundity %>%
   dplyr::select(lineage:background, number_eggs, days_since_oviposition) %>%
   group_by(adult_generation, background, days_since_oviposition) %>%
   summarize(n = n(),
             mean = mean(number_eggs),
             sd = sd(number_eggs),
-            se = sd/sqrt(n))
+            se = sd/sqrt(n)) 
 
 # isolate only F0 data
-f0 <- fecundity %>%
+f0_daily <- daily %>%
   filter(adult_generation == "F0")
 
 # isolate only F1 data
-f1 <- fecundity %>%
+f1_daily <- daily %>%
   filter(adult_generation == "F1")
 
 # isolate only F2 data
-f2 <- fecundity %>%
+f2_daily <- daily %>%
   filter(adult_generation == "F2")
 
 # isolate only F3 data
-f3 <- fecundity %>%
+f3_daily <- daily %>%
   filter(adult_generation == "F3")
 
-# plot f0 data
-f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
-  geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
-            position = position_dodge(width = 0.4), 
+# plot f0 daily fecundity data
+f0_daily_plot <- ggplot(f0_daily, aes(x = days_since_oviposition, y = mean)) +
+  geom_line(aes(x = days_since_oviposition, y = mean, color = background),
+            position = position_dodge(width = 0.5),
             linewidth = 2, 
             show.legend = T) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
-                position = position_dodge(width = 0.4), 
+                position = position_dodge(width = 0.5),
                 width = 0.8, 
                 linewidth = 2, 
                 show.legend = T) +
   geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
-             position = position_dodge(width = 0.4), 
+             position = position_dodge(width = 0.5),
              size = 5, 
              pch = 22, 
              stroke = 2, 
@@ -678,7 +665,7 @@ f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2),
-                     limits = c(0,28)) +
+                     limits = c(-0.2,28)) +
   scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), 
                      limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
@@ -693,23 +680,23 @@ f0_plot <- ggplot(f0, aes(x = days_since_oviposition, y = mean)) +
   theme(legend.box.background = element_rect(color = "black", size = 1.5)) +
   theme(legend.box.margin = margin(5, 10, 1, 10)) +
   guides(color = guide_legend(nrow = 1, byrow = T)) +
-  labs(y = "Mean fecundity", color = "Parental treatment", fill = "Parental treatment") +
+  labs(y = str_wrap("Mean daily fecundity", width = 10), color = "Parental treatment", fill = "Parental treatment") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot f0 data
-f1_plot <- ggplot(f1, aes(x = days_since_oviposition, y = mean)) +
+# plot f1 daily fecundity data
+f1_daily_plot <- ggplot(f1_daily, aes(x = days_since_oviposition, y = mean)) +
   geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
-            position = position_dodge(width = 0.4),
+            position = position_dodge(width = 0.5),
             linewidth = 2,
             show.legend = F) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
-                position = position_dodge(width = 0.4),
+                position = position_dodge(width = 0.5),
                 width = 0.8, 
                 linewidth = 2, 
                 show.legend = F) +
   geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
-             position = position_dodge(width = 0.4), 
+             position = position_dodge(width = 0.5), 
              size = 5, 
              pch = 22, 
              stroke = 2, 
@@ -719,30 +706,30 @@ f1_plot <- ggplot(f1, aes(x = days_since_oviposition, y = mean)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2),
-                     limits = c(0,28)) +
+                     limits = c(-0.2,28)) +
   scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), 
                      limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_blank()) +
-  labs(y = "Mean fecundity") +
+  labs(y = str_wrap("Mean daily fecundity", width = 10)) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot f0 data
-f2_plot <- ggplot(f2, aes(x = days_since_oviposition, y = mean)) +
+# plot f2 daily fecundity data
+f2_daily_plot <- ggplot(f2_daily, aes(x = days_since_oviposition, y = mean)) +
   geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
-            position = position_dodge(width = 0.4), 
+            position = position_dodge(width = 0.5), 
             linewidth = 2, 
             show.legend = F) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
-                position = position_dodge(width = 0.4), 
+                position = position_dodge(width = 0.5), 
                 width = 0.8, 
                 linewidth = 2, 
                 show.legend = F) +
   geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
-             position = position_dodge(width = 0.4), 
+             position = position_dodge(width = 0.5), 
              size = 5, 
              pch = 22, 
              stroke = 2, 
@@ -752,30 +739,30 @@ f2_plot <- ggplot(f2, aes(x = days_since_oviposition, y = mean)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2), 
-                     limits = c(0,28)) +
+                     limits = c(-0.2,28)) +
   scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20), 
                      limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_blank()) +
-  labs(y = "Mean fecundity") +
+  labs(y = str_wrap("Mean daily fecundity", width = 10)) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot f0 data
-f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
+# plot f3 daily fecundity data
+f3_daily_plot <- ggplot(f3_daily, aes(x = days_since_oviposition, y = mean)) +
   geom_line(aes(x = days_since_oviposition, y = mean, color = background), 
-            position = position_dodge(width = 0.4), 
+            position = position_dodge(width = 0.5), 
             linewidth = 2, 
             show.legend = F) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
-                position = position_dodge(width = 0.4), 
+                position = position_dodge(width = 0.5), 
                 width = 0.8, 
                 linewidth = 2, 
                 show.legend = F) +
   geom_point(aes(x = days_since_oviposition, y = mean, group = background, fill = background), 
-             position = position_dodge(width = 0.4), 
+             position = position_dodge(width = 0.5), 
              size = 5, 
              pch = 22, 
              stroke = 2, 
@@ -785,21 +772,169 @@ f3_plot <- ggplot(f3, aes(x = days_since_oviposition, y = mean)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2), 
-                     limits = c(0,28)) +
+                     limits = c(-0.2,28)) +
   scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20),
                      limits = c(0,100)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
-  labs(x = "Time since first oviposition (days)", y = "Mean fecundity") +
+  labs(x = "Time since first oviposition (days)", y = str_wrap("Mean daily fecundity", width = 10)) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot average daily fecundity
 jpeg("figures/daily_fecundity_means.jpeg", width = 22000, height = 30000, res = 1700)
 
-f0_plot + f1_plot + f2_plot + f3_plot + plot_layout(nrow = 4, ncol = 1)
+f0_daily_plot + f1_daily_plot + f2_daily_plot + f3_daily_plot + plot_layout(nrow = 4, ncol = 1)
+
+dev.off()
+
+# group data by generation, background, and days since oviposition and summarize mean and se of total fecundity across lineages.
+total <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs)) %>%
+  group_by(adult_generation, background) %>% 
+  summarize(n = n(),
+            mean = mean(total_number_eggs),
+            sd = sd(total_number_eggs),
+            se = sd/sqrt(n()))
+
+# isolate only F0 data
+f0_total <- total %>%
+  filter(adult_generation == "F0")
+
+# isolate only F1 data
+f1_total <- total %>%
+  filter(adult_generation == "F1")
+
+# isolate only F2 data
+f2_total <- total %>%
+  filter(adult_generation == "F2")
+
+# isolate only F3 data
+f3_total <- total %>%
+  filter(adult_generation == "F3")
+
+# plot f0 total fecundity data
+f0_total_plot <- ggplot(f0_total, aes(x = background, y = mean)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = background, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
+                     limits = c(0,800)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  labs(x = "Parental treatment", y = str_wrap("Mean total fecundity", width = 10)) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f1 total fecundity data
+f1_total_plot <- ggplot(f1_total, aes(x = background, y = mean)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = background, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
+                     limits = c(0,800)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  labs(x = "Parental treatment", y = str_wrap("Mean total fecundity", width = 10)) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f2 total fecundity data
+f2_total_plot <- ggplot(f2_total, aes(x = background, y = mean)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = background, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
+                     limits = c(0,800)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_blank()) +
+  labs(x = "Parental treatment", y = str_wrap("Mean total fecundity", width = 10)) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot f3 total fecundity data
+f3_total_plot <-ggplot(f3_total, aes(x = background, y = mean)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, color = background), 
+                position = position_dodge(width = 0.4), 
+                width = 0.2, 
+                linewidth = 2, 
+                show.legend = F) +
+  geom_point(aes(x = background, y = mean, group = background, fill = background), 
+             position = position_dodge(width = 0.4), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
+                     limits = c(0,800)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Parental treatment", y = str_wrap("Mean total fecundity", width = 10)) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot average daily fecundity
+jpeg("figures/total_fecundity_means.jpeg", width = 10000, height = 30000, res = 1700)
+
+f0_total_plot + f1_total_plot + f2_total_plot + f3_total_plot + plot_layout(nrow = 4, ncol = 1)
 
 dev.off()
 ```

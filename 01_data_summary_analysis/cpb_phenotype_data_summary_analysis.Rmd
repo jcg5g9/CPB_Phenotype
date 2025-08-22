@@ -299,30 +299,24 @@ Here, we summarize daily data.
 load("../03_fecundity_analysis/data/fecundity.Rda")
 
 # calculate average eggs per day for each background, lineage, and generation and make new dataframe
-daily_fecundity <- fecundity %>%
+fecundity <- fecundity %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(average_number_eggs = mean(number_eggs)) %>%
   as.data.frame()
 
 # get total number of fecundity data points
-average_fecundity %>%
+fecundity %>%
   count()
 
 # get number of fecundity data points by generation
-average_fecundity %>% 
+fecundity %>% 
   group_by(adult_generation) %>%
   count()
 
 # get number of fecundity data points by generation and background
-average_fecundity %>%
+fecundity %>%
   group_by(adult_generation, background) %>%
   count()
-
-# save daily fecundity data for downstream analyses
-save(daily_fecundity, file = "../03_fecundity_analysis/data/daily_fecundity.Rda")
-
-# save total fecundity data for downstream analyses
-save(total_fecundity, file = "../03_fecundity_analysis/data/total_fecundity.Rda")
 ```
 
 <b>Data summary:</b> <br>
@@ -369,30 +363,24 @@ fecundity <- fecundity %>%
            ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
-  filter(pair_id != "L7_F3_C")
-            
-# calculate average total eggs for each background, lineage, and generation and make new dataframe
-total_fecundity <- fecundity %>%
+  filter(pair_id != "L7_F3_C") %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(total_number_eggs = sum(number_eggs)) %>%
   as.data.frame()
 
 # get total number of fecundity data points
-total_fecundity %>%
+fecundity %>%
   count()
 
 # get number of fecundity data points by generation
-total_fecundity %>% 
+fecundity %>% 
   group_by(adult_generation) %>%
   count()
 
 # get number of fecundity data points by generation and background
-total_fecundity %>%
+fecundity %>%
   group_by(adult_generation, background) %>%
   count()
-
-# save total fecundity data for downstream analyses
-save(total_fecundity, file = "../03_fecundity_analysis/data/total_fecundity.Rda")
 ```
 
 <b>Total sample size:</b><br>
