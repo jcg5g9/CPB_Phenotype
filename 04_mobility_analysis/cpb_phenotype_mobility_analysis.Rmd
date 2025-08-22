@@ -279,8 +279,8 @@ jpeg("figures/distribution.jpeg", width = 7000, height = 4000, res = 500)
 ggplot(mobility, aes(x = total_distance)) +
   geom_histogram(binwidth = 10, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(breaks = seq(from = -50, to = 600, by = 50),
-                     limits = c(-50,600)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 600, by = 50),
+                     limits = c(-5,600)) +
   scale_y_continuous(breaks = seq(from = 0, to = 40, by = 10),
                      limits = c(0,40)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 

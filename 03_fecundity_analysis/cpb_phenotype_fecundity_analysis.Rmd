@@ -502,8 +502,8 @@ jpeg("figures/daily_fecundity_distribution.jpeg", width = 7000, height = 4000, r
 ggplot(fecundity, aes(x = number_eggs)) +
   geom_histogram(binwidth = 3, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(breaks = seq(from = -10, to = 60, by = 10),
-                     limits = c(-10,60)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                     limits = c(-2,60)) +
   scale_y_continuous(breaks = seq(from = 0, to = 400, by = 50),
                      limits = c(0,400)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
@@ -613,7 +613,7 @@ These data are presented in Table 2a of the final ms.
 
 #### 1b: Plot daily and total fecundity for each generation; run the Rmd chunk below.
 
-##### Plot daily and total fecundity: `figures/daily_fecundity.pdf` 
+##### Plot daily and total fecundity: 1) `figures/daily_fecundity_means.pdf` and 2) `figures/total_fecundity_means.pdf`
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
