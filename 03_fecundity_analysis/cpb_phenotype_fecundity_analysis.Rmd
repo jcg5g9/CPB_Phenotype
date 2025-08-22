@@ -23,6 +23,7 @@ library(readxl)
 library(writexl)
 library(lme4)
 library(nlme)
+library(rstatix)
 library(rsq)
 library(fitdistrplus)
 library(patchwork)
@@ -75,25 +76,31 @@ fecundity <- fecundity %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
   group_by(adult_generation, lineage, background) %>%
-  summarize(total_number_eggs = sum(number_eggs)) %>%
-  group_by(adult_generation, background) %>% 
-  summarize(n = n(),
-            mean = mean(total_number_eggs),
-            sd = sd(total_number_eggs),
-            se = sd/sqrt(n()))
+  summarize(total_number_eggs = sum(number_eggs))
 ```
 
 ### STEP 2: Test for correlation between adult mass and fecundity.
 In this step, we determine whether there is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
 
-#### 2a: Test fit of mass and fecundity data to a normal distribution.
+#### 2a: Test fit of mass and average fecundity data to a normal distribution.
 
-##### 2a.1. Test fit of mass and fecundity data to a normal distribution; run the Rmd chunk below.
+##### 2a.1. Test fit of mass and average fecundity data to a normal distribution; run the Rmd chunk below.
 
 ##### Test fit of mass and egg data to normal distribution:
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
+
+fecundity <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(pair_id, background, `F`, M) %>%
+  summarize(total_number_eggs = sum(number_eggs))
 
 # get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
 fecundity <- fecundity %>%
@@ -313,7 +320,7 @@ dev.off()
 In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. 
 
 ### STEP 1: Analyze differences in fecundity trends across days since oviposition between control and exposed beetles in each generation.
-In this step of the analyze, we assess holistic differences in daily fecundity (i.e., differences in trends in number of eggs laid since first oviposition) between control and exposed beetles in each generation. We use a general linear mixed effect model assuming an underlying Poisson distribution (given that fecundity per day is count data), including lineage as a random effect and explicitly accounting for autocorrelation across days. We use the glmmPQL function in the R package MASS to run an autocorrelation model.
+In this step of the analyze, we assess holistic differences in daily fecundity (i.e., differences in trends in number of eggs laid since first oviposition) between control and exposed beetles in each generation.
 
 #### 1a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether daily fecundity data in each group of interest (generation and background treatment) deviates from a normal distribution.
@@ -346,7 +353,7 @@ fecundity %>%
 <b>F3_C: p < 0.001 </b><br>
 <b>F3_E: p < 0.001 </b><br>
 
-Since 7/14 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
+Since 8/8 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
 
 #### 1b: Test fit of empirical data to alternative distributions.
 In this step, we plot the raw data distribution and test the fit of four potential distributions that commonly underlie count data (i.e., poisson, binomial, and negative binomial distributions, and determine the best fitting distribution for each group of interest.
@@ -611,9 +618,9 @@ Days x Background: t = 0.350417; p = 0.7263; d.f. = 323 <br>
 
 These data are presented in Table 2a of the final ms.
 
-#### 1b: Plot daily and total fecundity for each generation; run the Rmd chunk below.
+#### 1b: Plot daily fecundity for each generation; run the Rmd chunk below.
 
-##### Plot daily and total fecundity: 1) `figures/daily_fecundity_means.pdf` and 2) `figures/total_fecundity_means.pdf`
+##### Plot daily fecundity: 1) `figures/daily_fecundity_means.pdf`
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
@@ -789,6 +796,201 @@ jpeg("figures/daily_fecundity_means.jpeg", width = 22000, height = 30000, res = 
 f0_daily_plot + f1_daily_plot + f2_daily_plot + f3_daily_plot + plot_layout(nrow = 4, ncol = 1)
 
 dev.off()
+```
+
+### STEP 2: Analyze differences in total (lifetime) fecundity between control and exposed beetles in each generation.
+In this step of the analyze, we assess holistic differences in total "lifetime" fecundity (i.e., the sum of all eggs laid across days since oviposition) between control and exposed beetles in each generation.
+
+#### 2a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+In this step, we use the shapiro-wilk test to assess whether total fecundity data in each group of interest (generation and background treatment) deviates from a normal distribution.
+
+##### Test fit of normality:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+fecundity <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs))
+
+# set to show decimals rather than scientific notation for p-value assessments
+options(scipen = 999)
+
+# test for fit of normality with treatments and generations and compare to alpha of 0.05/8 = 0.006 (to account for multiple comparisons)
+fecundity %>%
+  group_by(adult_generation, background) %>%
+  shapiro_test(total_number_eggs) %>%
+  mutate(alpha = 0.006) %>%
+  mutate(deviates = ifelse(p < alpha, "yes", "no"))
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Shapiro-wilk p-values for each treatment and generation:</b><br>
+<b>F0_C: p = 0.79797358 </b><br>
+<b>F0_E: p = 0.06929650 </b><br>
+<b>F1_C: p = 0.08164203 </b><br>
+<b>F1_E: p = 0.35830382 </b><br>
+<b>F2_C: p = 0.90914699 </b><br>
+<b>F2_E: p = 0.31504175 </b><br>
+<b>F3_C: p = 0.55755291 </b><br>
+<b>F3_E: p = 0.47223266 </b><br>
+
+Since 0/8 tests indicate a deviation from a normal distribution, we assume these data are best fit by a normal distribution for the data across groups of interest. 
+
+#### 2b: Plot empirical data distribution; run the Rmd chunk below.
+
+##### Plot empirical data distribution for total fecundity: `figures/total_fecundity_distribution.jpeg`
+```{r}
+# load pupa mass data
+load("data/fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+fecundity <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs))
+
+# plot distribution
+jpeg("figures/total_fecundity_distribution.jpeg", width = 5000, height = 4000, res = 500)
+
+ggplot(fecundity, aes(x = total_number_eggs)) +
+  geom_histogram(binwidth = 50, color = "black", fill = "grey", linewidth = 1) +
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 1200, by = 200), 
+                     limits = c(0,1200)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 10, by = 2), 
+                     limits = c(0,10)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30, hjust = 0.4)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  theme(axis.text.x = element_text(hjust = 0.5)) +
+  xlab("Total fecundity") +
+  ylab("Frequency") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+This figure is presented as Figure XXX in the final ms.
+
+#### 2c: #### 1a: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
+In this step, we run linear mixed effect models to assess the effect of background treatment on total fecundity, with lineage as a random effect.
+
+##### Run linear mixed effect models for total fecundity:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+fecundity <- fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs))
+
+# isolate only F0 data
+f0 <- fecundity %>%
+  filter(adult_generation == "F0")
+
+# isolate only F1 data
+f1 <- fecundity %>%
+  filter(adult_generation == "F1")
+
+# isolate only F2 data
+f2 <- fecundity %>%
+  filter(adult_generation == "F2")
+
+# isolate only F3 data
+f3 <- fecundity %>%
+  filter(adult_generation == "F3")
+
+# f0 linear mixed effect model
+f0_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+               data = f0)
+
+# f1 linear mixed effect model
+f1_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+               data = f1)
+
+# f2 linear mixed effect model
+f2_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+               data = f2)
+
+# f2 linear mixed effect model
+f3_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+               data = f3)
+
+# summarize f0 model
+anova(f0_mod) # get F value
+Anova(f0_mod) # get p value
+df.residual(f0_mod) # get degrees of freedom
+
+# summarize f1 model
+anova(f1_mod) # get F value
+Anova(f1_mod) # get p values
+df.residual(f1_mod) # get degrees of freedom
+
+# summarize f2 model
+anova(f2_mod) # get F values
+Anova(f2_mod) # get p values
+df.residual(f2_mod) # get degrees of freedom
+
+# summarize f3 model
+anova(f3_mod) # get F values
+Anova(f3_mod) # get p values
+df.residual(f3_mod) # get degrees of freedom
+```
+
+<b>Analysis results:</b> <br>
+
+<b>Coefficients of zero-inflated logistic regressions by generation:</b><br>
+<b>F0</b>: <br>
+Background: F = 0.1078; p = 0.7427 <br>
+d.f. = 14 <br>
+
+<b>F1</b>: <br>
+Background: F = 0.1694; p = 0.6806 <br>
+d.f. = 12 <br>
+
+<b>F2</b>: <br>
+Background: F = 3.1384; p = 0.07647 <br>
+d.f. = 12 <br>
+
+<b>F3</b>: <br>
+Background: F = 2.0713; p = 0.1501 <br>
+d.f. = 10 <br>
+
+These data are presented in Table XXX of the final ms.
+
+#### 2d: Plot total fecundity for each generation; run the Rmd chunk below.
+
+##### Plot total fecundity: 1) `figures/total_fecundity_means.pdf`
+```{r}
+# load fecundity data 
+load("data/fecundity.Rda")
 
 # group data by generation, background, and days since oviposition and summarize mean and se of total fecundity across lineages.
 total <- fecundity %>%
