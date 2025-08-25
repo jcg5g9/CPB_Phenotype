@@ -67,16 +67,38 @@ Here, we calculate mean, standard deviation, and variance for average total fecu
 load("data/fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
-fecundity <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+fecundity %>%
+  filter(days_since_oviposition < 10) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
   group_by(adult_generation, lineage, background) %>%
-  summarize(total_number_eggs = sum(number_eggs))
+  summarize(total_number_eggs = sum(number_eggs)) %>%
+  group_by(adult_generation, background) %>%
+  summarize(n = n(),
+            mean = mean(total_number_eggs),
+            sd = sd(total_number_eggs),
+            se = sd/sqrt(n))
+```
+
+#### 1c: Calculate summary statistics for longevity; run the Rmd chunk below.
+Here, we calculate mean, standard deviation, and variance for longevity (i.e., average lifespan across lineages).
+
+##### Calculate summary statistics for longevity data:
+```{r}
+# load average daily fecundity data
+load("data/fecundity.Rda")
+
+# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
+fecundity %>%
+  filter(status == "stored") %>%
+  mutate(lifespan = as.numeric(difftime(date, date_paired, 
+                                        units = "days"))) %>%
+  group_by(adult_generation, background) %>%
+  summarize(n = n(),
+            mean = mean(lifespan),
+            sd = sd(lifespan),
+            se = sd/sqrt(n))
 ```
 
 ### STEP 2: Test for correlation between adult mass and fecundity.
@@ -90,17 +112,6 @@ In this step, we determine whether there is a significant correlation between ad
 ```{r}
 # load fecundity data
 load("data/fecundity.Rda")
-
-fecundity <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
-  filter(pair_id != "L3_F1_E") %>%
-  filter(pair_id != "L8_F2_E") %>%
-  filter(pair_id != "L7_F3_C") %>%
-  group_by(pair_id, background, `F`, M) %>%
-  summarize(total_number_eggs = sum(number_eggs))
 
 # get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
 fecundity <- fecundity %>%
@@ -557,25 +568,25 @@ f3 <- fecundity %>%
   filter(adult_generation == "F3")
 
 # Run general linear mixed effect model for F0
-f0_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+f0_mod <- glmm.zinb(number_eggs ~ background,
                     data = f0,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F1
-f1_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+f1_mod <- glmm.zinb(number_eggs ~ background,
                     data = f1,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F2
-f2_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+f2_mod <- glmm.zinb(number_eggs ~ background,
                     data = f2,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F3
-f3_mod <- glmm.zinb(number_eggs ~ days_since_oviposition*background,
+f3_mod <- glmm.zinb(number_eggs ~ background,
                     data = f3,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
@@ -597,24 +608,16 @@ summary(f3_mod) # get all stats
 
 <b>Coefficients of general linear mixed model with autocorrelation by generation:</b><br>
 <b>F0</b>: <br>
-Days: t = 0.41509; p = 0.6783; d.f. = 437 <br>
-Background: t = 0.14683; p = 0.8851; d.f. = 16 <br>
-Days x Background : t = 0.23690; p = 0.8128; d.f. = 437 <br>
+Background: t = 0.28667; p = 0.778; d.f. = 16 <br>
 
 <b>F1</b>: <br>
-Days: t = -0.74264; p = 0.4583; d.f. = 313 <br>
-Background: t = -0.64867; p = 0.5264; d.f. = 15 <br>
-Days x Background : t = 1.37520; p = 0.1701; d.f. = 313 <br>
+Background: t = -0.08383; p = 0.9343; d.f. = 15 <br>
 
 <b>F2</b>: <br>
-Days: t = -1.35692; p = 0.1757; d.f. = 353 <br>
-Background: t = 1.33624; p = 0.2014; d.f. = 15 <br>
-Days x Background: t = 0.32203; p = 0.7476; d.f. = 353 <br>
+Background: t = 2.09924; p = 0.0531; d.f. = 15 <br>
 
 <b>F3</b>: <br>
-Days: t = -1.885579; p = 0.0602; d.f. = 323 <br>
-Background: t = -0.425972; p = 0.6771; d.f. = 13 <br>
-Days x Background: t = 0.350417; p = 0.7263; d.f. = 323 <br>
+Background: t = -0.420602; p = 0.6809; d.f. = 13 <br>
 
 These data are presented in Table 2a of the final ms.
 
@@ -903,11 +906,12 @@ load("data/fecundity.Rda")
 fecundity <- fecundity %>%
   filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
            ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 17, FALSE) |
            ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
+  filter(pair_id != "L3_F2_E") %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(total_number_eggs = sum(number_eggs))
 

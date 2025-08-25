@@ -1407,3 +1407,32 @@ mass + time + plot_layout(nrow = 1, ncol = 2)
 
 dev.off()
 ```
+
+```{r}
+fecundity %>%
+  filter(ifelse(adult_generation == "F0", days_since_oviposition < 26, FALSE) | 
+           ifelse(adult_generation == "F1", days_since_oviposition < 11, FALSE) |
+           ifelse(adult_generation == "F2", days_since_oviposition < 17, FALSE) |
+           ifelse(adult_generation == "F3", days_since_oviposition < 21, FALSE)) %>%
+  filter(pair_id != "L1_F0_C") %>%
+  filter(pair_id != "L1_F0_E") %>%
+  filter(pair_id != "L2_F0_C") %>%
+  filter(pair_id != "L5_F0_C") %>%
+  filter(pair_id != "L5_F0_E") %>%
+  filter(pair_id != "L7_F0_C") %>%
+  filter(pair_id != "L10_F0_C") %>%
+  filter(pair_id != "L10_F0_E") %>%
+  filter(pair_id != "L3_F1_E") %>%
+  filter(pair_id != "L6_F1_E") %>%
+  filter(pair_id != "L3_F2_E") %>%
+  filter(pair_id != "L8_F2_E") %>%
+  filter(pair_id != "L6_F3_C") %>%
+  filter(pair_id != "L7_F3_C") %>%
+  group_by(adult_generation, lineage, background) %>%
+  summarize(total_number_eggs = sum(number_eggs)) %>%
+  group_by(adult_generation, background) %>%
+  summarize(n = n(),
+            mean = mean(total_number_eggs),
+            sd = sd(total_number_eggs),
+            se = sd/sqrt(n))
+```

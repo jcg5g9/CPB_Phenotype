@@ -284,14 +284,14 @@ survival <- performance %>%
 save(survival, file = "../07_survival_analysis/data/survival.Rda")
 ```
 
-### STEP 2: Enumerate and summarize data from each dataset: fecundity and performance (herbivory, mobility, development)
-In this step, we summarize sample sizes and number of data points for each dataset, including fecundity and three performance phenotypes: herbivory, mobility, and development. We report all summary data here and in the final ms.
+### STEP 2: Enumerate and summarize data from each dataset: adult fecundity (daily fecundity and total fecundity) and performance (herbivory, mobility, development, and survival)
+In this step, we summarize sample sizes and number of data points for each dataset, including two fecundity metrics (i.e., daily fecundity and truncated total fecundity), and four larval performance metrics: herbivory, mobility, development, and survival. We report all summary data here and in the final ms.
 
 #### 2a: Summarize fecundity data.
-Here, we summarize all fecundity (i.e., egg count) data from the experiment. For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate average total fecundity (number of eggs laid across a mated pair lineage's "lifetime" within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.
+Here, we summarize data for fecundity metrics, daily fecundity (i.e., average egg count per day) and truncated total fecundity (i.e., average total egg count over an equivalent number of days in early life). For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate average total fecundity (number of eggs laid across a mated pair lineage's "lifetime" within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.
 
 ##### 2a.1. Summarize daily fecundity data; run the Rmd chunk below.
-Here, we summarize daily data.
+Here, we summarize daily data. 
 
 ##### Summarize daily fecundity data:
 ```{r}
@@ -357,10 +357,7 @@ fecundity %>%
 
 # generate dataset with number of days since oviposition for each generation determined from code above, and omit any mated pairs falling below the threshold for each generation
 fecundity <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(days_since_oviposition < 10) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
@@ -393,13 +390,13 @@ fecundity %>%
 <b><i>N</i><sub>F3</sub> = 14 </b><br>
 
 <b>Sample size per background per generation:</b><br>
-<b><i>N</i><sub>F0_C</sub> = 10 </b><br>
-<b><i>N</i><sub>F0_E</sub> = 8 </b><br>
+<b><i>N</i><sub>F0_C</sub> = 5 </b><br>
+<b><i>N</i><sub>F0_E</sub> = 5 </b><br>
 <b><i>N</i><sub>F1_C</sub> = 10 </b><br>
-<b><i>N</i><sub>F1_E</sub> = 6 </b><br>
+<b><i>N</i><sub>F1_E</sub> = 5 </b><br>
 <b><i>N</i><sub>F2_C</sub> = 10 </b><br>
-<b><i>N</i><sub>F2_E</sub> = 6 </b><br>
-<b><i>N</i><sub>F3_C</sub> = 8 </b><br>
+<b><i>N</i><sub>F2_E</sub> = 5 </b><br>
+<b><i>N</i><sub>F3_C</sub> = 7 </b><br>
 <b><i>N</i><sub>F3_e</sub> = 6 </b><br>
 
 These data are presented in Table 1a of the final ms.
