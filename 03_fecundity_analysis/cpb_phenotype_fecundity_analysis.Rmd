@@ -146,8 +146,8 @@ M_C: p = 0.8849 <br>
 M_E: p = 0.4455 <br>
 
 <b>Shapiro-Wilk p-values for average daily fecundity in each background:</b><br>
-Mean_C: p = 0.2947 <br>
-Mean_E: p = 0.05107 <br>
+Mean_C: p = 0.3085 <br>
+Mean_E: p = 0.2054 <br>
 
 For both female and male mass and mean number of eggs, neither background group significantly deviated from a normal distribution, so we assumed a normal distribution for linear mixed effect models to test for correlations.  
 
@@ -265,8 +265,8 @@ df.residual(m_mean) # get degrees of freedom
 <b>Analysis results:</b> <br>
 
 <b>Coefficients of linear mixed effect models for pairwise metric comparisons:</b><br>
-<b>fecundity and female mass: F = 1.5237; p = 0.2171; r-squared = 0.2075726 </b><br>
-<b>fecundity and male mass: F = 0.6674; p = 0.414; r-squared = 0.2045911 </b><br>
+<b>fecundity and female mass: F = 1.3079; p = 0.2528; r-squared = 0.2006942; d.f. = 61  </b><br>
+<b>fecundity and male mass: F = 0.7184; p = 0.3967; r-squared = 0.2012336; d.f. = 61 </b><br>
 
 Given that these metrics are not correlated, we opted to omit mass from all downstream model analyses. Correlation plots of male and female mass, delineated by generation (grid rows) and background treatment (different colored regression lines in the plot) are generated in Step 2b.2 below.
 
