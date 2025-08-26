@@ -58,6 +58,8 @@ fecundity %>%
             se = sd/sqrt(n()))
 ```
 
+These data are presented in Table 1 of the final ms.
+
 #### 1b: Calculate summary statistics for average total fecundity; run the Rmd chunk below.
 Here, we calculate mean, standard deviation, and variance for average total fecundity (i.e., average lifetime fecundity across lineages).
 
@@ -80,6 +82,24 @@ fecundity %>%
             sd = sd(total_number_eggs),
             se = sd/sqrt(n))
 ```
+
+These data are presented in Table 1 of the final ms.
+
+#### 1c: Calculate summary statistics for time to and time since first oviposition; run the Rmd chunk below.
+Here, we determine number of days since first oviposition for each generation, background, and lineage to plot differences in amount of time laying eggs.
+
+##### Calculate summary statistics for longevity data:
+```{r}
+# load average daily fecundity data
+load("data/fecundity.Rda")
+
+# get number of days of egg laying since first oviposition for each generation, background, and lineage 
+fecundity %>%
+  group_by(adult_generation, lineage, background) %>%
+  count()
+```
+
+These data are presented in Figure SXXX of the final ms.
 
 ### STEP 2: Test for correlation between adult mass and fecundity.
 In this step, we determine whether there is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
@@ -520,7 +540,6 @@ f0 <- fecundity %>%
 # isolate only F1 data
 f1 <- fecundity %>%
   filter(adult_generation == "F1")
-View(f1)
 
 # isolate only F2 data
 f2 <- fecundity %>%
@@ -571,13 +590,13 @@ summary(f3_mod) # get all stats
 
 <b>Coefficients of general linear mixed model with autocorrelation by generation:</b><br>
 <b>F0</b>: <br>
-Background: t = 0.28667; p = 0.778; d.f. = 16 <br>
+Background: t = 0.29622; p = 0.7709; d.f. = 16 <br>
 
 <b>F1</b>: <br>
-Background: t = -0.08383; p = 0.9343; d.f. = 15 <br>
+Background: t = -0.07957; p = 0.9376; d.f. = 15 <br>
 
 <b>F2</b>: <br>
-Background: t = 2.09924; p = 0.0531; d.f. = 15 <br>
+Background: t = 2.10271; p = 0.0528; d.f. = 15 <br>
 
 <b>F3</b>: <br>
 Background: t = -0.420602; p = 0.6809; d.f. = 13 <br>
@@ -777,10 +796,7 @@ load("data/fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
 fecundity <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(days_since_oviposition < 10) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
@@ -801,14 +817,14 @@ fecundity %>%
 <b>Analysis results:</b> <br>
 
 <b>Shapiro-wilk p-values for each treatment and generation:</b><br>
-<b>F0_C: p = 0.79797358 </b><br>
-<b>F0_E: p = 0.06929650 </b><br>
+<b>F0_C: p = 0.68641077 </b><br>
+<b>F0_E: p = 0.22485027 </b><br>
 <b>F1_C: p = 0.08164203 </b><br>
 <b>F1_E: p = 0.35830382 </b><br>
-<b>F2_C: p = 0.90914699 </b><br>
-<b>F2_E: p = 0.31504175 </b><br>
-<b>F3_C: p = 0.55755291 </b><br>
-<b>F3_E: p = 0.47223266 </b><br>
+<b>F2_C: p = 0.53773602 </b><br>
+<b>F2_E: p = 0.82295608 </b><br>
+<b>F3_C: p = 0.18895399 </b><br>
+<b>F3_E: p = 0.98810631 </b><br>
 
 Since 0/8 tests indicate a deviation from a normal distribution, we assume these data are best fit by a normal distribution for the data across groups of interest. 
 
@@ -821,10 +837,7 @@ load("data/fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
 fecundity <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(days_since_oviposition < 10) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
@@ -835,10 +848,10 @@ fecundity <- fecundity %>%
 jpeg("figures/total_fecundity_distribution.jpeg", width = 5000, height = 4000, res = 500)
 
 ggplot(fecundity, aes(x = total_number_eggs)) +
-  geom_histogram(binwidth = 50, color = "black", fill = "grey", linewidth = 1) +
+  geom_histogram(binwidth = 20, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(breaks = seq(from = 0, to = 1200, by = 200), 
-                     limits = c(0,1200)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 600, by = 200), 
+                     limits = c(0,600)) +
   scale_y_continuous(breaks = seq(from = 0, to = 10, by = 2), 
                      limits = c(0,10)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
@@ -867,14 +880,10 @@ load("data/fecundity.Rda")
 
 # get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
 fecundity <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 17, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(days_since_oviposition < 10) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
-  filter(pair_id != "L3_F2_E") %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(total_number_eggs = sum(number_eggs))
 
@@ -917,7 +926,7 @@ df.residual(f0_mod) # get degrees of freedom
 
 # summarize f1 model
 anova(f1_mod) # get F value
-Anova(f1_mod) # get p values
+Anova(f1_mod) # get pvalues
 df.residual(f1_mod) # get degrees of freedom
 
 # summarize f2 model
@@ -935,7 +944,7 @@ df.residual(f3_mod) # get degrees of freedom
 
 <b>Coefficients of zero-inflated logistic regressions by generation:</b><br>
 <b>F0</b>: <br>
-Background: F = 0.1078; p = 0.7427 <br>
+Background: F = 0.4703; p = 0.4929 <br>
 d.f. = 14 <br>
 
 <b>F1</b>: <br>
@@ -943,11 +952,11 @@ Background: F = 0.1694; p = 0.6806 <br>
 d.f. = 12 <br>
 
 <b>F2</b>: <br>
-Background: F = 3.1384; p = 0.07647 <br>
+Background: F = 6.213; p = 0.01268 <br>
 d.f. = 12 <br>
 
 <b>F3</b>: <br>
-Background: F = 2.0713; p = 0.1501 <br>
+Background: F = 5.0784; p = 0.02423 <br>
 d.f. = 10 <br>
 
 These data are presented in Table XXX of the final ms.
@@ -961,10 +970,7 @@ load("data/fecundity.Rda")
 
 # group data by generation, background, and days since oviposition and summarize mean and se of total fecundity across lineages.
 total <- fecundity %>%
-  filter(ifelse(adult_generation == "F0", days_since_oviposition < 20, FALSE) | 
-           ifelse(adult_generation == "F1", days_since_oviposition < 10, FALSE) |
-           ifelse(adult_generation == "F2", days_since_oviposition < 16, FALSE) |
-           ifelse(adult_generation == "F3", days_since_oviposition < 15, FALSE)) %>%
+  filter(days_since_oviposition < 10) %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
@@ -1009,8 +1015,8 @@ f0_total_plot <- ggplot(f0_total, aes(x = background, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
-                     limits = c(0,800)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 600, by = 200),
+                     limits = c(0,600)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -1036,8 +1042,8 @@ f1_total_plot <- ggplot(f1_total, aes(x = background, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
-                     limits = c(0,800)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 600, by = 200),
+                     limits = c(0,600)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -1063,8 +1069,8 @@ f2_total_plot <- ggplot(f2_total, aes(x = background, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
-                     limits = c(0,800)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 600, by = 200),
+                     limits = c(0,600)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
@@ -1090,8 +1096,8 @@ f3_total_plot <-ggplot(f3_total, aes(x = background, y = mean)) +
   theme_set(theme_cowplot(12)) +
   scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
   scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
-  scale_y_continuous(breaks = seq(from = 0, to = 800, by = 200),
-                     limits = c(0,800)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 600, by = 200),
+                     limits = c(0,600)) +
   theme(axis.text = element_text(size = 30)) + 
   theme(axis.title = element_text(size = 30)) + 
   theme(axis.title.y = element_text(vjust = +3)) + 
