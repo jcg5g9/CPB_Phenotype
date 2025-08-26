@@ -81,7 +81,7 @@ fecundity %>%
             se = sd/sqrt(n))
 ```
 
-#### 1c: Calculate summary statistics for longevity; run the Rmd chunk below.
+#### 1c: Calculate summary statistics for time to first oviposition; run the Rmd chunk below.
 Here, we calculate mean, standard deviation, and variance for longevity (i.e., average lifespan across lineages).
 
 ##### Calculate summary statistics for longevity data:
@@ -118,36 +118,22 @@ fecundity <- fecundity %>%
   group_by(pair_id, background, `F`, M) %>%
   summarize(mean = mean(number_eggs))
 
-# get control data only
-c <- fecundity %>%
-  filter(background == "C")
-
-# get exposed data only
-e <- fecundity %>%
-  filter(background == "E")
-
 # Test fit of mass data to normal distribution
-shapiro.test(c$`F`) # test fit for female mass in control group
-shapiro.test(c$M) # test fit for male mass in control group
-shapiro.test(e$`F`) # test fit for female mass in exposed group
-shapiro.test(e$M) # test fit for male mass in exposed group
+shapiro.test(fecundity$`F`) # test fit for female mass
+shapiro.test(fecundity$M) # test fit for male mass
 
 # Test fit of egg data to normal distribution
-shapiro.test(c$mean) # test fit for control group
-shapiro.test(e$mean) # test fit for control group
+shapiro.test(fecundity$mean) # test fit for mean egg count
 ```
 
 <b>Analysis results:</b> <br>
 
 <b>Shapiro-Wilk p-values for male and female mass in each background:</b><br>
-F_C: p = 0.1063 <br>
-F_E: p = 0.4594 <br>
-M_C: p = 0.8849 <br>
-M_E: p = 0.4455 <br>
+F: W = 0.98087; p = 0.4012 <br>
+M: W = 0.98020; p = 0.3726 <br>
 
 <b>Shapiro-Wilk p-values for average daily fecundity in each background:</b><br>
-Mean_C: p = 0.3085 <br>
-Mean_E: p = 0.2054 <br>
+Mean: W = 0.96596; p = 0.06335 <br>
 
 For both female and male mass and mean number of eggs, neither background group significantly deviated from a normal distribution, so we assumed a normal distribution for linear mixed effect models to test for correlations.  
 
@@ -175,7 +161,7 @@ f_plot <- ggplot(fecundity, aes(x = `F`)) +
   theme(axis.title.y = element_text(vjust = +3)) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  xlab("Mass (mg)") +
+  xlab("Female mass (mg)") +
   ylab("Frequency") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
@@ -192,7 +178,7 @@ m_plot <- ggplot(fecundity, aes(x = M)) +
   theme(axis.title.y = element_blank()) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  xlab("Mass (mg)") +
+  xlab("Male mass (mg)") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
@@ -241,7 +227,7 @@ fecundity <- fecundity %>%
   summarize(mean = mean(number_eggs)) %>%
   drop_na()
 
-#test for correlation between mean fecundity and male mass
+# test for correlation between mean fecundity and male mass
 f_mean <- lmer(mean ~ `F` + (1|background) + (1|adult_generation),
                data = fecundity)
 
