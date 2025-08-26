@@ -81,26 +81,6 @@ fecundity %>%
             se = sd/sqrt(n))
 ```
 
-#### 1c: Calculate summary statistics for time to first oviposition; run the Rmd chunk below.
-Here, we calculate mean, standard deviation, and variance for longevity (i.e., average lifespan across lineages).
-
-##### Calculate summary statistics for longevity data:
-```{r}
-# load average daily fecundity data
-load("data/fecundity.Rda")
-
-# get sample size (n), mean, standard deviation (sd), and standard error (se) for average fecundity by generation and treatment
-fecundity %>%
-  filter(status == "stored") %>%
-  mutate(lifespan = as.numeric(difftime(date, date_paired, 
-                                        units = "days"))) %>%
-  group_by(adult_generation, background) %>%
-  summarize(n = n(),
-            mean = mean(lifespan),
-            sd = sd(lifespan),
-            se = sd/sqrt(n))
-```
-
 ### STEP 2: Test for correlation between adult mass and fecundity.
 In this step, we determine whether there is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
 
@@ -182,17 +162,8 @@ m_plot <- ggplot(fecundity, aes(x = M)) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot mass distributions together
-jpeg("figures/mass_distributions.jpeg", width = 10000, height = 4000, res = 700)
-
-f_plot + m_plot + plot_layout(nrow = 1, ncol = 2)
-
-dev.off()
-
-# plot mean fecundity distribution
-jpeg("figures/mean_fecundity_distribution.jpeg", width = 5000, height = 4000, res = 500)
-
-ggplot(fecundity, aes(x = mean)) +
+# plot fecundity (egg count) distribution
+e_plot <- ggplot(fecundity, aes(x = mean)) +
   geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
   scale_x_continuous(breaks = seq(from = 0, to = 60, by = 10), limits = c(0,60)) +
@@ -203,10 +174,15 @@ ggplot(fecundity, aes(x = mean)) +
   theme(axis.title.y = element_blank()) + 
   theme(axis.title.x = element_text(vjust = -0.5)) +
   theme(axis.text.x = element_text(hjust = 0.5)) +
-  xlab("Mean fecundity") +
+  xlab("Mean daily fecundity") +
   ylab("Frequency") +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
+
+# plot mass distributions together
+jpeg("figures/mass_fecundity_distributions.jpeg", width = 14000, height = 4000, res = 700)
+
+f_plot + m_plot + e_plot + plot_layout(nrow = 1, ncol = 3)
 
 dev.off()
 ```
@@ -274,8 +250,8 @@ f_plot <- ggplot(fecundity, aes(x = `F`, y = mean)) +
   geom_smooth(method = "lm", show.legend = T, se = T, fullrange = T, color = "black") +
   geom_point(show.legend = T, size = 4, pch = 21, fill = "grey", color = "black") + 
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 30),
+                    limits = c(0,180),
                     expand = c(0,0)) + 
   scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
                     limits = c(0,60),
@@ -292,8 +268,8 @@ m_plot <- ggplot(fecundity, aes(x = M, y = mean)) +
   geom_smooth(method = "lm", show.legend = T, se = T, fullrange = T, color = "black") +
   geom_point(show.legend = T, size = 4, pch = 21, fill = "grey", color = "black") +  
   theme_set(theme_cowplot(12)) +
-  scale_x_continuous(breaks = seq(from = 0, to = 160, by = 30),
-                    limits = c(0,160),
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 30),
+                    limits = c(0,180),
                     expand = c(0,0)) + 
   scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
                     limits = c(0,60),
@@ -480,14 +456,14 @@ gofstat(list(unif,
 | Group     | Uniform          | Normal           | Poisson           | Negative binomial  |
 |:----------|:-----------------|:-----------------|:----------------- | :----------------- |
 | F0_C      | 2354.240         | 2339.424         | 7426.750          | <b>2192.227</b>    |
-| F0_E      | 1968.402         | 1941.370         | 6276.880          | <b>1827.304</b> 	 |
-| F1_C      | 2174.196         | 2080.998         | 6242.072          | <b>1992.755</b>    |
-| F1_E      | 1005.1015        | 1007.4514        | 3127.4039         | <b>954.7589</b>    |
+| F0_E      | 1949.422         | 1924.410         | 6261.086          | <b>1808.237</b> 	 |
+| F1_C      | 2183.884         | 2090.930         | 6306.402          | <b>1997.695</b>    |
+| F1_E      | 995.832          | 997.574          | 3063.9616         | <b>949.975</b>     |
 | F2_C      | 2218.848         | 2115.120         | 5153.670          | <b>2092.494</b>    |
-| F2_E      | 1304.265         | 1243.175         | 3955.629          | <b>1180.157</b>    |
+| F2_E      | 1284.414         | 1223.068         | 3817.350          | <b>1170.107</b>    |
 | F3_C      | 1834.659         | 1811.667         | 5594.283          | <b>1574.233</b>    |
 | F3_E      | 1242.309         | 1228.920         | 3523.209          | <b>1059.789</b>    |
-| Global    | 14902.460        | 13848.340        | 42651.510         | <b>12902.250</b>   |
+| Global    | 14862.76         | 13812.390        | 42520.590         | <b>12874.66</b>    |
 
 The data in all groups were best fit to a negative binomial distribution. The best fitting distribution to the global dataset across groups is also the negative binomial distribution. We opted to assume a negative binomial distribution in all general linear model analyses given the majority.
 
@@ -544,6 +520,7 @@ f0 <- fecundity %>%
 # isolate only F1 data
 f1 <- fecundity %>%
   filter(adult_generation == "F1")
+View(f1)
 
 # isolate only F2 data
 f2 <- fecundity %>%
