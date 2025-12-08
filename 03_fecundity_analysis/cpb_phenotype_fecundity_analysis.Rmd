@@ -183,7 +183,7 @@ m_plot <- ggplot(fecundity, aes(x = M)) +
   theme(plot.margin = margin(20,20,20,20))
 
 # plot fecundity (egg count) distribution
-e_plot <- ggplot(fecundity, aes(x = mean)) +
+mean_plot <- ggplot(fecundity, aes(x = mean)) +
   geom_histogram(binwidth = 5, color = "black", fill = "grey", linewidth = 1) +
   theme_set(theme_cowplot(12)) +
   scale_x_continuous(breaks = seq(from = 0, to = 60, by = 10), limits = c(0,60)) +
@@ -202,7 +202,7 @@ e_plot <- ggplot(fecundity, aes(x = mean)) +
 # plot mass distributions together
 jpeg("figures/mass_fecundity_distributions.jpeg", width = 14000, height = 4000, res = 700)
 
-f_plot + m_plot + e_plot + plot_layout(nrow = 1, ncol = 3)
+f_plot + m_plot + mean_plot + plot_layout(nrow = 1, ncol = 3)
 
 dev.off()
 ```
