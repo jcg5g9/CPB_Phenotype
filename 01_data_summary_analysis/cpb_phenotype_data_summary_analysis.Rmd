@@ -381,13 +381,53 @@ dose %>%
 <b>Data summary:</b> <br>
 
 <b>Total sample size:</b><br>
-<b><i>N</i><sub>data</sub> = 67 </b><br>
+<b><i>N</i><sub>data</sub> = 2544 </b><br>
 
-<b>Sample size per generation:</b><br>
-<b><i>N</i><sub>F0</sub> = 18 </b><br>
-<b><i>N</i><sub>F1</sub> = 17 </b><br>
-<b><i>N</i><sub>F2</sub> = 17 </b><br>
-<b><i>N</i><sub>F3</sub> = 15 </b><br>
+<b>Sample size per background treatment:</b><br>
+<b><i>N</i><sub>C</sub> = 1185 </b><br>
+<b><i>N</i><sub>E</sub> = 1359 </b><br>
+
+<b>Sample size per lineage:</b><br>
+<b><i>N</i><sub>1</sub> = 364 </b><br>
+<b><i>N</i><sub>2</sub> = 215 </b><br>
+<b><i>N</i><sub>3</sub> = 269 </b><br>
+<b><i>N</i><sub>4</sub> = 185 </b><br>
+<b><i>N</i><sub>5</sub> = 312 </b><br>
+<b><i>N</i><sub>6</sub> = 153 </b><br>
+<b><i>N</i><sub>7</sub> = 180 </b><br>
+<b><i>N</i><sub>8</sub> = 304 </b><br>
+<b><i>N</i><sub>9</sub> = 33 </b><br>
+<b><i>N</i><sub>10</sub> = 250 </b><br>
+<b><i>N</i><sub>11</sub> = 215 </b><br>
+<b><i>N</i><sub>12</sub> = 64 </b><br>
+
+<b>Sample size per lineage and background treatment:</b><br>
+<b><i>N</i><sub>1C</sub> = 174 </b><br>
+<b><i>N</i><sub>1E</sub> = 190 </b><br>
+<b><i>N</i><sub>2C</sub> = 98 </b><br>
+<b><i>N</i><sub>2E</sub> = 117 </b><br>
+<b><i>N</i><sub>3C</sub> = 134 </b><br>
+<b><i>N</i><sub>3E</sub> = 135 </b><br>
+<b><i>N</i><sub>4C</sub> = 92 </b><br>
+<b><i>N</i><sub>4E</sub> = 93 </b><br>
+<b><i>N</i><sub>5C</sub> = 147 </b><br>
+<b><i>N</i><sub>5E</sub> = 165 </b><br>
+<b><i>N</i><sub>6C</sub> = 67 </b><br>
+<b><i>N</i><sub>6E</sub> = 86 </b><br>
+<b><i>N</i><sub>7C</sub> = 76 </b><br>
+<b><i>N</i><sub>7E</sub> = 104 </b><br>
+<b><i>N</i><sub>8C</sub> = 142 </b><br>
+<b><i>N</i><sub>8E</sub> = 162 </b><br>
+<b><i>N</i><sub>9C</sub> = 14 </b><br>
+<b><i>N</i><sub>9E</sub> = 19 </b><br>
+<b><i>N</i><sub>10C</sub> = 112 </b><br>
+<b><i>N</i><sub>10E</sub> = 138 </b><br>
+<b><i>N</i><sub>11C</sub> = 97 </b><br>
+<b><i>N</i><sub>11E</sub> = 118 </b><br>
+<b><i>N</i><sub>12C</sub> = 32 </b><br>
+<b><i>N</i><sub>12E</sub> = 32 </b><br>
+
+
 
 #### 2b: Summarize fecundity data.
 Here, we summarize data for fecundity metrics, daily fecundity (i.e., average egg count per day) and truncated total fecundity (i.e., average total egg count over an equivalent number of days in early life). For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate truncated average total fecundity (number of eggs laid across a mated pair lineage's "lifetime", or a pre-determined number of days after the first day of oviposition) within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.
