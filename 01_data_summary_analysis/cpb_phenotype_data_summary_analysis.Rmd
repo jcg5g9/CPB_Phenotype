@@ -360,6 +360,7 @@ dose %>%
   group_by(lineage, background) %>%
   count()
 
+# get number of dosed larvae surviving and dying following treatment for lineages and backgrounds
 dose %>%
   filter(assayed == "No") %>%
   group_by(lineage, background) %>%
@@ -368,6 +369,7 @@ dose %>%
             died = treated-survived,
             prop_died = died/treated)
 
+# get total numbers of dosed larvae surviving and dying following treatment for lineages and backgrounds
 dose %>%
   filter(assayed == "No") %>%
   group_by(background) %>%
@@ -387,10 +389,10 @@ dose %>%
 <b><i>N</i><sub>F2</sub> = 17 </b><br>
 <b><i>N</i><sub>F3</sub> = 15 </b><br>
 
-#### 2a: Summarize fecundity data.
+#### 2b: Summarize fecundity data.
 Here, we summarize data for fecundity metrics, daily fecundity (i.e., average egg count per day) and truncated total fecundity (i.e., average total egg count over an equivalent number of days in early life). For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate truncated average total fecundity (number of eggs laid across a mated pair lineage's "lifetime", or a pre-determined number of days after the first day of oviposition) within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.
 
-##### 2a.1. Summarize daily fecundity data; run the Rmd chunk below.
+##### 2b.1. Summarize daily fecundity data; run the Rmd chunk below.
 Here, we summarize daily data. 
 
 ##### Summarize daily fecundity data:
@@ -442,7 +444,7 @@ fecundity %>%
 
 These data are presented in Table 1a of the final ms.
 
-##### 2a.2. Summarize total fecundity data; run the Rmd chunk below.
+##### 2b.2. Summarize total fecundity data; run the Rmd chunk below.
 Here, we summarize total data. To assess total "lifetime" fecundity without bias, it is necessary to total the number of eggs over the same number of days for each mated pair within background treatment, because each pair must have had the opportunity to produce eggs for the exact same amount of time. Although we recorded fecundity daily for each pair across all generations, some individual beetles in some pairs died before others within generations, and those pairs were therefore omitted from further egg counts. For this reason, within each generation, we first determined the maximum number of days at which the highest possible number of pairs were still laying eggs, and we then totaled number of eggs for each pair up to this day threshold. 
 
 ##### Summarize total fecundity data:
@@ -501,10 +503,10 @@ fecundity %>%
 
 These data are presented in Table 1b of the final ms.
 
-#### 2b: Summarize performance data.
+#### 2c: Summarize performance data.
 Here, we summarize all performance trait data (i.e., mobility, herbivory, and development) from the experiment.
 
-##### 2b.1. Summarize full performance data; run the Rmd chunk below.
+##### 2c.1. Summarize full performance data; run the Rmd chunk below.
 Here, we summarize all performance data to account for all samples assayed during the experiment.
 
 ##### Summarize all performance data:
@@ -559,7 +561,7 @@ performance %>%
 
 These data are presented in Table 1b of the final ms.
 
-##### 2b.2. Summarize mobility data; run the Rmd chunk below.
+##### 2c.2. Summarize mobility data; run the Rmd chunk below.
 Here, we summarize all mobility-related performance metrics as obtained from the software ToxTrac.
 
 ##### Summarize mobility data:
@@ -614,7 +616,7 @@ mobility %>%
 
 These data are presented in Table 1b of the final ms.
 
-##### 2b.3. Summarize herbivory data; run the Rmd chunk below.
+##### 2c.3. Summarize herbivory data; run the Rmd chunk below.
 Here, we summarize all herbivory-related performance metrics, including total leaf area consumed and percent leaf area consumed, as obtained from the software LeafByte
 
 ##### Summarize herbivory data:
@@ -669,10 +671,10 @@ herbivory %>%
 
 These data are presented in Table 1c of the final ms.
 
-##### 2b.4. Summarize development data.
+##### 2c.4. Summarize development data.
 Here, we summarize all development-related performance metrics, including time to pupation, duration of pupation, pupal mass, and adult mass. Because these metrics were all dependent on whether individuals survived all the way through adult emergence, there are different numbers of missing data points for each metric. To summarize and enumerate data for each metric, we first isolate each metric individually into their own datasets, remove NAs from those data, and calculate according to the remaining points. 
 
-##### 2b.4.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below.
+##### 2c.4.1. Isolate individual metrics of interest and save for downstream analyses; run the Rmd chunk below.
 Here, we isolate each metric individually and save for downstream analysis of development (see Analysis 6: Development analysis; `06_development_analysis/cpb_phenotype_development_analysis.Rmd`). We also calculate raw data for time metrics (time to pupation and pupation duration). We calculate time to pupation as the number of days between the date of the assay for an individual larva (instar-3) and the date of complete pupa formation. We calculate duration of pupation as the time between the date of full pupa formation and the date of full adult eclosure (i.e., emergence). All Rda objects are saved to the `/data` directory in Analysis 6.
 
 ##### Isolate and calculate raw metrics:
@@ -715,7 +717,7 @@ save(pupa_mass, file = "../06_development_analysis/data/pupa_mass.Rda")
 save(adult_mass, file = "../06_development_analysis/data/adult_mass.Rda")
 ```
 
-##### 2b.4.2. Summarize time to pupation data; run the Rmd chunk below.
+##### 2c.4.2. Summarize time to pupation data; run the Rmd chunk below.
 Here, we summarize data for time to pupation. These data include date of assay start and date of pupation; if a larva died before pupation and/or did not succesfully pupate, they were not included in this dataset. 
 
 ##### Summarize time to pupation data:
@@ -770,7 +772,7 @@ pupa_time %>%
 
 These data are presented in Table 1d of the final ms.
 
-##### 2b.4.3. Summarize pupation duration data; run the Rmd chunk below.
+##### 2c.4.3. Summarize pupation duration data; run the Rmd chunk below.
 Here, we summarize data for duration of pupation. These data include date of pupation AND date of emergence; if pupa died before emerging, they were not included in this dataset.
 
 ##### Summarize pupation duration data:
@@ -824,7 +826,7 @@ pupa_duration %>%
 
 These data are presented in Table 1d of the final ms.
 
-##### 2b.4.4. Summarize pupa mass data; run the Rmd chunk below.
+##### 2c.4.4. Summarize pupa mass data; run the Rmd chunk below.
 Here, we summarize data for pupa mass. These data include mass of pupae; if larvae died before pupation or did not successfully pupate, they were not included in this dataset.
 
 ##### Summarize pupa mass data:
@@ -879,7 +881,7 @@ b>Data summary:</b> <br>
 
 These data are presented in Table 1d of the final ms.
 
-##### 2b.4.5. Summarize adult mass data; run the Rmd chunk below.
+##### 2c.4.5. Summarize adult mass data; run the Rmd chunk below.
 Here, we summarize data for adult mass. These data include mass of adults upon emergence; if pupae died before emergence, they were not included in this dataset.
 
 ##### Summarize adult mass data:
@@ -934,7 +936,7 @@ adult_mass %>%
 
 These data are presented in Table 1d of the final ms.
 
-##### 2b.5. Summarize survival data; run the Rmd chunk below.
+##### 2c.5. Summarize survival data; run the Rmd chunk below.
 Here, we summarize survival, including the number of individuals across the entire dataset. 
 
 ##### Summarize survival data:
