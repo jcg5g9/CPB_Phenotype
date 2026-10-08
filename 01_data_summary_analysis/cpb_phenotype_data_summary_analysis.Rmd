@@ -64,7 +64,49 @@ metadata <- metadata %>%
 save(metadata, file = "data/metadata.Rda")
 ```
 
-#### 1b: Read in and clean fecundity data; run the Rmd chunk below.
+#### 1b: Read in and clean dosing data; run the Rmd chunk below.
+In this step, we read in and clean the full dosing dataset (`../raw_data/dosing_data.xlsx`) for mated pair beetles. <br>
+
+Dosing data include: <br>
+
+   1. <b>"date"</b>: date on which larvae were collected and given the parental (background) treatment dose
+   2. <b>"time"</b>: time of day at which larvae were collected and given the parental (background) treatment dose
+   3. <b>"doser"</b>: name of person that performed experimental treatment dosing
+   4. <b>"observer"</b>: name of person who observed survival status following experimental dosing
+   5. <b>"assayed"</b>: "yes/no" identifier indicating whether the treated beetles were ("yes") or were not ("no") sampled for phenotyping
+   6. <b>"assay_date"</b>: date on which assayed beetles ("yes" in column 5) were sampled for phenotyping
+   7. <b>"plate"</b>: plate in which the beetle was given the corresponding treatment and/or assayed (plate numbers are repeated for beetles that were assayed, i.e., "yes" in column 5, because they were not included for experiment maintenance)
+   8. <b>"well"</b>: well of the plate (see column 7) in which the beetle was given the corresponding treatment
+   9. <b>"lineage"</b>: lineage (i.e., L1-L12) to which the larva belongs
+   10. <b>"larval_generation"</b>: generation of mated pair offspring, i.e., "F0", "F1", "F2", "F3", and "F4", to which the larvae belong (all "F0" in this case)
+   11. <b>"ind_number"</b>: numerical identifier for the individual beetle within each larval generation
+   12. <b>"background"</b>: background exposure of the F0 generation ("C", i.e., control [no insecticide exposure], or "E", i.e., exposed [exposure to 10-ppm aqueous imidacloprid]).
+   13. <b>"dose"</b>: the imidacloprid dose (ppm) given ("0", i.e., 0-ppm control, or "10", i.e., 10-ppm exposure)
+   14. <b>"status"</b>: indication of whether the beetle survived (i.e., "1") or died (i.e., "0") following experimental treatment dosing <br>
+
+##### Read in and clean dosing data:
+```{r}
+# read in dosing data 
+dose <- read_excel("../raw_data/dosing_data.xlsx")
+
+# convert characters to factors in metadata
+dose <- dose %>%
+  mutate(doser = factor(doser),
+         observer = factor(observer),
+         assayed = factor(assayed),
+         plate = factor(plate),
+         well = factor(well),
+         lineage = factor(lineage),
+         larval_generation = factor(larval_generation),
+         ind_number = factor(ind_number),
+         background = factor(background),
+         dose = factor(dose))
+
+# save dosing data for downstream analyses
+save(dose, file = "data/dose.Rda")
+```
+
+#### 1c: Read in and clean fecundity data; run the Rmd chunk below.
 In this step, we read in and clean the full fecundity dataset (`../raw_data/fecundity_data.xlsx`) and parental mass dataset (`../raw_data/mass_data.xlsx`) for mated pair beetles and merge the datasets. We omit all fecundity data from the founder generation ('FNDR') from downstream statistical analyses. <br>
 
 Fecundity data (type "mated_pair", see metadata info in Step 1a above) include: <br>
@@ -144,7 +186,7 @@ fecundity <- mass %>%
 save(fecundity, file = "../03_fecundity_analysis/data/fecundity.Rda")
 ```
 
-#### 1c: Read in, clean, and separate performance data into different performance metrics of interest.
+#### 1d: Read in, clean, and separate performance data into different performance metrics of interest.
 In this step, we read in and clean the full performance dataset (`../raw_data/performance_data.xlsx`). We then merge the performance data with sample metadata and separate into distinct datasets for each performance metric of interest. Data (type "assayed", see metadata info in Step 1a above) include: <br>
 
    1. <b>"ind_id"</b>: a unique, alphanumeric ID for each individual beetle used in the study
@@ -177,7 +219,7 @@ In this step, we read in and clean the full performance dataset (`../raw_data/pe
    
 The dataset is then saved to the this analysis directory for downstream data summary and ennumeration.
 
-##### 1c.1. Read in and clean full performance data; run the Rmd chunk below.
+##### 1d.1. Read in and clean full performance data; run the Rmd chunk below.
 In this step, we clean the full performance data.
 
 ##### Read in and clean full performance data:
@@ -215,7 +257,7 @@ performance <- metadata %>%
 save(performance, file = "data/performance.Rda")
 ```
 
-##### 1c.2. Isolate, filter, and clean larval mobility metrics from performance data; run the Rmd chunk below.
+##### 1d.2. Isolate, filter, and clean larval mobility metrics from performance data; run the Rmd chunk below.
 In this step, we get only larval mobility metrics of interest (i.e., total distance walked, average walking rate, and average walking acceleration) and filter and clean the mobility dataset. Additionally, we generate a new variable (additional column) in the dataset (i.e., "moved") to represent whether a larva moved at all (i.e., if total distance was non-zero and therefore the larva moved, the individual was assigned a value of "1"; if total distance was zero and therefore the larva did not move, the individual was assigned a value "0"). The dataset is then saved to the corresponding analysis directory (`04_mobility_analysis`).
 
 ##### Isolate, filter and clean mobility metrics: 
@@ -233,7 +275,7 @@ mobility <- performance %>%
 save(mobility, file = "../04_mobility_analysis/data/mobility.Rda")
 ```
 
-##### 1c.3. Isolate, filter, and clean larval herbivory metrics from performance data; run the Rmd chunk below.
+##### 1d.3. Isolate, filter, and clean larval herbivory metrics from performance data; run the Rmd chunk below.
 In this step, we get only the larval herbivory metric of interest (i.e., total leaf tissue consumed) and filter and clean the herbivory dataset. Additionally, we generate a new variable (additional column) in the dataset (i.e., "consumed") to represent whether any leaf tissue was consumed at all by a beetle (i.e., if leaf area consumed was non-zero and therefore some tissue was eaten, the individual was assigned a value of "1"; if leaf area consumed was zero and therefore no tissue was eaten, the individual was assigned a value "0"). The dataset is then saved to the corresponding analysis directory (`05_herbivory_analysis`).
 
 ##### Isolate, filter and clean herbivory metrics: 
@@ -251,7 +293,7 @@ herbivory <- performance %>%
 save(herbivory, file = "../05_herbivory_analysis/data/herbivory.Rda")
 ```
 
-##### 1c.3. Isolate, filter, and clean larval development metrics from performance data; run the Rmd chunk below.
+##### 1d.4. Isolate, filter, and clean larval development metrics from performance data; run the Rmd chunk below.
 In this step, we get only larval development metrics of interest (i.e., time to pupation, time from pupae to adult emergence, pupal mass, and adult mass) and filter and clean the development dataset. The dataset is then saved to the corresponding analysis directory (`06_development_analysis`).
 
 ##### Isolate, filter and clean development metrics: 
@@ -267,7 +309,7 @@ development <- performance %>%
 save(development, file = "../06_development_analysis/data/development.Rda")
 ```
 
-##### 1c.4. Isolate, filter, and clean survival data from performance data; run the Rmd chunk below.
+##### 1d.5. Isolate, filter, and clean survival data from performance data; run the Rmd chunk below.
 In this step, we get only survival-related data from the development dataset and filter and clean the surival dataset. The dataset is then saved to the corresponding analysis directory (`06_development_analysis`).
 
 ##### Isolate, filter and clean development metrics: 
@@ -284,8 +326,66 @@ survival <- performance %>%
 save(survival, file = "../07_survival_analysis/data/survival.Rda")
 ```
 
-### STEP 2: Enumerate and summarize data from each dataset: adult fecundity (daily fecundity and total fecundity) and performance (herbivory, mobility, development, and survival)
+### STEP 2: Enumerate and summarize data from each dataset: dosing (number of individuals dosed in the F0 generation), adult fecundity (daily fecundity and total fecundity) and performance (herbivory, mobility, development, and survival)
 In this step, we summarize sample sizes and number of data points for each dataset, including two fecundity metrics (i.e., daily fecundity and truncated total fecundity), and four larval performance metrics: herbivory, mobility, development, and survival. We report all summary data here and in the final ms.
+
+#### 2a: Summarize dosing data.
+Here, we summarize data for the original experimental dosing (i.e., metadata for each larval offspring individual from each original founder mated pair lineage that were given each experimental treatment, control or exposed).
+
+##### Summarize dosing data:
+```{r}
+# load dosing data
+load("data/dose.Rda")
+
+# get total number of dosed larvae
+dose %>%
+  filter(assayed == "No") %>%
+  count()
+
+# get number of dosed larvae by background treatment
+dose %>%
+  filter(assayed == "No") %>%
+  group_by(background) %>%
+  count()
+
+# get number of dosed larvae by lineage
+dose %>%
+  filter(assayed == "No") %>%
+  group_by(lineage) %>%
+  count()
+
+# get number of dosed larvae by lineage and background treatment
+dose %>%
+  filter(assayed == "No") %>%
+  group_by(lineage, background) %>%
+  count()
+
+dose %>%
+  filter(assayed == "No") %>%
+  group_by(lineage, background) %>%
+  summarize(treated = n(),
+            survived = sum(status),
+            died = treated-survived,
+            prop_died = died/treated)
+
+dose %>%
+  filter(assayed == "No") %>%
+  group_by(background) %>%
+  summarize(treated = n(),
+            survived = sum(status),
+            died = treated-survived)
+```
+
+<b>Data summary:</b> <br>
+
+<b>Total sample size:</b><br>
+<b><i>N</i><sub>data</sub> = 67 </b><br>
+
+<b>Sample size per generation:</b><br>
+<b><i>N</i><sub>F0</sub> = 18 </b><br>
+<b><i>N</i><sub>F1</sub> = 17 </b><br>
+<b><i>N</i><sub>F2</sub> = 17 </b><br>
+<b><i>N</i><sub>F3</sub> = 15 </b><br>
 
 #### 2a: Summarize fecundity data.
 Here, we summarize data for fecundity metrics, daily fecundity (i.e., average egg count per day) and truncated total fecundity (i.e., average total egg count over an equivalent number of days in early life). For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate truncated average total fecundity (number of eggs laid across a mated pair lineage's "lifetime", or a pre-determined number of days after the first day of oviposition) within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.

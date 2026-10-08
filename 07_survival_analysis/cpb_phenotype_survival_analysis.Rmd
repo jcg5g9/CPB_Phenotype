@@ -22,9 +22,10 @@ library(cowplot)
 library(readxl)
 library(writexl)
 library(lme4)
-#library(forcats)
+library(forcats)
 library(patchwork)
 library(emmeans)
+library(car)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
@@ -57,7 +58,7 @@ In this phase of the analysis, we assess differences in survival (i.e., whether 
 #### 1a: Run two-factor general linear mixed effect interaction models assuming a binomial distribution to test the relative effects of background and treatment of insecticide stress on survival; run the Rmd chunk below.
 In this step, we run general linear mixed effect interaction regression with survival as a response, interacting fixed effects of background and treatment, and lineage as a random effect. We assume an underlying binomial distribution for the data given the binary response.
 
-##### Run linear mixed effect interaction models for pupa mass:
+##### Run linear mixed effect interaction models for survival:
 ```{r}
 # load survival data
 load("data/survival.Rda")
