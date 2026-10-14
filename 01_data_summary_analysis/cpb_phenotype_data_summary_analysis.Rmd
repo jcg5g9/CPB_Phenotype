@@ -154,8 +154,7 @@ fecundity <- fecundity %>%
          adult_generation = factor(adult_generation),
          lineage = factor(lineage),
          background = factor(background),
-         status = factor(status)) %>% 
-  filter(adult_generation != "FNDR")
+         status = factor(status))
 
 # convert characters to factors in mass data (and omit notebook data since those are different data and are not shared between the two datasets)
 mass <- mass %>%
@@ -166,8 +165,7 @@ mass <- mass %>%
          temp_label = factor(temp_label),
          pair_id = factor(pair_id),
          sex = factor(sex),
-         designation = factor(designation)) %>%
-  filter(adult_generation != "FNDR")
+         designation = factor(designation))
 
 # spread mass dataset by sex
 mass <- mass %>%
@@ -375,7 +373,8 @@ dose %>%
   group_by(background) %>%
   summarize(treated = n(),
             survived = sum(status),
-            died = treated-survived)
+            died = treated-survived,
+            prop_died = died/treated)
 ```
 
 <b>Data summary:</b> <br>
@@ -427,7 +426,7 @@ dose %>%
 <b><i>N</i><sub>12C</sub> = 32 </b><br>
 <b><i>N</i><sub>12E</sub> = 32 </b><br>
 
-
+These data are presented in Supplementary Table 1 of the final ms.
 
 #### 2b: Summarize fecundity data.
 Here, we summarize data for fecundity metrics, daily fecundity (i.e., average egg count per day) and truncated total fecundity (i.e., average total egg count over an equivalent number of days in early life). For this dataset, we recorded the number of eggs laid per day for each treatment within lineage for each generation (F0-F3). Thus, the level of replication for each treatment is lineage (i.e., with 12 lineages, there would be 12 replicates per treatment, per generation). In this step of the analysis, we first calculate average number of eggs per day within each treatment and lineage and across generations. We then calculate truncated average total fecundity (number of eggs laid across a mated pair lineage's "lifetime", or a pre-determined number of days after the first day of oviposition) within each treatment and lineage and across generations. We finally summarize sample sizes based on the number of replicate lineages represented.
@@ -440,8 +439,9 @@ Here, we summarize daily data.
 # load fecundity data
 load("../03_fecundity_analysis/data/fecundity.Rda")
 
-# calculate average eggs per day for each background, lineage, and generation and make new dataframe
+# calculate average eggs per day for each background, lineage, and generation (excluding founders) and make new dataframe
 fecundity <- fecundity %>%
+  filter(adult_generation != "FNDR") %>%
   group_by(adult_generation, lineage, background) %>%
   summarize(average_number_eggs = mean(number_eggs)) %>%
   as.data.frame()
@@ -567,6 +567,11 @@ performance %>%
 performance %>%
   group_by(larval_generation, background, treatment) %>%
   count()
+
+# get number of performance assay data points by background, treatment, and lineage in each larval generation
+performance %>%
+  group_by(lineage, background, treatment, larval_generation) %>%
+  count()
 ```
 
 <b>Data summary:</b> <br>
@@ -599,7 +604,7 @@ performance %>%
 <b><i>N</i><sub>F3_E_N</sub> = 18 </b><br>
 <b><i>N</i><sub>F3_E_R</sub> = 23 </b><br>
 
-These data are presented in Table 1b of the final ms.
+These data are presented in Table 1b of the final ms. Additionally, we provide the exact number of replicates per treatment group within each original founder lineage in Supplementary Table 2. of the final ms.
 
 ##### 2c.2. Summarize mobility data; run the Rmd chunk below.
 Here, we summarize all mobility-related performance metrics as obtained from the software ToxTrac.

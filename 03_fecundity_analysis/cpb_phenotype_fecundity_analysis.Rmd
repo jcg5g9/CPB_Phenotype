@@ -31,15 +31,35 @@ library(forcats)
 library(car)
 library(NBZIMM)
 library(stringr)
+library(viridis)
 ```
 
 ## PHASE 1: DATA SUMMARY STATISTICS
 In this phase of the analysis, we calculate mean, standard deviation, and variance for average fecundity within experimental groups of interest. 
 
 ### STEP 1: Calculate summary statistics for fecundity data.
-In this step, we calculate mean, standard deviation, and variance for average fecundity for all experimental groups.
+In this step, we calculate mean, standard deviation, and variance for average fecundity for all experimental groups that contain egg data (i.e., excluding offspring performance treatment groups).
 
-#### 1a: Calculate summary statistics for average daily fecundity; run the Rmd chunk below.
+#### 1a: Calculate summary statistics for total daily fecundity for founder mated pairs only; run the Rmd chunk below.
+Here, we calculate mean, standard deviation, and variance for total and average daily fecundity of founder mated pairs (i.e., average number of eggs per day across lineages).
+
+##### Calculate summary statistics for average daily founder mated pair fecundity data:
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get time since first oviposition (tsfo) and total number of eggs (sum) laid by founders (FNDR)  
+founders <- fecundity %>%
+  filter(adult_generation == "FNDR") %>%
+  drop_na() %>%
+  group_by(lineage) %>% 
+  summarize(tsfo = n(),
+            sum = sum(number_eggs))
+```
+
+These data are presented in Table 1 of the final ms.
+
+#### 1b: Calculate summary statistics for average daily fecundity; run the Rmd chunk below.
 Here, we calculate mean, standard deviation, and variance for average daily fecundity (i.e., average number of eggs per day across lineages).
 
 ##### Calculate summary statistics for average daily fecundity data:
@@ -58,9 +78,9 @@ fecundity %>%
             se = sd/sqrt(n()))
 ```
 
-These data are presented in Table 1 of the final ms.
+These data are presented in Supplementary Table 1 of the final ms.
 
-#### 1b: Calculate summary statistics for average total fecundity; run the Rmd chunk below.
+#### 1c: Calculate summary statistics for average total fecundity; run the Rmd chunk below.
 Here, we calculate mean, standard deviation, and variance for average total fecundity (i.e., average lifetime fecundity across lineages).
 
 ##### Calculate summary statistics for average total fecundity data:
@@ -85,7 +105,7 @@ fecundity %>%
 
 These data are presented in Table 1 of the final ms.
 
-#### 1c: Calculate summary statistics for time to and time since first oviposition; run the Rmd chunk below.
+#### 1d: Calculate summary statistics for time since first oviposition (tsfo); run the Rmd chunk below.
 Here, we determine number of days since first oviposition for each generation, background, and lineage to plot differences in amount of time laying eggs.
 
 ##### Calculate summary statistics for longevity data:
@@ -96,10 +116,10 @@ load("data/fecundity.Rda")
 # get number of days of egg laying since first oviposition for each generation, background, and lineage 
 fecundity %>%
   group_by(adult_generation, lineage, background) %>%
-  count()
+  summarize(tsfo = n())
 ```
 
-These data are presented in Figure SXXX of the final ms.
+These data are presented in Supplementary Figure 8 of the final ms.
 
 ### STEP 2: Test for correlation between adult mass and fecundity.
 In this step, we determine whether there is a significant correlation between adult mass and fecundity (i.e., number of eggs laid) to see if we may need to account for mass in our model of fecundity. We might expect mass to be positively correlated with number of eggs due to greater potential for allocation of resources to reproduction in larger individuals. If a significant correlation exists between adult mass and average daily fecundity, we will need to account for it in our downstream models. First, we determine whether mass data are fitted to a normal distribution. Next, we assess the correlation between mass and mean daily fecundity based on the appropriate underlying distribution.
@@ -309,13 +329,63 @@ f_plot + m_plot + plot_layout(nrow = 1, ncol = 2)
 dev.off()
 ```
 
+This figure is presented as Supplementary Figure 2 in the final ms.
+
+### ------------------- END OF PHASE 1: DATA SUMMARY STATISTICS ------------------- ### 
+
 ## PHASE 2: FECUNDITY ANALYSIS
 In this phase of the analysis, we assess differences in fecundity (i.e., average number of eggs laid per day) background exposure statuses across generations, accounting for variation in lineages as a random effect in a general linear mixed-effect model framework. 
 
-### STEP 1: Analyze differences in fecundity trends across days since oviposition between control and exposed beetles in each generation.
-In this step of the analyze, we assess holistic differences in daily fecundity (i.e., differences in trends in number of eggs laid since first oviposition) between control and exposed beetles in each generation.
+### STEP 1: Visualize number of eggs per day laid by founder lineage mated pairs; run the Rmd chunk below.
+In this step of the analysis, we visualize number of eggs laid per day by each founder lineage before mated pair mortality. 
 
-#### 1a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+##### Plot daily fecundity for founders: 1) `figures/daily_founder_fecundity.pdf`
+```{r}
+# load fecundity data
+load("data/fecundity.Rda")
+
+# get time since first oviposition (tsfo) and total number of eggs (sum) laid by founders (FNDR)  
+founders <- fecundity %>%
+  filter(adult_generation == "FNDR") %>%
+  drop_na()
+
+# plot daily fecundity data
+jpeg("figures/daily_founder_fecundity.jpeg", width = 7000, height = 4000, res = 500)
+
+ggplot(founders, aes(x = days_since_oviposition, y = number_eggs)) +
+  geom_line(aes(x = days_since_oviposition, y = number_eggs, color = lineage), 
+            position = position_dodge(width = 0.5), 
+            linewidth = 2, 
+            show.legend = F) +
+  geom_point(aes(x = days_since_oviposition, y = number_eggs, group = lineage, fill = lineage), 
+             position = position_dodge(width = 0.5), 
+             size = 5, 
+             pch = 22, 
+             stroke = 2, 
+             color = "black", 
+             show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 28, by = 2), 
+                     limits = c(-0.2,28)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 100, by = 20),
+                     limits = c(0,100)) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  theme(axis.title.x = element_text(vjust = -0.5)) +
+  labs(x = "Time since first oviposition (days)", y = str_wrap("Daily fecundity", width = 10)) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+dev.off()
+```
+
+This figure was not used in the final ms.
+
+### STEP 2: Analyze differences in fecundity trends across days since oviposition between control and exposed beetles in each generation.
+In this step of the analysis, we assess holistic differences in daily fecundity (i.e., differences in trends in number of eggs laid since first oviposition) between control and exposed beetles in each generation.
+
+#### 2a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether daily fecundity data in each group of interest (generation and background treatment) deviates from a normal distribution.
 
 ##### Test fit of normality:
@@ -348,10 +418,10 @@ fecundity %>%
 
 Since 8/8 tests indicate a deviation from a normal distribution, we test the fit of multiple alternative distributions to determine whether there is consistent best-fitting distribution for the data across groups of interest. 
 
-#### 1b: Test fit of empirical data to alternative distributions.
+#### 2b: Test fit of empirical data to alternative distributions.
 In this step, we plot the raw data distribution and test the fit of four potential distributions that commonly underlie count data (i.e., poisson, binomial, and negative binomial distributions, and determine the best fitting distribution for each group of interest.
 
-##### 1b.1. Test fit of empirical data to alternative distributions; run the Rmd chunk below.
+##### 2b.1. Test fit of empirical data to alternative distributions; run the Rmd chunk below.
 
 ##### Test fit of alternative distributions:
 ```{r}
@@ -489,7 +559,7 @@ The data in all groups were best fit to a negative binomial distribution. The be
 
 These data are presented as Table XXX in the final ms.
 
-##### 1b.2. Plot empirical data distribution; run the Rmd chunk below.
+##### 2b.2. Plot empirical data distribution; run the Rmd chunk below.
 
 ##### Plot empirical data distribution for fecundity walked: `figures/distribution.jpeg`
 ```{r}
@@ -520,9 +590,9 @@ ggplot(fecundity, aes(x = number_eggs)) +
 dev.off()
 ```
 
-This figure is presented as Figure XXX in the final ms.
+This figure is presented as Supplementary Figure 3 in the final ms.
 
-#### 1a: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
+#### 2c: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
 
 ##### Run general linear mixed effect autocorrelation model for each generation:
 ```{r}
@@ -603,7 +673,7 @@ Background: t = -0.420602; p = 0.6809; d.f. = 13 <br>
 
 These data are presented in Table 2a of the final ms.
 
-#### 1b: Plot daily fecundity for each generation; run the Rmd chunk below.
+#### 2d: Plot daily fecundity for each generation; run the Rmd chunk below.
 
 ##### Plot daily fecundity: 1) `figures/daily_fecundity_means.pdf`
 ```{r}
@@ -778,15 +848,19 @@ f3_daily_plot <- ggplot(f3_daily, aes(x = days_since_oviposition, y = mean)) +
 # plot average daily fecundity
 jpeg("figures/daily_fecundity_means.jpeg", width = 22000, height = 30000, res = 1700)
 
-f0_daily_plot + f1_daily_plot + f2_daily_plot + f3_daily_plot + plot_layout(nrow = 4, ncol = 1)
+f0_daily_plot + 
+  f1_daily_plot + 
+  f2_daily_plot + 
+  f3_daily_plot + 
+  plot_layout(nrow = 4, ncol = 1)
 
 dev.off()
 ```
 
-### STEP 2: Analyze differences in total (lifetime) fecundity between control and exposed beetles in each generation.
+### STEP 3: Analyze differences in total (lifetime) fecundity between control and exposed beetles in each generation.
 In this step of the analyze, we assess holistic differences in total "lifetime" fecundity (i.e., the sum of all eggs laid across days since oviposition) between control and exposed beetles in each generation.
 
-#### 2a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
+#### 3a: Test fit of empirical data to a normal distribution; run the Rmd chunk below.
 In this step, we use the shapiro-wilk test to assess whether total fecundity data in each group of interest (generation and background treatment) deviates from a normal distribution.
 
 ##### Test fit of normality:
@@ -828,7 +902,7 @@ fecundity %>%
 
 Since 0/8 tests indicate a deviation from a normal distribution, we assume these data are best fit by a normal distribution for the data across groups of interest. 
 
-#### 2b: Plot empirical data distribution; run the Rmd chunk below.
+#### 3b: Plot empirical data distribution; run the Rmd chunk below.
 
 ##### Plot empirical data distribution for total fecundity: `figures/total_fecundity_distribution.jpeg`
 ```{r}
@@ -870,7 +944,7 @@ dev.off()
 
 This figure is presented as Figure XXX in the final ms.
 
-#### 2c: #### 1a: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
+#### 3c: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
 In this step, we run linear mixed effect models to assess the effect of background treatment on total fecundity, with lineage as a random effect.
 
 ##### Run linear mixed effect models for total fecundity:
@@ -961,7 +1035,7 @@ d.f. = 10 <br>
 
 These data are presented in Table XXX of the final ms.
 
-#### 2d: Plot total fecundity for each generation; run the Rmd chunk below.
+#### 3d: Plot total fecundity for each generation; run the Rmd chunk below.
 
 ##### Plot total fecundity: 1) `figures/total_fecundity_means.pdf`
 ```{r}
@@ -1109,7 +1183,13 @@ f3_total_plot <-ggplot(f3_total, aes(x = background, y = mean)) +
 # plot average daily fecundity
 jpeg("figures/total_fecundity_means.jpeg", width = 10000, height = 30000, res = 1700)
 
-f0_total_plot + f1_total_plot + f2_total_plot + f3_total_plot + plot_layout(nrow = 4, ncol = 1)
+f0_total_plot + 
+  f1_total_plot + 
+  f2_total_plot + 
+  f3_total_plot + 
+  plot_layout(nrow = 4, ncol = 1)
 
 dev.off()
 ```
+
+### ------------------- END OF PHASE 2: FECUNDITY ANALYSIS------------------- ### 
