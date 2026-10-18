@@ -222,10 +222,15 @@ mean_plot <- ggplot(fecundity, aes(x = mean)) +
 # plot mass distributions together
 jpeg("figures/mass_fecundity_distributions.jpeg", width = 14000, height = 4000, res = 700)
 
-f_plot + m_plot + mean_plot + plot_layout(nrow = 1, ncol = 3)
+f_plot + 
+  m_plot + 
+  mean_plot + 
+  plot_layout(nrow = 1, ncol = 3)
 
 dev.off()
 ```
+
+These data were not presented in the final ms.
 
 #### 2b: Test correlation of mass and fecundity.
 
@@ -239,16 +244,17 @@ load("data/fecundity.Rda")
 
 # get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
 fecundity <- fecundity %>%
+  filter(adult_generation != "FNDR") %>%
   group_by(adult_generation, background, `F`, M) %>%
   summarize(mean = mean(number_eggs)) %>%
   drop_na()
 
 # test for correlation between mean fecundity and male mass
-f_mean <- lmer(mean ~ `F` + (1|background) + (1|adult_generation),
+f_mean <- lmer(mean ~ `F` + background + (1|adult_generation),
                data = fecundity)
 
 # test for correlation between mean fecundity and male mass
-m_mean <- lmer(mean ~ M + (1|background) + (1|adult_generation),
+m_mean <- lmer(mean ~ M + background + (1|adult_generation),
                data = fecundity)
 
 # summarize model results for fecundity and female mass
@@ -281,6 +287,7 @@ load("data/fecundity.Rda")
 
 # get female (F) and male (M) mass data alongside mean number of eggs for each mated pair
 fecundity <- fecundity %>%
+  filter(adult_generation != "FNDR") %>%
   group_by(adult_generation, background, `F`, M) %>%
   summarize(mean = mean(number_eggs)) %>%
   drop_na()
@@ -321,10 +328,54 @@ m_plot <- ggplot(fecundity, aes(x = M, y = mean)) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
   theme(plot.margin = margin(20,20,20,20))
 
-# plot all mass and fecundity correlations all together
-jpeg("figures/mass_fecundity_correlation.jpeg", width = 20000, height = 8000, res = 1500)
+# plot female mass and fecundity plot by background treatment
+f_background_plot <- ggplot(fecundity, aes(x = `F`, y = mean, group = background, fill = background)) + 
+  geom_smooth(aes(color = background), method = "lm", show.legend = F, se = T, fullrange = T) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 30),
+                    limits = c(0,180),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_text(vjust = +3)) + 
+  labs(x = "Female mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
 
-f_plot + m_plot + plot_layout(nrow = 1, ncol = 2)
+# plot male mass and fecundity plot by background treatment 
+m_background_plot <- ggplot(fecundity, aes(x = M, y = mean, group = background, fill = background)) + 
+  geom_smooth(aes(color = background), method = "lm", show.legend = F, se = T, fullrange = T) +
+  geom_point(aes(fill = background), show.legend = F, size = 4, pch = 21, color = "black") + 
+  theme_set(theme_cowplot(12)) +
+  scale_x_continuous(breaks = seq(from = 0, to = 180, by = 30),
+                    limits = c(0,180),
+                    expand = c(0,0)) + 
+  scale_y_continuous(breaks = seq(from = 0, to = 60, by = 10),
+                    limits = c(0,60),
+                    expand = c(0,0)) +
+  scale_color_manual(values = c("deepskyblue2", "firebrick3")) +
+  scale_fill_manual(values = c("deepskyblue2", "firebrick3")) +
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30, hjust = 0.5)) + 
+  theme(axis.title.y = element_blank()) + 
+  labs(x = "Male mass (mg)", y = "Mean fecundity") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 2)) +
+  theme(plot.margin = margin(20,20,20,20))
+
+# plot all mass and fecundity correlations all together
+jpeg("figures/mass_fecundity_correlation.jpeg", width = 20000, height = 16000, res = 1500)
+
+f_plot + 
+  m_plot + 
+  f_background_plot + 
+  m_background_plot +
+  plot_layout(nrow = 2, ncol = 2)
 
 dev.off()
 ```
@@ -557,7 +608,7 @@ gofstat(list(unif,
 
 The data in all groups were best fit to a negative binomial distribution. The best fitting distribution to the global dataset across groups is also the negative binomial distribution. We opted to assume a negative binomial distribution in all general linear model analyses given the majority.
 
-These data are presented as Table XXX in the final ms.
+These data are presented in Supplementary Table 3 in the final ms.
 
 ##### 2b.2. Plot empirical data distribution; run the Rmd chunk below.
 
@@ -601,7 +652,7 @@ load("data/fecundity.Rda")
 
 # get data for lineage, generation, background, and days since oviposition only
 fecundity <- fecundity %>%
-  dplyr::select(lineage:pair_id, number_eggs, days_since_oviposition)
+  dplyr::select(lineage:pair_id, `F`, M, number_eggs, days_since_oviposition)
 
 # isolate only F0 data
 f0 <- fecundity %>%
@@ -620,25 +671,25 @@ f3 <- fecundity %>%
   filter(adult_generation == "F3")
 
 # Run general linear mixed effect model for F0
-f0_mod <- glmm.zinb(number_eggs ~ background,
+f0_mod <- glmm.zinb(number_eggs ~ background + M + `F`,
                     data = f0,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F1
-f1_mod <- glmm.zinb(number_eggs ~ background,
+f1_mod <- glmm.zinb(number_eggs ~ background + M + `F`,
                     data = f1,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F2
-f2_mod <- glmm.zinb(number_eggs ~ background,
+f2_mod <- glmm.zinb(number_eggs ~ background + M + `F`,
                     data = f2,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
 
 # Run general linear mixed effect model for F3
-f3_mod <- glmm.zinb(number_eggs ~ background,
+f3_mod <- glmm.zinb(number_eggs ~ background + M + `F`,
                     data = f3,
                     random = ~1|pair_id,
                     correlation = corAR1(form = ~ days_since_oviposition))
@@ -654,6 +705,45 @@ summary(f2_mod) # get all stats
 
 # summarize f3 model
 summary(f3_mod) # get all stats
+
+
+# Below, we run each of the tests including both male and female mass (M and F, respectrively) as fixed predictors. We hesitate to include these variables, because they substantially reduce degrees of freedom and are likely correlated with the random effect variable, which represents the lineage from which individuals were derived. 
+
+# Run general linear mixed effect model for F0
+f0_mod_ext <- glmm.zinb(number_eggs ~ background + M + `F`,
+                        data = f0,
+                        random = ~1|pair_id,
+                        correlation = corAR1(form = ~ days_since_oviposition))
+
+# Run general linear mixed effect model for F1
+f1_mod_ext <- glmm.zinb(number_eggs ~ background + M + `F`,
+                        data = f1,
+                        random = ~1|pair_id,
+                        correlation = corAR1(form = ~ days_since_oviposition))
+
+# Run general linear mixed effect model for F2
+f2_mod_ext <- glmm.zinb(number_eggs ~ background + M + `F`,
+                        data = f2,
+                        random = ~1|pair_id,
+                        correlation = corAR1(form = ~ days_since_oviposition))
+
+# Run general linear mixed effect model for F3
+f3_mod_ext <- glmm.zinb(number_eggs ~ background + M + `F`,
+                        data = f3,
+                        random = ~1|pair_id,
+                        correlation = corAR1(form = ~ days_since_oviposition))
+
+# summarize f0 model
+summary(f0_mod_ext) # get all stats
+
+# summarize f1 model
+summary(f1_mod_ext) # get all stats
+
+# summarize f2 model
+summary(f2_mod_ext) # get all stats
+
+# summarize f3 model
+summary(f3_mod_ext) # get all stats
 ```
 
 <b>Analysis results:</b> <br>
@@ -671,7 +761,7 @@ Background: t = 2.10271; p = 0.0528; d.f. = 15 <br>
 <b>F3</b>: <br>
 Background: t = -0.420602; p = 0.6809; d.f. = 13 <br>
 
-These data are presented in Table 2a of the final ms.
+These data are presented in Table 2 of the final ms.
 
 #### 2d: Plot daily fecundity for each generation; run the Rmd chunk below.
 
@@ -857,6 +947,8 @@ f0_daily_plot +
 dev.off()
 ```
 
+These data are presented in Figure 3 of the final ms.
+
 ### STEP 3: Analyze differences in total (lifetime) fecundity between control and exposed beetles in each generation.
 In this step of the analyze, we assess holistic differences in total "lifetime" fecundity (i.e., the sum of all eggs laid across days since oviposition) between control and exposed beetles in each generation.
 
@@ -942,9 +1034,9 @@ ggplot(fecundity, aes(x = total_number_eggs)) +
 dev.off()
 ```
 
-This figure is presented as Figure XXX in the final ms.
+This figure is presented as Supplementary Figure 1 in the final ms.
 
-#### 3c: Run general linear mixed effect autocorrelation model for each generation; run the Rmd chunk below.
+#### 3c: Run general linear mixed effect model for each generation; run the Rmd chunk below.
 In this step, we run linear mixed effect models to assess the effect of background treatment on total fecundity, with lineage as a random effect.
 
 ##### Run linear mixed effect models for total fecundity:
@@ -958,7 +1050,8 @@ fecundity <- fecundity %>%
   filter(pair_id != "L3_F1_E") %>%
   filter(pair_id != "L8_F2_E") %>%
   filter(pair_id != "L7_F3_C") %>%
-  group_by(adult_generation, lineage, background) %>%
+  group_by(adult_generation, lineage, background, `F`, M) %>%
+  drop_na() %>%
   summarize(total_number_eggs = sum(number_eggs))
 
 # isolate only F0 data
@@ -978,19 +1071,19 @@ f3 <- fecundity %>%
   filter(adult_generation == "F3")
 
 # f0 linear mixed effect model
-f0_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+f0_mod <- lmer(total_number_eggs ~ background + `F` + M + (1|lineage),
                data = f0)
 
 # f1 linear mixed effect model
-f1_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+f1_mod <- lmer(total_number_eggs ~ background + `F` + M + (1|lineage),
                data = f1)
 
 # f2 linear mixed effect model
-f2_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+f2_mod <- lmer(total_number_eggs ~ background + `F` + M + (1|lineage),
                data = f2)
 
 # f2 linear mixed effect model
-f3_mod <- lmer(total_number_eggs ~ background + (1|lineage),
+f3_mod <- lmer(total_number_eggs ~ background + `F` + M + (1|lineage),
                data = f3)
 
 # summarize f0 model
@@ -1033,7 +1126,7 @@ d.f. = 12 <br>
 Background: F = 5.0784; p = 0.02423 <br>
 d.f. = 10 <br>
 
-These data are presented in Table XXX of the final ms.
+These data are presented in Table 2 of the final ms.
 
 #### 3d: Plot total fecundity for each generation; run the Rmd chunk below.
 
@@ -1191,5 +1284,7 @@ f0_total_plot +
 
 dev.off()
 ```
+
+These data are presented in Figure 3 of the final ms.
 
 ### ------------------- END OF PHASE 2: FECUNDITY ANALYSIS------------------- ### 
